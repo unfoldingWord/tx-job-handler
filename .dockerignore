@@ -1,0 +1,14 @@
+tests/
+scripts/
+venv/
+
+*.bak
+
+test_requirements.txt
+
+Dockerfile
+.dockerignore
+
+.gitignore
+.travis.yml
+.coveragerc

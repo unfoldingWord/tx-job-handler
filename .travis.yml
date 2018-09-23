@@ -1,0 +1,64 @@
+# .travis.yml
+#
+# Requires the following environment variables to be set:
+#   QUEUE_PREFIX
+#   TX_DATABASE_PW
+#   AWS_ACCESS_KEY_ID
+#   ASW_SECRET_ACCESS_KEY
+##   DOCKER_USERNAME
+##   DOCKER_PASSWORD
+
+language: python
+# See available versions at https://docs.travis-ci.com/user/languages/python/
+python:
+  - '3.6'
+  - '3.7-dev'
+  - 'nightly'
+# NOTE: We only deploy on ONE of these tests being successful -- see condition below
+
+services:
+  - docker
+
+#before_install:
+  #- pip install awscli
+  #- scripts/travis_install_apex.sh
+
+install:
+  - pip3 install google-compute-engine
+  # Not totally sure why the above is required on Travis -- see https://github.com/GoogleCloudPlatform/compute-image-packages/issues/262
+  - pip3 install --requirement test_requirements.txt
+  - pip3 install coveralls
+
+# Run the tests first
+#  and if they succeed, make the docker image(s)
+#   (and check that both succeed)
+script:
+  - coverage run -m unittest discover -v -s tests/
+
+# Only execute the following instructions in the case of a success
+#  (failing at this point won't mark the build as a failure).
+# To have `DOCKER_USERNAME` and `DOCKER_PASSWORD` filled
+#  you need to either use `travis`' cli and then `travis set ..`
+#  or go to the travis page of your repository
+#  and then change the environment in the settings pannel.
+after_success:
+  - coveralls
+
+env:
+  global:
+    - PYTHONDONTWRITEBYTECODE=true
+
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: bash ./deploy.sh develop
+    on:
+      branch: develop
+      condition: $TRAVIS_PYTHON_VERSION == '3.6'
+  - provider: script
+    skip_cleanup: true
+    script: bash ./deploy.sh master
+    on:
+      branch: master
+      condition: $TRAVIS_PYTHON_VERSION == '3.6'
+

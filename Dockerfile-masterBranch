@@ -1,0 +1,30 @@
+# NOTE: This docker container is built automatically
+#       from Travis-CI after passing unit tests
+
+FROM python:alpine
+
+ADD . /code
+WORKDIR /code
+
+RUN pip3 install --requirement requirements.txt
+
+CMD [ "rq", "worker", "--config", "rq_settings", "--name", "D43_JobHandler" ]
+
+# Define environment variables
+# NOTE: The following environment variables are expected to be set:
+#	TX_DATABASE_PW
+#	AWS_ACCESS_KEY_ID
+#	AWS_SECRET_ACCESS_KEY
+#	REDIS_URL (can be omitted for testing to use a local instance)
+#	GRAPHITE_HOSTNAME (defaults to localhost if missing)
+# NOTE: The following environment variables are optional:
+#	DEBUG_MODE (can be set to any non-blank string to run in debug mode for testing)
+#	QUEUE_PREFIX (defaults to '', set to dev- for testing)
+
+
+# NOTE: To build use:
+#           docker build --file Dockerfile-masterBranch --tag unfoldingword/tx_job_handler:master .
+
+
+#       To run in production use with the desired values:
+#           docker run --env TX_DATABASE_PW=<tx_db_pw> --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --detach --rm tx_job_handler:master
