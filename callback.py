@@ -8,7 +8,7 @@
 import os
 #import shutil
 import tempfile
-import logging
+#import logging
 #import ssl
 #import urllib.request as urllib2
 from urllib import error as urllib_error
@@ -24,7 +24,7 @@ from rq import get_current_job
 from statsd import StatsClient # Graphite front-end
 
 # Local imports
-from rq_settings import prefix
+from rq_settings import prefix, debug_mode_flag
 from general_tools.file_utils import unzip, add_contents_to_zip, write_file, remove_tree
 from general_tools.url_utils import download_file
 from resource_container.ResourceContainer import RC
@@ -37,14 +37,14 @@ from global_settings.global_settings import GlobalSettings
 
 
 OUR_NAME = 'tX_callback_handler'
-
- # Enable DEBUG logging for dev- instances (but less logging for production)
-logging.basicConfig(level=logging.DEBUG if prefix else logging.ERROR)
-
 our_adjusted_name = prefix + OUR_NAME
+
 GlobalSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     GlobalSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
+
+# Enable DEBUG logging for dev- instances (but less logging for production)
+#GlobalSettings.logger.basicConfig(level=logging.DEBUG if prefix else logging.ERROR)
 
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
@@ -221,7 +221,7 @@ def process_callback(pc_prefix, queued_json_payload):
     The given payload will be appended to the 'failed' queue
         if an exception is thrown in this module.
     """
-    print(f"Processing {pc_prefix+' ' if pc_prefix else ''}callback: {queued_json_payload}")
+    GlobalSettings.logger.debug(f"Processing {pc_prefix+' ' if pc_prefix else ''}callback: {queued_json_payload}")
 
     ## Setup a temp folder to use
     #source_url_base = f'https://s3-{GlobalSettings.aws_region_name}.amazonaws.com/{GlobalSettings.pre_convert_bucket_name}'
@@ -393,7 +393,7 @@ def process_callback(pc_prefix, queued_json_payload):
         #response_json = response.read().decode()
         #print("response json", response_json)
     #except urllib_error.HTTPError as e:
-        #logging.error(f"tX POST request got {e}")
+        #GlobalSettings.logger.error(f"tX POST request got {e}")
 
     ## For now, we ignore the above
     ##   and just go ahead and process it the old way anyway so it keeps working
@@ -464,6 +464,7 @@ def job(queued_json_payload):
         but if the job throws an exception or times out (timeout specified in enqueue process)
             then the job gets added to the 'failed' queue.
     """
+    GlobalSettings.logger.info("TX-Job-Handler received a callback" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
     stats_client.incr('CallbacksStarted')
 

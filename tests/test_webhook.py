@@ -4,7 +4,7 @@ import json
 
 import sqlalchemy
 
-from rq_settings import prefix, queue_name
+from rq_settings import prefix, webhook_queue_name
 from webhook import job, GlobalSettings
 
 from rq import get_current_job
@@ -12,7 +12,7 @@ from rq import get_current_job
 def my_get_current_job():
     class Result:
         id = 12345
-        origin = queue_name
+        origin = webhook_queue_name
     return Result()
 
 class TestWebhook(TestCase):

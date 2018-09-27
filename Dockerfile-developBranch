@@ -8,9 +8,7 @@ WORKDIR /code
 
 RUN pip3 install --requirement requirements.txt
 
-# EXPOSE 6379
-
-CMD [ "rq", "worker", "--config", "rq_settings", "--name", "D43_Dev_JobHandler" ]
+CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_Dev_JobHandler" ]
 
 # Define environment variables
 # NOTE: The following environment variables are optional:

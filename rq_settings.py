@@ -18,9 +18,12 @@ prefix = getenv('QUEUE_PREFIX', '') # Gets (optional) QUEUE_PREFIX environment v
 webhook_queue_name = prefix + ENQUEUE_NAME
 #callback_queue_name = webhook_queue_name + CALLBACK_SUFFIX
 #QUEUES = [callback_queue_name, webhook_queue_name] # Callback (i.e., finishing off jobs) is higher priority
-QUEUES = [callback_queue_name]
+QUEUES = [webhook_queue_name]
 
 # If you're using Sentry to collect your runtime exceptions, you can use this
 # to configure RQ for it in a single step
 # The 'sync+' prefix is required for raven: https://github.com/nvie/rq/issues/350#issuecomment-43592410
 #SENTRY_DSN = 'sync+http://public:secret@example.com/1'
+
+# Our stuff
+debug_mode_flag = getenv('DEBUG_MODE', False)

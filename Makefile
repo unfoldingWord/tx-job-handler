@@ -51,13 +51,13 @@ info:
 runDev: checkEnvVariables
 	# This runs the rq job handler
 	#   which removes and then processes jobs from the local redis dev- queue
-	QUEUE_PREFIX="dev-" rq worker --config rq_settings --name D43_Dev_JobHandler
+	QUEUE_PREFIX="dev-" DEBUG_MODE="true" rq worker --config rq_settings --name tX_Dev_JobHandler
 
 run:
 	# This runs the rq job handler
 	#   which removes and then processes jobs from the production redis queue
 	# TODO: Can the AWS redis url go in here (i.e., is it public)?
-	REDIS_URL="dadada" rq worker --config rq_settings --name D43_JobHandler
+	REDIS_URL="dadada" rq worker --config rq_settings --name tX_JobHandler
 
 imageDev:
 	docker build --file Dockerfile-developBranch --tag unfoldingword/tx_job_handler:develop .
