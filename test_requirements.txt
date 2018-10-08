@@ -17,6 +17,9 @@ pymysql==0.8.1
 # boto3 is used by aws_tools
 boto3==1.7.55
 
+#gogs_client is used by gogs_tools
+gogs_client==1.0.6
+
 
 # FOR TESTING ONLY
 mock==2.0.0
