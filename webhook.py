@@ -17,7 +17,7 @@ from urllib.request import Request, urlopen
 import requests
 import json
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from time import time
 
 # Library (PyPi) imports
@@ -641,7 +641,12 @@ def process_job(pj_prefix, queued_json_payload):
     # Do the callback if requested
     if 'callback' in queued_json_payload:
         GlobalSettings.logger.debug(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']}")
+        # Copy the build log but convert times to strings
         callback_payload = build_log_json
+        for key,value in callback_payload.items():
+            if isinstance(value, (datetime, date)):
+                callback_payload[key] = value.strftime("%Y-%m-%dT%H:%M:%SZ")
+
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
         except requests.exceptions.ConnectionError as e:
@@ -658,8 +663,8 @@ def process_job(pj_prefix, queued_json_payload):
                 print("No valid response JSON found")
 
     #remove_tree(base_temp_dir_name)  # cleanup
-    print("process_job() is returning:", build_log_json)
-    return build_log_json
+    #print("process_job() is returning:", build_log_json)
+    #return build_log_json
 #end of process_job function
 
 
