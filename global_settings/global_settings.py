@@ -119,7 +119,7 @@ class GlobalSettings:
 
     # Logger
     logger = logging.getLogger()
-    setup_logger(logger, logging.DEBUG if os.getenv('DEBUG_MODE', '') else logging.ERROR)
+    setup_logger(logger, logging.DEBUG if os.getenv('DEBUG_MODE', '') else logging.INFO)
 
     def __init__(self, **kwargs):
         """
