@@ -38,7 +38,7 @@ from global_settings.global_settings import GlobalSettings
 
 
 OUR_NAME = 'tX_job_handler'
-our_adjusted_name = prefix + OUR_NAME
+our_adjusted_name = prefix + OUR_NAME # Used for statsd prefix
 
 GlobalSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
@@ -693,10 +693,10 @@ def job(queued_json_payload):
     #assert queue_prefix == prefix
     process_job(prefix, queued_json_payload)
 
-    elapsed_seconds = round(time() - start_time)
-    stats_client.gauge('JobTimeSeconds', elapsed_seconds)
+    elapsed_milliseconds = round((time() - start_time) * 1000)
+    stats_client.timing('JobTime', elapsed_milliseconds)
     stats_client.incr('JobsCompleted')
-    print(f"  Ok, job completed in {elapsed_seconds} seconds!")
+    GlobalSettings.logger.info(f"tX job handling completed in {elapsed_milliseconds:,} milliseconds!")
 # end of job function
 
 # end of webhook.py
