@@ -18,14 +18,13 @@ class LambdaHandler(object):
 
     def invoke(self, function_name, payload, asyncFlag=False):
         invocation_type = 'RequestResponse' if not asyncFlag else 'Event'
-        print('FUNCTIONNAME', repr(function_name))
-        print('InvocationType', repr(invocation_type))
-        print("PAYLOAD1", repr(payload))
-        print("PAYLOAD2", repr(json.dumps(payload)))
+        print(f"INVOKE LAMBDA FUNCTION: {function_name} {invocation_type}...")
+        #print("PAYLOAD1", repr(payload))
+        #print("PAYLOAD2", repr(json.dumps(payload)))
         payloadString = json.dumps(payload)
-        if not isinstance(payloadString,str): # Must be Python3 bytes
+        if not isinstance(payloadString,str): # then it must be Python3 bytes
             payloadString = payloadString.decode()
-        print("PAYLOAD3", repr(payloadString))
+        #print("PAYLOAD3", repr(payloadString))
         return self.client.invoke(
             FunctionName=function_name,
             InvocationType=invocation_type,

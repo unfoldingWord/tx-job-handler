@@ -35,6 +35,23 @@ from models.job import TxJob
 from models.module import TxModule
 from global_settings.global_settings import GlobalSettings
 
+from linters.markdown_linter import MarkdownLinter
+from linters.obs_linter import ObsLinter
+from linters.ta_linter import TaLinter
+from linters.tn_linter import TnLinter
+from linters.tq_linter import TqLinter
+from linters.tw_linter import TwLinter
+from linters.udb_linter import UdbLinter
+from linters.ulb_linter import UlbLinter
+from linters.usfm_linter import UsfmLinter
+LINTER_MAP = {'md':MarkdownLinter, 'obs':ObsLinter,
+              'ta':TaLinter, 'tn':TnLinter, 'tq':TqLinter, 'tw':TwLinter,
+              'udb':UdbLinter, 'ulb':UlbLinter,
+              'usfm':UsfmLinter}
+
+from converters.md2html_converter import Md2HtmlConverter
+from converters.usfm2html_converter import Usfm2HtmlConverter
+CONVERTER_MAP = {'md2html':Md2HtmlConverter, 'usfm2html':Usfm2HtmlConverter}
 
 
 OUR_NAME = 'tX_job_handler'
@@ -44,124 +61,155 @@ GlobalSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     GlobalSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
 
-# Enable DEBUG logging for dev- instances (but less logging for production)
-#GlobalSettings.logger.basicConfig(level=logging.DEBUG if prefix else logging.ERROR)
-
-
-CONVERTER_CALLBACK = f'{GlobalSettings.api_url}/client/callback/converter'
-LINTER_CALLBACK = f'{GlobalSettings.api_url}/client/callback/linter'
-
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
 graphite_url = os.getenv('GRAPHITE_HOSTNAME', 'localhost')
 stats_client = StatsClient(host=graphite_url, port=8125, prefix=our_adjusted_name)
 
 
-def send_request_to_converter(srtc_job, converter):
+def get_linter_module(glm_job):
     """
-    :param TxJob srtc_job:
-    :param TxModule converter:
-    :return bool:
+    :param dict glm_job:
+    :return TxModule:
     """
-    payload = {
-        'identifier': srtc_job.identifier,
-        'source_url': srtc_job.source,
-        'resource_id': srtc_job.resource_type,
-        'cdn_bucket': srtc_job.cdn_bucket,
-        'cdn_file': srtc_job.cdn_file,
-        'options': srtc_job.options,
-        'convert_callback': CONVERTER_CALLBACK
-    }
-    # NOTE: The returned result is not currently used
-    return send_payload_to_converter(payload, converter)
-# end of send_request_to_converter function
+    linters = TxModule.query().filter(TxModule.type == 'linter') \
+        .filter(TxModule.input_format.contains(glm_job['input_format']))
+    linter = linters.filter(TxModule.resource_types.contains(glm_job['resource_type'])).first()
+    if not linter:
+        linter = linters.filter(TxModule.resource_types.contains('other')).first()
+    return linter
+# end of get_linter_module function
 
 
-def send_payload_to_converter(payload, converter):
+def do_linting(param_dict, source_dir, linter_name):
     """
-    :param dict payload:
-    :param TxModule converter:
-    :return bool:
+    :param dict param_dict: Will be updated!
+    :param str linter_name:
     """
-    # TODO: Make this use urllib2 to make a async POST to the API. Currently invokes Lambda directly XXXXXXXXXXXXXXXXX
-    payload = {
-        'data': payload,
-        'vars': {
-            'prefix': GlobalSettings.prefix
-        }
-    }
-    converter_name = converter.name
-    if not isinstance(converter_name, str): # bytes in Python3 -- not sure where it gets set
-        converter_name = converter_name.decode()
-    print("converter_name", repr(converter_name))
-    GlobalSettings.logger.debug(f'Sending Payload to converter {converter_name}:')
-    GlobalSettings.logger.debug(payload)
-    converter_function = f'{GlobalSettings.prefix}tx_convert_{converter_name}'
-    print(f"send_payload_to_converter: converter_function is {converter_function!r} payload={payload}")
-    stats_client.incr('ConvertersInvoked')
-    # TODO: Put an alternative function call in here RJH
-    response = GlobalSettings.lambda_handler().invoke(function_name=converter_function, payload=payload, asyncFlag=True)
-    GlobalSettings.logger.debug('finished.')
-    return response
-# end of send_payload_to_converter function
+    GlobalSettings.logger.debug(f'do_linting( {param_dict}, {source_dir}, {linter_name} )')
+    param_dict['status'] = 'linting'
 
+    # Find the right linter
+    try:
+        # TODO: Why does the linter download the (zip) file again???
+        #linter = LINTER_MAP[linter_name](source_url=param_dict['source'])
+        linter = LINTER_MAP[linter_name](source_dir=source_dir)
+    except KeyError:
+        GlobalSettings.logger.critical(f"Can't find correct linter for {linter_name!r}")
+        linter = None
 
-def send_request_to_linter(srtl_job, linter, commit_url, commit_data, extra_payload=None):
-    """
-    :param TxJob srtl_job:
-    :param TxModule linter:
-    :param string commit_url:
-    :param dict extra_payload:
-    :return bool:
-    """
-    payload = {
-        'identifier': srtl_job.identifier,
-        'resource_id': srtl_job.resource_type,
-        'cdn_bucket': srtl_job.cdn_bucket,
-        'cdn_file': srtl_job.cdn_file,
-        'options': srtl_job.options,
-        'lint_callback': LINTER_CALLBACK,
-        'commit_data': commit_data
-    }
-    if extra_payload:
-        payload.update(extra_payload)
-    if srtl_job.input_format == 'usfm' or srtl_job.resource_type == 'obs':
-        # Need to give the massaged source since it maybe was in chunks originally
-        payload['source_url'] = srtl_job.source
+    if linter: # Run the linter and grab the results
+        lint_result = linter.run()
+        linter.close()  # do cleanup after run
+        param_dict['linter_success'] = lint_result['success']
+        param_dict['linter_warnings'] = lint_result['warnings']
     else:
-        payload['source_url'] = commit_url.replace('commit', 'archive') + '.zip'
-    # NOTE: The returned result is not currently used
-    return send_payload_to_linter(payload, linter)
-# end of send_request_to_linter function
+        param_dict['linter_success'] = 'false'
+        param_dict['linter_warnings'] = ['Cannot find correct linter']
+
+    param_dict['status'] = 'linted'
+    GlobalSettings.logger.debug(f'do_lint is returning with {param_dict}')
+    #return param_dict
+# end of do_linting function
 
 
-def send_payload_to_linter(payload, linter):
+def get_converter_module(gcm_job):
     """
-    :param dict payload:
-    :param TxModule linter:
-    :return bool:
+    :param dict gcm_job:
+    :return TxModule:
     """
-    # TODO: Make this use urllib2 to make a async POST to the API. Currently invokes Lambda directly
-    payload = {
-        'data': payload,
-        'vars': {
-            'prefix': GlobalSettings.prefix
-        }
-    }
-    linter_name = linter.name
-    if not isinstance(linter_name, str): # bytes in Python3 -- not sure where it gets set
-        linter_name = linter_name.decode()
-    print("linter_name", repr(linter_name))
-    GlobalSettings.logger.debug(f'Sending payload to linter {linter_name}:')
-    GlobalSettings.logger.debug(payload)
-    linter_function = f'{GlobalSettings.prefix}tx_lint_{linter_name}'
-    print(f"send_payload_to_linter: linter_function is {linter_function!r}, payload={payload}")
-    stats_client.incr('LintersInvoked')
-    # TODO: Put an alternative function call in here RJH
-    response = GlobalSettings.lambda_handler().invoke(function_name=linter_function, payload=payload, asyncFlag=True)
-    GlobalSettings.logger.debug('finished.')
-    return response
-# end of send_payload_to_linter function
+    converters = TxModule.query().filter(TxModule.type == 'converter') \
+        .filter(TxModule.input_format.contains(gcm_job['input_format'])) \
+        .filter(TxModule.output_format.contains(gcm_job['output_format']))
+    converter = converters.filter(TxModule.resource_types.contains(gcm_job['resource_type'])).first()
+    if not converter:
+        converter = converters.filter(TxModule.resource_types.contains('other')).first()
+    return converter
+# end if get_converter_module function
+
+
+def do_converting(param_dict, source_dir, converter_name):
+    """
+    :param dict param_dict: Will be updated!
+    :param str converter_name:
+    """
+    GlobalSettings.logger.debug(f'do_converting( {param_dict}, {source_dir}, {converter_name} )')
+    param_dict['status'] = 'converting'
+
+    # Find the right converter
+    try:
+        # TODO: Why does the converter download the (zip) file again???
+        converter = CONVERTER_MAP[converter_name](param_dict['source'],
+                                                  param_dict['resource_type'],
+                                                  cdn_file=param_dict['output'])
+    except KeyError:
+        GlobalSettings.logger.critical(f"Can't find correct converter for {converter_name!r}")
+        converter = None
+
+    if converter: # Run the converter and grab the results
+        convert_result = converter.run()
+        converter.close()  # do cleanup after run
+        param_dict['converter_success'] = convert_result['success']
+        param_dict['converter_info'] = convert_result['info']
+        param_dict['converter_warnings'] = convert_result['warnings']
+        param_dict['converter_errors'] = convert_result['errors']
+    else:
+        param_dict['converter_success'] = 'false'
+        param_dict['converter_warnings'] = ['Cannot find correct converter']
+
+    param_dict['status'] = 'converted'
+    GlobalSettings.logger.debug(f'do_convert is returning with {param_dict}')
+    #return param_dict
+# end of do_converting function
+
+
+#def send_request_to_converter(srtc_job, converter):
+    #"""
+    #:param TxJob srtc_job:
+    #:param TxModule converter:
+    #:return bool:
+    #"""
+    #payload = {
+        #'identifier': srtc_job.identifier,
+        #'source_url': srtc_job.source,
+        #'resource_id': srtc_job.resource_type,
+        #'cdn_bucket': srtc_job.cdn_bucket,
+        #'cdn_file': srtc_job.cdn_file,
+        #'options': srtc_job.options,
+        #'convert_callback': f'{GlobalSettings.api_url}/client/callback/converter'
+    #}
+    ## NOTE: The returned result is not currently used
+    #return send_payload_to_converter(payload, converter)
+## end of send_request_to_converter function
+
+
+#def send_payload_to_converter(payload, converter):
+    #"""
+    #:param dict payload:
+    #:param TxModule converter:
+    #:return bool:
+    #"""
+    ## TODO: Make this use urllib2 to make a async POST to the API. Currently invokes Lambda directly XXXXXXXXXXXXXXXXX
+    #payload = {
+        #'data': payload,
+        #'vars': {
+            #'prefix': GlobalSettings.prefix
+        #}
+    #}
+    #converter_name = converter.name
+    #if not isinstance(converter_name, str): # bytes in Python3 -- not sure where it gets set
+        #converter_name = converter_name.decode()
+    #print("converter_name", repr(converter_name))
+    #GlobalSettings.logger.debug(f'Sending Payload to converter {converter_name}:')
+    #GlobalSettings.logger.debug(payload)
+    #converter_function = f'{GlobalSettings.prefix}tx_convert_{converter_name}'
+    #print(f"send_payload_to_converter: converter_function is {converter_function!r} payload={payload}")
+    #stats_client.incr('ConvertersInvoked')
+    ## TODO: Put an alternative function call in here RJH
+    #response = GlobalSettings.lambda_handler().invoke(function_name=converter_function, payload=payload, asyncFlag=True)
+    #GlobalSettings.logger.debug('finished.')
+    #return response
+## end of send_payload_to_converter function
 
 
 def update_project_json(base_temp_dir_name, commit_id, upj_job, repo_name, repo_owner):
@@ -268,35 +316,6 @@ def build_multipart_source(source_url_base, file_key, book_filename):
 # end of build_multipart_source function
 
 
-def get_converter_module(gcm_job):
-    """
-    :param TxJob gcm_job:
-    :return TxModule:
-    """
-    converters = TxModule.query().filter(TxModule.type == 'converter') \
-        .filter(TxModule.input_format.contains(gcm_job.input_format)) \
-        .filter(TxModule.output_format.contains(gcm_job.output_format))
-    converter = converters.filter(TxModule.resource_types.contains(gcm_job.resource_type)).first()
-    if not converter:
-        converter = converters.filter(TxModule.resource_types.contains('other')).first()
-    return converter
-# end if get_converter_module function
-
-
-def get_linter_module(glm_job):
-    """
-    :param TxJob glm_job:
-    :return TxModule:
-    """
-    linters = TxModule.query().filter(TxModule.type == 'linter') \
-        .filter(TxModule.input_format.contains(glm_job.input_format))
-    linter = linters.filter(TxModule.resource_types.contains(glm_job.resource_type)).first()
-    if not linter:
-        linter = linters.filter(TxModule.resource_types.contains('other')).first()
-    return linter
-# end of get_linter_module function
-
-
 def get_unique_job_id():
     """
     :return string:
@@ -341,12 +360,12 @@ def download_source_file(source_url, destination_folder):
     :param str destination_folder:   The directory where the downloaded file should be unzipped
     :return: None
     """
-    print(f"download_source_file( {source_url}, {destination_folder} )")
+    GlobalSettings.logger.debug(f"download_source_file( {source_url}, {destination_folder} )")
     source_filepath = os.path.join(destination_folder, source_url.rpartition(os.path.sep)[2])
-    print(f"source_filepath: {source_filepath}")
+    GlobalSettings.logger.info(f"source_filepath: {source_filepath}")
 
     try:
-        GlobalSettings.logger.debug(f'Downloading {source_url}...')
+        GlobalSettings.logger.debug(f'Downloading {source_url} ...')
 
         # if the file already exists, remove it, we want a fresh copy
         if os.path.isfile(source_filepath):
@@ -368,7 +387,7 @@ def download_source_file(source_url, destination_folder):
         if os.path.isfile(source_filepath):
             os.remove(source_filepath)
 
-    print(f"Destination folder now has: {os.listdir(destination_folder)}")
+    GlobalSettings.logger.debug(f"Destination folder now has: {os.listdir(destination_folder)}")
 #end of download_repo function
 
 
@@ -406,7 +425,7 @@ def download_source_file(source_url, destination_folder):
 ##end of download_repo function
 
 
-def process_job(pj_prefix, queued_json_payload):
+def process_tx_job(pj_prefix, queued_json_payload):
     """
     Sets up a temp folder in the AWS S3 bucket.
 
@@ -463,65 +482,31 @@ def process_job(pj_prefix, queued_json_payload):
     # Move everything down one directory level for simple delete
     intermediate_dir_name = queued_json_payload['job_id']
     base_temp_dir_name = os.path.join(tempfile.gettempdir(), intermediate_dir_name)
+    GlobalSettings.logger.debug(f"base_temp_dir_name = {base_temp_dir_name}")
     try:
         os.makedirs(base_temp_dir_name)
     except:
         GlobalSettings.logger.critical(f"Oh, folder {base_temp_dir_name} already existed!")
         GlobalSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
-        pass
-    print("base_temp_dir_name", repr(base_temp_dir_name))
 
     # Download and unzip the specified source file
+    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']}...")
     download_source_file(queued_json_payload['source'], base_temp_dir_name)
 
-    ## Download and unzip the repo files
-    #repo_dir = get_repo_files(base_temp_dir_name, commit_url, repo_name)
-
-    ## Get the resource container
-    #rc = RC(repo_dir, repo_name)
-
-    ## Save manifest to manifest table
-    #manifest_data = {
-        #'repo_name': repo_name,
-        #'user_name': user_name,
-        #'lang_code': rc.resource.language.identifier,
-        #'resource_id': rc.resource.identifier,
-        #'resource_type': rc.resource.type,
-        #'title': rc.resource.title,
-        #'manifest': json.dumps(rc.as_dict()),
-        #'last_updated': datetime.utcnow()
-    #}
-    #print("client_webhook got manifest_data:", manifest_data) # RJH
+    # Find correct source folder
+    source_folder_path = base_temp_dir_name
+    dirList = os.listdir(base_temp_dir_name)
+    GlobalSettings.logger.debug(f"Discovering source folder from {dirList}...")
+    if len(dirList)==1:
+        tryFolder = os.path.join(base_temp_dir_name, dirList[0])
+        if os.path.isdir(tryFolder):
+            GlobalSettings.logger.debug(f"Switching source folder to {tryFolder}")
+            source_folder_path = tryFolder
+    GlobalSettings.logger.info(f"Source folder contains {os.listdir(source_folder_path)}")
 
 
-    ## First see if manifest already exists in DB and update it if it is
-    #print(f"client_webhook getting manifest for {repo_name!r} with user {user_name!r}") # RJH
-    #tx_manifest = TxManifest.get(repo_name=repo_name, user_name=user_name)
-    #if tx_manifest:
-        #for key, value in manifest_data.items():
-            #setattr(tx_manifest, key, value)
-        #GlobalSettings.logger.debug(f'Updating manifest in manifest table: {manifest_data}')
-        #tx_manifest.update()
-    #else:
-        #tx_manifest = TxManifest(**manifest_data)
-        #GlobalSettings.logger.debug(f'Inserting manifest into manifest table: {tx_manifest}')
-        #tx_manifest.insert()
-
-    ## Preprocess the files
-    #preprocess_dir = tempfile.mkdtemp(dir=base_temp_dir_name, prefix='preprocess_')
-    #preprocessor_result, preprocessor = do_preprocess(rc, repo_dir, preprocess_dir)
-
-    ## Zip up the massaged files
-    #zip_filepath = tempfile.mktemp(dir=base_temp_dir_name, suffix='.zip')
-    #GlobalSettings.logger.debug(f'Zipping files from {preprocess_dir} to {zip_filepath}...')
-    #add_contents_to_zip(zip_filepath, preprocess_dir)
-    #GlobalSettings.logger.debug('Zipping finished.')
-
-    ## Upload zipped file to the S3 pre-convert bucket
-    #file_key = upload_zip_file(commit_id, zip_filepath)
-
-    ##print(f"Webhook.process_job setting up TxJob with username={user.username}...")
-    #print("Webhook.process_job setting up TxJob...")
+    ##print(f"Webhook.process_tx_job setting up TxJob with username={user.username}...")
+    #print("Webhook.process_tx_job setting up TxJob...")
     #pj_job = TxJob()
     #pj_job.job_id = get_unique_job_id()
     #pj_job.identifier = pj_job.job_id
@@ -548,8 +533,37 @@ def process_job(pj_prefix, queued_json_payload):
     #pj_job.success = False
 
 
-    #converter = get_converter_module(pj_job)
-    #linter = get_linter_module(pj_job)
+    GlobalSettings.logger.debug(f"Finding linter/converter for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
+    linter = get_linter_module(queued_json_payload)
+    GlobalSettings.logger.debug(f"Got linter = {linter}, {linter.__dict__}")
+    converter = get_converter_module(queued_json_payload)
+    GlobalSettings.logger.debug(f"Got converter = {converter}")
+
+
+    if linter:
+        linter_name = linter.name
+        if not isinstance(linter_name, str): # bytes
+            linter_name = linter_name.decode()
+        build_log_json['lint_module'] = linter_name
+        #extra_payload = {'s3_results_key': s3_commit_key}
+        #send_request_to_linter(pj_job, linter, commit_url, queued_json_payload, extra_payload=extra_payload)
+        # Log dict gets updated by the following line
+        do_linting(build_log_json, source_folder_path, linter_name)
+    else:
+        GlobalSettings.logger.warning(f"No linter was found to lint {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
+
+    if converter:
+        converter_name = converter.name
+        if not isinstance(converter_name, str): # bytes
+            converter_name = converter_name.decode()
+        build_log_json['convert_module'] = converter_name
+        #extra_payload = {'s3_results_key': s3_commit_key}
+        #send_request_to_converter(pj_job, converter, commit_url, queued_json_payload, extra_payload=extra_payload)
+        # Log dict gets updated by the following line
+        do_converting(build_log_json, source_folder_path, converter_name)
+    else:
+        GlobalSettings.logger.warning(f"No converter was found to convert {queued_json_payload['input_format']} {queued_json_payload['resource_type']} to {queued_json_payload['output_format']}")
+
 
     #if converter:
         #pj_job.convert_module = converter.name
@@ -564,11 +578,6 @@ def process_job(pj_prefix, queued_json_payload):
                                     #f'from {pj_job.input_format} to {pj_job.output_format}')
         #pj_job.message = 'No converter found'
         #pj_job.status = 'failed'
-
-    #if linter:
-        #pj_job.lint_module = linter.name
-    #else:
-        #GlobalSettings.logger.debug(f'No linter was found to lint {pj_job.resource_type}')
 
     #pj_job.insert() # into DB
 
@@ -640,7 +649,7 @@ def process_job(pj_prefix, queued_json_payload):
 
     # Do the callback if requested
     if 'callback' in queued_json_payload:
-        GlobalSettings.logger.debug(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']}")
+        GlobalSettings.logger.debug(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} ...")
         # Copy the build log but convert times to strings
         callback_payload = build_log_json
         for key,value in callback_payload.items():
@@ -653,19 +662,19 @@ def process_job(pj_prefix, queued_json_payload):
             GlobalSettings.logger.critical(f"Callback connection error: {e}")
             response = None
         if response:
-            print("response.status_code", response.status_code)
-            print("response.reason", response.reason)
-            print("response.headers", response.headers)
-            print("response.text", response.text)
+            GlobalSettings.logger.info(f"response.status_code = {response.status_code}")
+            GlobalSettings.logger.info(f"response.reason = {response.reason}")
+            GlobalSettings.logger.debug(f"response.headers = {response.headers}")
+            GlobalSettings.logger.debug(f"response.text = {response.text}")
             try:
-                print("response.json", response.json())
+                GlobalSettings.logger.info(f"response.json = {response.json()}")
             except json.decoder.JSONDecodeError:
-                print("No valid response JSON found")
+                GlobalSettings.logger.info("No valid response JSON found")
 
     #remove_tree(base_temp_dir_name)  # cleanup
-    #print("process_job() is returning:", build_log_json)
+    #print("process_tx_job() is returning:", build_log_json)
     #return build_log_json
-#end of process_job function
+#end of process_tx_job function
 
 
 def job(queued_json_payload):
@@ -676,7 +685,7 @@ def job(queued_json_payload):
         but if the job throws an exception or times out (timeout specified in enqueue process)
             then the job gets added to the 'failed' queue.
     """
-    GlobalSettings.logger.info("TX-Job-Handler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
+    GlobalSettings.logger.info("tX-Job-Handler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
     stats_client.incr('JobsStarted')
 
@@ -691,7 +700,7 @@ def job(queued_json_payload):
     #print(f"\nGot job {current_job.id} from {current_job.origin} queue")
     #queue_prefix = 'dev-' if current_job.origin.startswith('dev-') else ''
     #assert queue_prefix == prefix
-    process_job(prefix, queued_json_payload)
+    process_tx_job(prefix, queued_json_payload)
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('JobTime', elapsed_milliseconds)

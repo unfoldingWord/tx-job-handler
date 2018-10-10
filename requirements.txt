@@ -19,3 +19,13 @@ boto3==1.7.55
 
 #gogs_client is used by gogs_tools
 gogs_client==1.0.6
+
+# pyparsing is used by usfm_tools/parseUsfm.py
+pyparsing==2.2.2
+
+# markdown is used by converters/md2html_converter.py
+markdown==3.0.1
+
+# usfm-tools (transform) is used by converters/usfm2html_converter.py
+# We copied in the files and updated to Python3
+#usfm-tools==0.0.22
