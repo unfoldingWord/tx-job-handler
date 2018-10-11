@@ -213,50 +213,38 @@ def do_converting(param_dict, source_dir, converter_name):
 ## end of send_payload_to_converter function
 
 
-def update_project_json(base_temp_dir_name, commit_id, upj_job, repo_name, repo_owner):
-    """
-    :param string commit_id:
-    :param TxJob upj_job:
-    :param string repo_name:
-    :param string repo_owner:
-    :return:
-    """
-    project_json_key = f'u/{repo_owner}/{repo_name}/project.json'
-    project_json = GlobalSettings.cdn_s3_handler().get_json(project_json_key)
-    project_json['user'] = repo_owner
-    project_json['repo'] = repo_name
-    project_json['repo_url'] = f'https://git.door43.org/{repo_owner}/{repo_name}'
-    commit = {
-        'id': commit_id,
-        'created_at': upj_job.created_at,
-        'status': upj_job.status,
-        'success': upj_job.success,
-        'started_at': None,
-        'ended_at': None
-    }
-    # TODO: CHECK AND DELETE Rewrite of the following lines as a list comprehension
-    if 'commits' not in project_json:
-        project_json['commits'] = []
-    commits1 = []
-    for c in project_json['commits']:
-        if c['id'] != commit_id:
-            commits1.append(c)
-    commits1.append(commit)
-    #project_json['commits'] = commits1
-    print(f"project_json['commits (old)'] = {commits1}")
-    # Get all other previous commits, and then add this one
-    if 'commits' in project_json:
-        commits = [c for c in project_json['commits'] if c['id'] != commit_id]
-        commits.append(commit)
-    else:
-        commits = [commit]
-    print(f"project_json['commits (new)'] = {commits}")
-    assert commits == commits1
-    project_json['commits'] = commits
-    project_file = os.path.join(base_temp_dir_name, 'project.json')
-    write_file(project_file, project_json)
-    GlobalSettings.cdn_s3_handler().upload_file(project_file, project_json_key)
-# end of update_project_json function
+#def update_project_json(base_temp_dir_name, commit_id, upj_job, repo_name, repo_owner):
+    #"""
+    #:param string commit_id:
+    #:param TxJob upj_job:
+    #:param string repo_name:
+    #:param string repo_owner:
+    #:return:
+    #"""
+    #project_json_key = f'u/{repo_owner}/{repo_name}/project.json'
+    #project_json = GlobalSettings.cdn_s3_handler().get_json(project_json_key)
+    #project_json['user'] = repo_owner
+    #project_json['repo'] = repo_name
+    #project_json['repo_url'] = f'https://git.door43.org/{repo_owner}/{repo_name}'
+    #commit = {
+        #'id': commit_id,
+        #'created_at': upj_job.created_at,
+        #'status': upj_job.status,
+        #'success': upj_job.success,
+        #'started_at': None,
+        #'ended_at': None
+    #}
+    ## Get all other previous commits, and then add this one
+    #if 'commits' in project_json:
+        #commits = [c for c in project_json['commits'] if c['id'] != commit_id]
+        #commits.append(commit)
+    #else:
+        #commits = [commit]
+    #project_json['commits'] = commits
+    #project_file = os.path.join(base_temp_dir_name, 'project.json')
+    #write_file(project_file, project_json)
+    #GlobalSettings.cdn_s3_handler().upload_file(project_file, project_json_key)
+## end of update_project_json function
 
 
 def upload_build_log_to_s3(base_temp_dir_name, build_log, s3_commit_key, part=''):
@@ -648,7 +636,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
                     #}
                     #send_request_to_linter(book_job, linter, commit_url, queued_json_payload, extra_payload=extra_payload)
 
-    # Do the callback if requested
+    # Do the callback (if requested) to advise the caller of our results
     if 'callback' in queued_json_payload:
         GlobalSettings.logger.debug(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} ...")
         # Copy the build log but convert times to strings
@@ -663,14 +651,13 @@ def process_tx_job(pj_prefix, queued_json_payload):
             GlobalSettings.logger.critical(f"Callback connection error: {e}")
             response = None
         if response:
-            GlobalSettings.logger.info(f"response.status_code = {response.status_code}")
-            GlobalSettings.logger.info(f"response.reason = {response.reason}")
+            GlobalSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
             GlobalSettings.logger.debug(f"response.headers = {response.headers}")
-            GlobalSettings.logger.debug(f"response.text = {response.text}")
             try:
                 GlobalSettings.logger.info(f"response.json = {response.json()}")
             except json.decoder.JSONDecodeError:
                 GlobalSettings.logger.info("No valid response JSON found")
+                GlobalSettings.logger.debug(f"response.text = {response.text}")
 
     #remove_tree(base_temp_dir_name)  # cleanup
     #print("process_tx_job() is returning:", build_log_json)
