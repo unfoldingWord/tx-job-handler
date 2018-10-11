@@ -14,13 +14,13 @@ import tempfile
 from urllib import error as urllib_error
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
-import requests
 import json
 import hashlib
 from datetime import datetime, timedelta, date
 from time import time
 
 # Library (PyPi) imports
+import requests
 #from rq import
 from statsd import StatsClient # Graphite front-end
 
@@ -54,17 +54,18 @@ from converters.usfm2html_converter import Usfm2HtmlConverter
 CONVERTER_MAP = {'md2html':Md2HtmlConverter, 'usfm2html':Usfm2HtmlConverter}
 
 
-OUR_NAME = 'tX_job_handler'
-our_adjusted_name = prefix + OUR_NAME # Used for statsd prefix
+#OUR_NAME = 'tX_job_handler'
 
 GlobalSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     GlobalSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
+stats_prefix = f"tx.{'dev' if prefix else 'prod'}.job-handler"
 
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
 graphite_url = os.getenv('GRAPHITE_HOSTNAME', 'localhost')
-stats_client = StatsClient(host=graphite_url, port=8125, prefix=our_adjusted_name)
+stats_client = StatsClient(host=graphite_url, port=8125, prefix=stats_prefix)
+
 
 
 def get_linter_module(glm_job):
@@ -687,7 +688,7 @@ def job(queued_json_payload):
     """
     GlobalSettings.logger.info("tX-Job-Handler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
-    stats_client.incr('JobsStarted')
+    stats_client.incr('jobs.attempted')
 
     #current_job = get_current_job()
     #print(f"Current job: {current_job}") # Mostly just displays the job number and payload
@@ -703,8 +704,8 @@ def job(queued_json_payload):
     process_tx_job(prefix, queued_json_payload)
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
-    stats_client.timing('JobTime', elapsed_milliseconds)
-    stats_client.incr('JobsCompleted')
+    stats_client.timing('job.duration', elapsed_milliseconds)
+    stats_client.incr('jobs.completed')
     GlobalSettings.logger.info(f"tX job handling completed in {elapsed_milliseconds:,} milliseconds!")
 # end of job function
 
