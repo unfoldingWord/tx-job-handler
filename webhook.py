@@ -136,13 +136,14 @@ def do_converting(param_dict, source_dir, converter_name):
     """
     GlobalSettings.logger.debug(f'do_converting( {param_dict}, {source_dir}, {converter_name} )')
     param_dict['status'] = 'converting'
+    cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
 
     # Find the right converter
     try:
         # TODO: Why does the converter download the (zip) file again???
         converter = CONVERTER_MAP[converter_name](param_dict['source'],
                                                   param_dict['resource_type'],
-                                                  cdn_file=param_dict['output'])
+                                                  cdn_file=cdn_file_key)
     except KeyError:
         GlobalSettings.logger.critical(f"Can't find correct converter for {converter_name!r}")
         converter = None
@@ -459,9 +460,10 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Create a build log
     build_log_dict = queued_json_payload.copy()
+    # Delete unneeded fields from our response
     for fieldname in ('callback',):
         if fieldname in build_log_dict:
-            del build_log_dict[fieldname] # Delete unneeded fields from our response
+            del build_log_dict[fieldname]
     build_log_dict['started_at'] = datetime.utcnow()
     if 'expires_at' not in build_log_dict:
         build_log_dict['expires_at'] = build_log_dict['started_at'] + timedelta(days=1)
@@ -641,7 +643,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Do the callback (if requested) to advise the caller of our results
     if 'callback' in queued_json_payload:
-        GlobalSettings.logger.debug(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} ...")
+        GlobalSettings.logger.info(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} ...")
         # Copy the build log but convert times to strings
         callback_payload = build_log_dict
         for key,value in callback_payload.items():
@@ -654,16 +656,25 @@ def process_tx_job(pj_prefix, queued_json_payload):
             GlobalSettings.logger.critical(f"Callback connection error: {e}")
             response = None
         if response:
-            GlobalSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
-            GlobalSettings.logger.debug(f"response.headers = {response.headers}")
+            #GlobalSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
+            #GlobalSettings.logger.debug(f"response.headers = {response.headers}")
             try:
                 GlobalSettings.logger.info(f"response.json = {response.json()}")
             except json.decoder.JSONDecodeError:
                 GlobalSettings.logger.info("No valid response JSON found")
                 GlobalSettings.logger.debug(f"response.text = {response.text}")
+            if response.status_code != 200:
+                GlobalSettings.logger.critical(f"Failed to submit callback to Door43:"
+                                               f" {response.status_code}={response.reason}")
+        else: # no response
+            error_msg = "Submission of callback job to Door43 system got no response"
+            GlobalSettings.logger.critical(error_msg)
+            #raise Exception(error_msg) # Is this the best thing to do here?
+    else:
+        GlobalSettings.logger.info("No callback requested")
 
-    #remove_tree(base_temp_dir_name)  # cleanup
-    #GlobalSettings.logger.debug("process_tx_job() is returning with", build_log_dict)
+    remove_tree(base_temp_dir_name)  # cleanup
+    GlobalSettings.logger.info(f"{prefix}process_tx_job() is returning with {build_log_dict}")
 #end of process_tx_job function
 
 

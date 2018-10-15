@@ -22,7 +22,7 @@ class Converter(metaclass=ABCMeta):
         """
         :param string source:
         :param string resource:
-        :param string cdn_file:
+        :param string cdn_file: # NOTE: Should be cdn_file_KEY for S3, not a complete URL
         :param dict options:
         :param string convert_callback:
         :param string identifier:
@@ -76,18 +76,18 @@ class Converter(metaclass=ABCMeta):
                 # No input zip file yet, so we need to download the archive
                 self.download_archive()
             # unzip the input archive
-            GlobalSettings.logger.debug(f"Unzipping {self.input_zip_file} to {self.files_dir}")
+            GlobalSettings.logger.debug(f"Converter unzipping {self.input_zip_file} to {self.files_dir}")
             unzip(self.input_zip_file, self.files_dir)
             # convert method called
             GlobalSettings.logger.debug("Converting files...")
             if self.convert():
-                GlobalSettings.logger.debug(f"Was able to convert {self.resource}")
+                #GlobalSettings.logger.debug(f"Was able to convert {self.resource}")
                 # zip the output dir to the output archive
-                GlobalSettings.logger.debug(f"Adding files in {self.output_dir} to {self.output_zip_file}")
+                #GlobalSettings.logger.debug(f"Converter adding files in {self.output_dir} to {self.output_zip_file}")
                 add_contents_to_zip(self.output_zip_file, self.output_dir)
                 remove_tree(self.output_dir)
                 # upload the output archive either to cdn_bucket or to a file (no cdn_bucket)
-                GlobalSettings.logger.debug(f"Uploading archive to {self.cdn_file}")
+                GlobalSettings.logger.debug(f"Converter uploading output archive to {self.cdn_file}")
                 self.upload_archive()
                 remove(self.output_zip_file)
                 GlobalSettings.logger.debug("Uploaded")
@@ -125,24 +125,27 @@ class Converter(metaclass=ABCMeta):
                     raise Exception("Failed to download {0}".format(archive_url))
 
     def upload_archive(self):
+        #GlobalSettings.logger.debug("converter.upload_archive()")
         if self.cdn_file and os.path.isdir(os.path.dirname(self.cdn_file)):
+            #GlobalSettings.logger.debug("converter.upload_archive() doing copy")
             copy(self.output_zip_file, self.cdn_file)
         elif GlobalSettings.cdn_s3_handler():
+            #GlobalSettings.logger.debug("converter.upload_archive() using S3 handler")
             GlobalSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file, cache_time=0)
 
     def do_callback(self, url, payload):
         if url.startswith('http'):
             headers = {"content-type": "application/json"}
-            GlobalSettings.logger.debug('Making callback to {0} with payload:'.format(url))
+            GlobalSettings.logger.debug(f"Making callback to {url} with payload:")
             GlobalSettings.logger.debug(json.dumps(payload)[:256])
             response = requests.post(url, json=payload, headers=headers)
             self.callback_status = response.status_code
             if (self.callback_status >= 200) and (self.callback_status < 299):
-                GlobalSettings.logger.debug('finished.')
+                GlobalSettings.logger.debug("finished.")
             else:
-                GlobalSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
+                GlobalSettings.logger.error(f"Error calling callback code {self.callback_status}: {response.reason}")
         else:
-            GlobalSettings.logger.error('Invalid callback url: {0}'.format(url))
+            GlobalSettings.logger.error(f"Invalid callback url: {url}")
 
     def check_for_exclusive_convert(self):
         convert_only = []
