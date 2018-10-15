@@ -259,7 +259,7 @@ def upload_build_log_to_s3(base_temp_dir_name, build_log, s3_commit_key, part=''
     upload_key = f'{s3_commit_key}/{part}build_log.json'
     GlobalSettings.logger.debug(f'Saving build log to {GlobalSettings.cdn_bucket_name}/{upload_key}')
     GlobalSettings.cdn_s3_handler().upload_file(build_log_file, upload_key, cache_time=0)
-    # GlobalSettings.logger.debug('build log contains: ' + json.dumps(build_log_json))
+    # GlobalSettings.logger.debug('build log contains: ' + json.dumps(build_log_dict))
 #end of upload_build_log_to_s3
 
 
@@ -275,16 +275,16 @@ def create_build_log(commit_id, commit_message, commit_url, compare_url, cbl_job
     :param string repo_owner:
     :return dict:
     """
-    build_log_json = dict(cbl_job)
-    build_log_json['repo_name'] = repo_name
-    build_log_json['repo_owner'] = repo_owner
-    build_log_json['commit_id'] = commit_id
-    build_log_json['committed_by'] = pusher_username
-    build_log_json['commit_url'] = commit_url
-    build_log_json['compare_url'] = compare_url
-    build_log_json['commit_message'] = commit_message
+    build_log_dict = dict(cbl_job)
+    build_log_dict['repo_name'] = repo_name
+    build_log_dict['repo_owner'] = repo_owner
+    build_log_dict['commit_id'] = commit_id
+    build_log_dict['committed_by'] = pusher_username
+    build_log_dict['commit_url'] = commit_url
+    build_log_dict['compare_url'] = compare_url
+    build_log_dict['commit_message'] = commit_message
 
-    return build_log_json
+    return build_log_dict
 # end of create_build_log function
 
 
@@ -458,14 +458,17 @@ def process_tx_job(pj_prefix, queued_json_payload):
     GlobalSettings.logger.debug(f"Processing {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
 
     # Create a build log
-    build_log_json = queued_json_payload
-    build_log_json['started_at'] = datetime.utcnow()
-    if 'expires_at' not in build_log_json:
-        build_log_json['expires_at'] = build_log_json['started_at'] + timedelta(days=1)
-    if 'eta' not in build_log_json:
-        build_log_json['eta'] = build_log_json['started_at'] + timedelta(minutes=5)
-    build_log_json['status'] = 'started'
-    build_log_json['message'] = 'tX job started...'
+    build_log_dict = queued_json_payload.copy()
+    for fieldname in ('callback',):
+        if fieldname in build_log_dict:
+            del build_log_dict[fieldname] # Delete unneeded fields from our response
+    build_log_dict['started_at'] = datetime.utcnow()
+    if 'expires_at' not in build_log_dict:
+        build_log_dict['expires_at'] = build_log_dict['started_at'] + timedelta(days=1)
+    if 'eta' not in build_log_dict:
+        build_log_dict['eta'] = build_log_dict['started_at'] + timedelta(minutes=5)
+    build_log_dict['status'] = 'started'
+    build_log_dict['message'] = 'tX job started...'
 
     # Setup a temp folder to use
     # Move everything down one directory level for simple delete
@@ -533,11 +536,11 @@ def process_tx_job(pj_prefix, queued_json_payload):
         linter_name = linter.name
         if not isinstance(linter_name, str): # bytes
             linter_name = linter_name.decode()
-        build_log_json['lint_module'] = linter_name
+        build_log_dict['lint_module'] = linter_name
         #extra_payload = {'s3_results_key': s3_commit_key}
         #send_request_to_linter(pj_job, linter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
-        do_linting(build_log_json, source_folder_path, linter_name)
+        do_linting(build_log_dict, source_folder_path, linter_name)
     else:
         GlobalSettings.logger.warning(f"No linter was found to lint {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
 
@@ -545,11 +548,11 @@ def process_tx_job(pj_prefix, queued_json_payload):
         converter_name = converter.name
         if not isinstance(converter_name, str): # bytes
             converter_name = converter_name.decode()
-        build_log_json['convert_module'] = converter_name
+        build_log_dict['convert_module'] = converter_name
         #extra_payload = {'s3_results_key': s3_commit_key}
         #send_request_to_converter(pj_job, converter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
-        do_converting(build_log_json, source_folder_path, converter_name)
+        do_converting(build_log_dict, source_folder_path, converter_name)
     else:
         GlobalSettings.logger.warning(f"No converter was found to convert {queued_json_payload['input_format']} {queued_json_payload['resource_type']} to {queued_json_payload['output_format']}")
 
@@ -575,10 +578,10 @@ def process_tx_job(pj_prefix, queued_json_payload):
     #clear_commit_directory_in_cdn(s3_commit_key)
 
     ## Create a build log
-    #build_log_json = create_build_log(commit_id, commit_message, commit_url, compare_url, pj_job,
+    #build_log_dict = create_build_log(commit_id, commit_message, commit_url, compare_url, pj_job,
                                             #pusher_username, repo_name, user_name)
     ## Upload an initial build_log
-    #upload_build_log_to_s3(base_temp_dir_name, build_log_json, s3_commit_key)
+    #upload_build_log_to_s3(base_temp_dir_name, build_log_dict, s3_commit_key)
 
     ## Update the project.json file
     #update_project_json(base_temp_dir_name, commit_id, pj_job, repo_name, user_name)
@@ -598,8 +601,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
             #book_filenames = preprocessor.get_book_list()
             #GlobalSettings.logger.debug('Splitting job into separate parts for books: ' + ','.join(book_filenames))
             #book_count = len(book_filenames)
-            #build_log_json['multiple'] = True
-            #build_log_json['build_logs'] = []
+            #build_log_dict['multiple'] = True
+            #build_log_dict['build_logs'] = []
             #for i, book_filename in enumerate(book_filenames):
                 #GlobalSettings.logger.debug(f'Adding job for {book_filename}, part {i} of {book_count}')
                 ## Send job request to tx-manager
@@ -626,7 +629,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
                 #if book_filename:
                     #book_build_log['book'] = book_filename
                     #book_build_log['part'] = str(i)
-                #build_log_json['build_logs'].append(book_build_log)
+                #build_log_dict['build_logs'].append(book_build_log)
                 #upload_build_log_to_s3(base_temp_dir_name, book_build_log, s3_commit_key, str(i) + "/")
                 #send_request_to_converter(book_job, converter)
                 #if linter:
@@ -640,7 +643,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     if 'callback' in queued_json_payload:
         GlobalSettings.logger.debug(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} ...")
         # Copy the build log but convert times to strings
-        callback_payload = build_log_json
+        callback_payload = build_log_dict
         for key,value in callback_payload.items():
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -660,8 +663,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
                 GlobalSettings.logger.debug(f"response.text = {response.text}")
 
     #remove_tree(base_temp_dir_name)  # cleanup
-    #print("process_tx_job() is returning:", build_log_json)
-    #return build_log_json
+    #GlobalSettings.logger.debug("process_tx_job() is returning with", build_log_dict)
 #end of process_tx_job function
 
 
@@ -692,8 +694,9 @@ def job(queued_json_payload):
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('job.duration', elapsed_milliseconds)
-    stats_client.incr('jobs.completed')
     GlobalSettings.logger.info(f"tX job handling completed in {elapsed_milliseconds:,} milliseconds!")
+
+    stats_client.incr('jobs.completed')
 # end of job function
 
 # end of webhook.py
