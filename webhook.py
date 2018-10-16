@@ -11,17 +11,16 @@ import tempfile
 #import logging
 #import ssl
 #import urllib.request as urllib2
-from urllib import error as urllib_error
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+#from urllib import error as urllib_error
+#from urllib.parse import urlencode
+#from urllib.request import Request, urlopen
 import json
-import hashlib
+#import hashlib
 from datetime import datetime, timedelta, date
 from time import time
 
 # Library (PyPi) imports
 import requests
-#from rq import
 from statsd import StatsClient # Graphite front-end
 
 # Local imports
@@ -30,8 +29,8 @@ from general_tools.file_utils import unzip, add_contents_to_zip, write_file, rem
 from general_tools.url_utils import download_file
 from resource_container.ResourceContainer import RC
 from preprocessors.preprocessors import do_preprocess
-from models.manifest import TxManifest
-from models.job import TxJob
+#from models.manifest import TxManifest
+#from models.job import TxJob
 from models.module import TxModule
 from global_settings.global_settings import GlobalSettings
 
@@ -92,7 +91,6 @@ def do_linting(param_dict, source_dir, linter_name):
 
     # Find the right linter
     try:
-        # TODO: Why does the linter download the (zip) file again???
         #linter = LINTER_MAP[linter_name](source_url=param_dict['source'])
         linter = LINTER_MAP[linter_name](source_dir=source_dir)
     except KeyError:
@@ -248,97 +246,97 @@ def do_converting(param_dict, source_dir, converter_name):
 ## end of update_project_json function
 
 
-def upload_build_log_to_s3(base_temp_dir_name, build_log, s3_commit_key, part=''):
-    """
-    :param dict build_log:
-    :param string s3_commit_key:
-    :param string part:
-    :return:
-    """
-    build_log_file = os.path.join(base_temp_dir_name, 'build_log.json')
-    write_file(build_log_file, build_log)
-    upload_key = f'{s3_commit_key}/{part}build_log.json'
-    GlobalSettings.logger.debug(f'Saving build log to {GlobalSettings.cdn_bucket_name}/{upload_key}')
-    GlobalSettings.cdn_s3_handler().upload_file(build_log_file, upload_key, cache_time=0)
-    # GlobalSettings.logger.debug('build log contains: ' + json.dumps(build_log_dict))
-#end of upload_build_log_to_s3
+#def upload_build_log_to_s3(base_temp_dir_name, build_log, s3_commit_key, part=''):
+    #"""
+    #:param dict build_log:
+    #:param string s3_commit_key:
+    #:param string part:
+    #:return:
+    #"""
+    #build_log_file = os.path.join(base_temp_dir_name, 'build_log.json')
+    #write_file(build_log_file, build_log)
+    #upload_key = f'{s3_commit_key}/{part}build_log.json'
+    #GlobalSettings.logger.debug(f'Saving build log to {GlobalSettings.cdn_bucket_name}/{upload_key}')
+    #GlobalSettings.cdn_s3_handler().upload_file(build_log_file, upload_key, cache_time=0)
+    ## GlobalSettings.logger.debug('build log contains: ' + json.dumps(build_log_dict))
+##end of upload_build_log_to_s3
 
 
-def create_build_log(commit_id, commit_message, commit_url, compare_url, cbl_job, pusher_username, repo_name, repo_owner):
-    """
-    :param string commit_id:
-    :param string commit_message:
-    :param string commit_url:
-    :param string compare_url:
-    :param TxJob cbl_job:
-    :param string pusher_username:
-    :param string repo_name:
-    :param string repo_owner:
-    :return dict:
-    """
-    build_log_dict = dict(cbl_job)
-    build_log_dict['repo_name'] = repo_name
-    build_log_dict['repo_owner'] = repo_owner
-    build_log_dict['commit_id'] = commit_id
-    build_log_dict['committed_by'] = pusher_username
-    build_log_dict['commit_url'] = commit_url
-    build_log_dict['compare_url'] = compare_url
-    build_log_dict['commit_message'] = commit_message
+#def create_build_log(commit_id, commit_message, commit_url, compare_url, cbl_job, pusher_username, repo_name, repo_owner):
+    #"""
+    #:param string commit_id:
+    #:param string commit_message:
+    #:param string commit_url:
+    #:param string compare_url:
+    #:param TxJob cbl_job:
+    #:param string pusher_username:
+    #:param string repo_name:
+    #:param string repo_owner:
+    #:return dict:
+    #"""
+    #build_log_dict = dict(cbl_job)
+    #build_log_dict['repo_name'] = repo_name
+    #build_log_dict['repo_owner'] = repo_owner
+    #build_log_dict['commit_id'] = commit_id
+    #build_log_dict['committed_by'] = pusher_username
+    #build_log_dict['commit_url'] = commit_url
+    #build_log_dict['compare_url'] = compare_url
+    #build_log_dict['commit_message'] = commit_message
 
-    return build_log_dict
-# end of create_build_log function
-
-
-def clear_commit_directory_in_cdn(s3_commit_key):
-    """
-    Clear out the commit directory in the cdn bucket for this project revision.
-    """
-    for obj in GlobalSettings.cdn_s3_handler().get_objects(prefix=s3_commit_key):
-        GlobalSettings.logger.debug('Removing s3 cdn file: ' + obj.key)
-        GlobalSettings.cdn_s3_handler().delete_file(obj.key)
-# end of clear_commit_directory_in_cdn function
+    #return build_log_dict
+## end of create_build_log function
 
 
-def build_multipart_source(source_url_base, file_key, book_filename):
-    params = urlencode({'convert_only': book_filename})
-    source_url = f'{source_url_base}/{file_key}?{params}'
-    return source_url
-# end of build_multipart_source function
+#def clear_commit_directory_in_cdn(s3_commit_key):
+    #"""
+    #Clear out the commit directory in the cdn bucket for this project revision.
+    #"""
+    #for obj in GlobalSettings.cdn_s3_handler().get_objects(prefix=s3_commit_key):
+        #GlobalSettings.logger.debug('Removing s3 cdn file: ' + obj.key)
+        #GlobalSettings.cdn_s3_handler().delete_file(obj.key)
+## end of clear_commit_directory_in_cdn function
 
 
-def get_unique_job_id():
-    """
-    :return string:
-    """
-    job_id = hashlib.sha256(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f").encode('utf-8')).hexdigest()
-    while TxJob.get(job_id):
-        job_id = hashlib.sha256(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f").encode('utf-8')).hexdigest()
-    return job_id
-# end of get_unique_job_id()
+#def build_multipart_source(source_url_base, file_key, book_filename):
+    #params = urlencode({'convert_only': book_filename})
+    #source_url = f'{source_url_base}/{file_key}?{params}'
+    #return source_url
+## end of build_multipart_source function
 
 
-def upload_zip_file(commit_id, zip_filepath):
-    file_key = f'preconvert/{commit_id}.zip'
-    GlobalSettings.logger.debug(f'Uploading {zip_filepath} to {GlobalSettings.pre_convert_bucket_name}/{file_key}...')
-    try:
-        GlobalSettings.pre_convert_s3_handler().upload_file(zip_filepath, file_key, cache_time=0)
-    except Exception as e:
-        GlobalSettings.logger.error('Failed to upload zipped repo up to server')
-        GlobalSettings.logger.exception(e)
-    finally:
-        GlobalSettings.logger.debug('finished.')
-    return file_key
-# end of upload_zip_file function
+#def get_unique_job_id():
+    #"""
+    #:return string:
+    #"""
+    #job_id = hashlib.sha256(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f").encode('utf-8')).hexdigest()
+    ##while TxJob.get(job_id):
+        ##job_id = hashlib.sha256(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f").encode('utf-8')).hexdigest()
+    #return job_id
+## end of get_unique_job_id()
 
 
-def get_repo_files(base_temp_dir_name, commit_url, repo_name):
-    temp_dir = tempfile.mkdtemp(dir=base_temp_dir_name, prefix=f'{repo_name}_')
-    download_repo(base_temp_dir_name, commit_url, temp_dir)
-    repo_dir = os.path.join(temp_dir, repo_name.lower())
-    if not os.path.isdir(repo_dir):
-        repo_dir = temp_dir
-    return repo_dir
-# end of get_repo_files function
+#def upload_zip_file(commit_id, zip_filepath):
+    #file_key = f'preconvert/{commit_id}.zip'
+    #GlobalSettings.logger.debug(f'Uploading {zip_filepath} to {GlobalSettings.pre_convert_bucket_name}/{file_key}...')
+    #try:
+        #GlobalSettings.pre_convert_s3_handler().upload_file(zip_filepath, file_key, cache_time=0)
+    #except Exception as e:
+        #GlobalSettings.logger.error('Failed to upload zipped repo up to server')
+        #GlobalSettings.logger.exception(e)
+    #finally:
+        #GlobalSettings.logger.debug('finished.')
+    #return file_key
+## end of upload_zip_file function
+
+
+#def get_repo_files(base_temp_dir_name, commit_url, repo_name):
+    #temp_dir = tempfile.mkdtemp(dir=base_temp_dir_name, prefix=f'{repo_name}_')
+    #download_repo(base_temp_dir_name, commit_url, temp_dir)
+    #repo_dir = os.path.join(temp_dir, repo_name.lower())
+    #if not os.path.isdir(repo_dir):
+        #repo_dir = temp_dir
+    #return repo_dir
+## end of get_repo_files function
 
 
 def download_source_file(source_url, destination_folder):
