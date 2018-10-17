@@ -30,3 +30,6 @@ markdown2==2.3.6
 # usfm-tools (transform) is used by converters/usfm2html_converter.py
 # We copied in the files and updated to Python3
 #usfm-tools==0.0.22
+
+# BeautifulSoup is used by converters/md2html_converter.py
+bs4==0.0.1
