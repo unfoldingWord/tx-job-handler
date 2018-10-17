@@ -1,5 +1,3 @@
-import codecs
-
 from tx_usfm_tools.support import abstractRenderer
 from tx_usfm_tools.support import books
 

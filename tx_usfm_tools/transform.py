@@ -77,10 +77,10 @@ class UsfmTransform():
 
     @staticmethod
     def buildConTeXt(usfmDir, builtDir, buildName):
-        UsfmTransform.__logger.info('Building PDF via ConTeXt...')
+        UsfmTransform.__logger.info("Building PDF via ConTeXt...")
 
         # Convert to ConTeXt
-        UsfmTransform.__logger.info('Converting to ConTeXt...')
+        UsfmTransform.__logger.info("Converting to ConTeXt...")
         # c = texise.TransformToContext()
         # c.setupAndRun(usfmDir, 'working/tex', buildName)
         UsfmTransform.ensureOutputDir(builtDir + '/working/tex')
@@ -91,7 +91,7 @@ class UsfmTransform():
     @staticmethod
     def buildWeb(usfmDir, builtDir, buildName, oebFlag=False):
         # Convert to HTML
-        UsfmTransform.__logger.info('Building Web HTML...')
+        UsfmTransform.__logger.info("Building Web HTML...")
         UsfmTransform.ensureOutputDir(builtDir + '/' + buildName + '_html')
         c = htmlRenderer.HTMLRenderer(usfmDir, builtDir + '/' + buildName + '_html', oebFlag)
         c.render()
@@ -99,7 +99,7 @@ class UsfmTransform():
     @staticmethod
     def buildSingleHtml(usfmDir, builtDir, buildName):
         # Convert to HTML
-        UsfmTransform.__logger.info('Building Single Page HTML...')
+        UsfmTransform.__logger.info("Building Single Page HTML...")
         UsfmTransform.ensureOutputDir(builtDir)
         c = singlehtmlRenderer.SingleHTMLRenderer(usfmDir, builtDir + '/' + buildName + '.html')
         c.render()
@@ -107,7 +107,7 @@ class UsfmTransform():
     @staticmethod
     def buildCSV(usfmDir, builtDir, buildName):
         # Convert to CSV
-        UsfmTransform.__logger.info('Building CSV...')
+        UsfmTransform.__logger.info("Building CSV...")
         UsfmTransform.ensureOutputDir(builtDir)
         c = csvRenderer.CSVRenderer(usfmDir, builtDir + '/' + buildName + '.csv')
         c.render()
@@ -115,7 +115,7 @@ class UsfmTransform():
     @staticmethod
     def buildReader(usfmDir, builtDir, buildName):
         # Convert to HTML for online reader
-        UsfmTransform.__logger.info('Building for Reader...')
+        UsfmTransform.__logger.info("Building for Reader...")
         UsfmTransform.ensureOutputDir(builtDir + 'en_oeb')
         c = readerise.TransformForReader()
         c.setupAndRun(usfmDir, builtDir + 'en_oeb')

@@ -2,7 +2,6 @@ import os
 import string
 import markdown
 import markdown2
-import codecs
 from shutil import copyfile
 from bs4 import BeautifulSoup
 from general_tools.file_utils import write_file, get_files
@@ -34,7 +33,7 @@ class Md2HtmlConverter(Converter):
         for filename in files:
             if filename.endswith('.md'):
                 # Convert files that are markdown files
-                with codecs.open(filename, 'r', 'utf-8-sig') as md_file:
+                with open(filename, 'rt') as md_file:
                     md = md_file.read()
                 html = markdown.markdown(md)
                 html = html_template.safe_substitute(title=self.source.upper(), content=html)
@@ -43,8 +42,7 @@ class Md2HtmlConverter(Converter):
                 html_filename = base_name + ".html"
                 output_file = os.path.join(self.output_dir, html_filename)
                 write_file(output_file, html)
-                self.log.info('Converted {0} to {1}.'.format(os.path.basename(filename),
-                                                             os.path.basename(html_filename)))
+                self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
             else:
                 # Directly copy over files that are not markdown files
                 try:
@@ -53,7 +51,7 @@ class Md2HtmlConverter(Converter):
                         copyfile(filename, output_file)
                 except:
                     pass
-        self.log.info('Finished processing OBS Markdown files.')
+        self.log.info("Finished processing OBS Markdown files.")
 
     def convert_markdown(self):
         self.log.info('Processing Markdown files')
@@ -75,7 +73,7 @@ class Md2HtmlConverter(Converter):
                     continue
 
                 # Convert files that are markdown files
-                with codecs.open(filename, 'r', 'utf-8-sig') as md_file:
+                with open(filename, 'rt') as md_file:
                     md = md_file.read()
                 if self.resource in ['ta']:
                     html = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
@@ -97,8 +95,7 @@ class Md2HtmlConverter(Converter):
                 html_filename = base_name + ".html"
                 output_file = os.path.join(self.output_dir, html_filename)
                 write_file(output_file, html)
-                self.log.info('Converted {0} to {1}.'.format(os.path.basename(filename),
-                                                             os.path.basename(html_filename)))
+                self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
             else:
                 # Directly copy over files that are not markdown files
                 try:

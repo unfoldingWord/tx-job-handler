@@ -130,6 +130,6 @@ class Transform(object):
         self.booksUsfm = books.loadBooks(patchedDir)
 
         for bookName in books.silNames:
-            if self.booksUsfm.has_key(bookName):
+            if bookName in self.booksUsfm:
                 print('     ' + bookName)
                 self.translateBook(self.booksUsfm[bookName])

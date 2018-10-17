@@ -526,7 +526,7 @@ def createToken(t):
         'text': TEXTToken,
         'unknown': UnknownToken
     }
-    for k, v in options.iteritems():
+    for k, v in options.items():
         if t[0] == k:
             if len(t) == 1:
                 token = v()

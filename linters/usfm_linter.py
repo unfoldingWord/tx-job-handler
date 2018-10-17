@@ -49,13 +49,13 @@ class UsfmLinter(Linter):
         book_code, book_full_name = self.get_book_ids(file_name)
 
         try:
-            f = open(file_path, 'U')  # U handles line endings
-            book_text = f.read().decode('utf-8-sig').lstrip()
+            f = open(file_path, 'rt')  # U handles line endings
+            book_text = f.read().lstrip()
 
             self.parse_usfm_text(sub_path, file_name, book_text, book_full_name, book_code)
 
         except Exception as e:
-            self.log.warning("Failed to open book '{0}', exception: {1}".format(file_name, str(e)))
+            self.log.warning(f"Failed to open book '{file_name}', exception: {e}")
 
     @staticmethod
     def get_book_ids(file_name):
@@ -77,7 +77,7 @@ class UsfmLinter(Linter):
 
             if book_code:
                 if book_code in self.found_books:
-                    self.log.warning("File '{0}' has same code '{1}' as previous file".format(sub_path, book_code))
+                    self.log.warning(f"File '{sub_path}' has same code '{book_code}' as previous file")
                 self.found_books.append(book_code)
 
             if len(errors):

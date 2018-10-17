@@ -1,5 +1,3 @@
-import codecs
-
 from tx_usfm_tools.support import abstractRenderer
 
 #
@@ -21,7 +19,7 @@ class ASCIIRenderer(abstractRenderer.AbstractRenderer):
         self.inX = False
 
     def render(self):
-        self.f = codecs.open(self.outputFilename, 'w', 'ascii')
+        self.f = open(self.outputFilename, 'wt', encoding='ascii')
         self.loadUSFM(self.inputDir)
         self.run()
         self.f.close()

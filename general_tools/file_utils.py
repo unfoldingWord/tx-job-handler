@@ -1,4 +1,3 @@
-import codecs
 import json
 import os
 import sys
@@ -100,8 +99,8 @@ def load_yaml_object(file_name, default=None):
     return yaml.load(read_file(file_name))
 
 
-def read_file(file_name, encoding='utf-8-sig'):
-    with codecs.open(file_name, 'r', encoding=encoding) as f:
+def read_file(file_name, encoding='utf-8'):
+    with open(file_name, 'rt', encoding=encoding) as f:
         content = f.read()
     # convert Windows line endings to Linux line endings
     content = content.replace('\r\n', '\n')
@@ -129,7 +128,7 @@ def write_file(file_name, file_contents, indent=None):
         else:
             text_to_write = json.dumps(file_contents, sort_keys=True, indent=indent, default=json_serial)
 
-    with codecs.open(file_name, 'w', encoding='utf-8') as out_file:
+    with open(file_name, 'wt', encoding='utf-8') as out_file:
         out_file.write(text_to_write)
 
 

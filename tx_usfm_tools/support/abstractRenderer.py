@@ -1,35 +1,35 @@
-from tx_usfm_tools.support import books
-from tx_usfm_tools.support import parseUsfm
+from tx_usfm_tools.support.books import loadBooks, silNames
+from tx_usfm_tools.support.parseUsfm import parseString
 
 
-class AbstractRenderer():
+class AbstractRenderer:
 
     booksUsfm = None
 
-    chapterLabel = u'Chapter'
+    chapterLabel = 'Chapter'
 
     def writeLog(self, s):
         pass
 
     def loadUSFM(self, usfmDir):
-        self.booksUsfm = books.loadBooks(usfmDir)
+        self.booksUsfm = loadBooks(usfmDir)
 
     def run(self):
         self.unknowns = []
         try:
             bookName = self.renderBook
-            if self.booksUsfm.has_key(bookName):
+            if bookName in self.booksUsfm:
                 self.writeLog('     (' + bookName + ')')
-                tokens = parseUsfm.parseString(self.booksUsfm[bookName])
+                tokens = parseString(self.booksUsfm[bookName])
                 for t in tokens: t.renderOn(self)
         except:
-            for bookName in books.silNames:
-                if self.booksUsfm.has_key(bookName):
+            for bookName in silNames:
+                if bookName in self.booksUsfm:
                     self.writeLog('     (' + bookName + ')')
-                    tokens = parseUsfm.parseString(self.booksUsfm[bookName])
+                    tokens = parseString(self.booksUsfm[bookName])
                     for t in tokens: t.renderOn(self)
-        if len(self.unknowns):
-            print('Skipped unknown tokens: {0}'.format(', '.join(set(self.unknowns))))
+        if self.unknowns:
+            print(f"Skipped unknown tokens: {', '.join(set(self.unknowns))}")
 
     def renderID(self, token):      pass
     def renderIDE(self, token):     pass

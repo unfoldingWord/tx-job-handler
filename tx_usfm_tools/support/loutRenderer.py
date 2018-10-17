@@ -1,4 +1,3 @@
-import codecs
 import datetime
 
 from tx_usfm_tools.support import books
@@ -33,7 +32,7 @@ class LoutRenderer(abstractRenderer.AbstractRenderer):
         self.afterLord = False
 
     def render(self):
-        self.f = codecs.open(self.outputFilename, 'w', 'utf_8_sig')
+        self.f = open(self.outputFilename, 'wt', encoding='utf_8')
         self.f.write(r"""@Include { oebbook }
 @Book
     @Title {}

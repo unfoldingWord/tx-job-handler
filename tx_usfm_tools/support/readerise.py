@@ -287,7 +287,7 @@ class TransformForReader(object):
         tokens = []
         print("    ** Parsing")
         for bookName in books.silNames:
-            if self.booksUsfm.has_key(bookName):
+            if bookName in self.booksUsfm:
                 tokens = tokens + parseUsfm.parseString(self.booksUsfm[bookName])
         self.tokenStream = TokenStream(tokens)
 

@@ -1,5 +1,3 @@
-import codecs
-
 from tx_usfm_tools.support import abstractRenderer
 from tx_usfm_tools.support import books
 
@@ -22,7 +20,7 @@ class CSVRenderer(abstractRenderer.AbstractRenderer):
         self.infootnote = False
 
     def render(self):
-        self.f = codecs.open(self.outputFilename, 'w', 'utf_8_sig')
+        self.f = open(self.outputFilename, 'wt', encoding='utf_8')
         self.loadUSFM(self.inputDir)
         self.run()
         self.f.close()

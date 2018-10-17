@@ -1,4 +1,3 @@
-import codecs
 import datetime
 
 from tx_usfm_tools.support import abstractRenderer
@@ -26,7 +25,7 @@ class ConTeXtRenderer(abstractRenderer.AbstractRenderer):
         self.smallcaps = False
 
     def render(self):
-        self.f = codecs.open(self.outputFilename, 'w', 'utf_8_sig')
+        self.f = open(self.outputFilename, 'wt', encoding='utf_8')
         self.loadUSFM(self.inputDir)
         self.f.write(u"""
             Document rendered on """ + datetime.date.today().strftime("%F") + r"""

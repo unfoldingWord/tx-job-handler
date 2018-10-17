@@ -1,4 +1,3 @@
-import codecs
 import logging
 
 from tx_usfm_tools.support import abstractRenderer
@@ -36,14 +35,14 @@ class USXRenderer(abstractRenderer.AbstractRenderer):
         if self.byBook:
             self.__logger.info('Creating One File Per Book\n')
             for bookName in self.booksUsfm:
-                self.f = codecs.open(self.outputFilePath + bookName + self.outputFileExt, 'w', 'utf_8_sig')
+                self.f = open(self.outputFilePath + bookName + self.outputFileExt, 'wt', encoding='utf_8')
                 self.renderBook = bookName
                 self.run()
                 self.f.write(self.stop_all())
                 self.f.close()
         else:
             self.__logger.info('Concatenating Books into ' + self.outputFileName + self.outputFileExt + '\n')
-            self.f = codecs.open(self.outputFilePath + self.outputFileName + self.outputFileExt, 'w', 'utf_8_sig')
+            self.f = open(self.outputFilePath + self.outputFileName + self.outputFileExt, 'wt', encoding='utf_8')
             self.run()
             self.f.write(self.stop_p() + self.stop_pi() + self.stop_pi2() + self.stop_q() + self.stop_li())
             self.f.close()
