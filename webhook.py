@@ -6,16 +6,8 @@
 
 # Python imports
 import os
-#import shutil
 import tempfile
-#import logging
-#import ssl
-#import urllib.request as urllib2
-#from urllib import error as urllib_error
-#from urllib.parse import urlencode
-#from urllib.request import Request, urlopen
 import json
-#import hashlib
 from datetime import datetime, timedelta, date
 from time import time
 
@@ -648,6 +640,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
+        stats_client.incr('callbacks.attempted')
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
         except requests.exceptions.ConnectionError as e:
