@@ -9,7 +9,7 @@ import urllib.request as urllib2
 
 def get_url(url, catch_exception=False):
     """
-    :param str|unicode url: URL to open
+    :param str url: URL to open
     :param bool catch_exception: If <True> catches all exceptions and returns <False>
     """
     return _get_url(url, catch_exception, urlopen=urllib2.urlopen)

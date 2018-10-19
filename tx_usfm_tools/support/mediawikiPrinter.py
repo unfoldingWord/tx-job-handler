@@ -115,7 +115,7 @@ class MediaWikiPrinter(object):
 class Transform(object):
 
     def stripUnicodeHeader(self, unicodeString):
-        if unicodeString[0] == u'\ufeff':
+        if unicodeString[0] == '\ufeff':
             return unicodeString[1:]
         else:
             return unicodeString

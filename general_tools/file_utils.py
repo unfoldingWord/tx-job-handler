@@ -13,8 +13,8 @@ def unzip(source_file, destination_dir):
     """
     Unzips <source_file> into <destination_dir>.
 
-    :param str|unicode source_file: The name of the file to read
-    :param str|unicode destination_dir: The name of the directory to write the unzipped files
+    :param str source_file: The name of the file to read
+    :param str destination_dir: The name of the directory to write the unzipped files
 
     NOTE: This is UNSAFE if the zipfile comes from an untrusted source
             as it may contain absolute paths outside of the desired folder.
@@ -28,8 +28,8 @@ def add_contents_to_zip(zip_file, path, include_root=False):
     """
     Zip the contents of <path> into <zip_file>.
 
-    :param str|unicode zip_file: The file name of the zip file
-    :param str|unicode path: Full path of the directory to zip up
+    :param str zip_file: The file name of the zip file
+    :param str path: Full path of the directory to zip up
     :param bool include_root: If true, the zip file will start with the directory of the path parameter
     """
     path = path.rstrip(os.path.sep)
@@ -48,10 +48,10 @@ def add_file_to_zip(zip_file, file_name, arc_name=None, compress_type=None):
     """
     Zip <file_name> into <zip_file> as <arc_name>.
 
-    :param str|unicode zip_file: The file name of the zip file
-    :param str|unicode file_name: The name of the file to add, including the path
-    :param str|unicode arc_name: The new name, with directories, of the file, the same as filename if not given
-    :param str|unicode compress_type:
+    :param str zip_file: The file name of the zip file
+    :param str file_name: The name of the file to add, including the path
+    :param str arc_name: The new name, with directories, of the file, the same as filename if not given
+    :param str compress_type:
     """
     with zipfile.ZipFile(zip_file, 'a') as zf:
         zf.write(file_name, arc_name, compress_type)
@@ -64,7 +64,7 @@ def make_dir(dir_name, linux_mode=0o755, error_if_not_writable=False):
     If the directory does exist, and <error_if_not_writable> is True,
     the directory will be checked for writability.
 
-    :param str|unicode dir_name: The name of the directory to create
+    :param str dir_name: The name of the directory to create
     :param int linux_mode: The mode/permissions to set for the new directory expressed as an octal integer (ex. 0o755)
     :param bool error_if_not_writable: The name of the file to read
     """
@@ -78,7 +78,7 @@ def make_dir(dir_name, linux_mode=0o755, error_if_not_writable=False):
 def load_json_object(file_name, default=None):
     """
     Deserialized JSON file <file_name> into a Python dict.
-    :param str|unicode file_name: The name of the file to read
+    :param str file_name: The name of the file to read
     :param default: The value to return if the file is not found
     """
     if not os.path.isfile(file_name):
@@ -90,7 +90,7 @@ def load_json_object(file_name, default=None):
 def load_yaml_object(file_name, default=None):
     """
     Deserialized YAML file <file_name> into a Python dict.
-    :param str|unicode file_name: The name of the file to read
+    :param str file_name: The name of the file to read
     :param default: The value to return if the file is not found
     """
     if not os.path.isfile(file_name):
@@ -113,8 +113,8 @@ def write_file(file_name, file_contents, indent=None):
 
     If <file_contents> is not a string, it is serialized as JSON.
 
-    :param str|unicode file_name: The name of the file to write
-    :param str|unicode|object file_contents: The string to write or the object to serialize
+    :param str file_name: The name of the file to write
+    :param str|object file_contents: The string to write or the object to serialize
     :param int indent: Specify a value if you want the output formatted to be more easily readable
     """
     # make sure the directory exists

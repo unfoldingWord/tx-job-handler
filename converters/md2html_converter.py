@@ -1,9 +1,11 @@
 import os
 import string
+from shutil import copyfile
+
 import markdown
 import markdown2
-from shutil import copyfile
 from bs4 import BeautifulSoup
+
 from general_tools.file_utils import write_file, get_files
 from converters.converter import Converter
 
@@ -11,7 +13,7 @@ from converters.converter import Converter
 class Md2HtmlConverter(Converter):
 
     def convert(self):
-        if self.resource == "obs":
+        if self.resource == 'obs':
             self.convert_obs()
             return True
         else:
@@ -19,7 +21,7 @@ class Md2HtmlConverter(Converter):
             return True
 
     def convert_obs(self):
-        self.log.info('Processing OBS markdown files')
+        self.log.info("Processing OBS markdown files ...")
 
         # find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -39,7 +41,7 @@ class Md2HtmlConverter(Converter):
                 html = html_template.safe_substitute(title=self.source.upper(), content=html)
                 base_name = os.path.splitext(os.path.basename(filename))[0]
                 found_chapters[base_name] = True
-                html_filename = base_name + ".html"
+                html_filename = base_name + '.html'
                 output_file = os.path.join(self.output_dir, html_filename)
                 write_file(output_file, html)
                 self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
@@ -54,7 +56,7 @@ class Md2HtmlConverter(Converter):
         self.log.info("Finished processing OBS Markdown files.")
 
     def convert_markdown(self):
-        self.log.info('Processing Markdown files')
+        self.log.info("Processing Markdown files ...")
 
         # find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -88,7 +90,7 @@ class Md2HtmlConverter(Converter):
                         tag.parent['id'] = tag['id']
                         tag.parent['class'] = tag.parent.get('class', []) + ['section-header']
                         tag.extract()
-                html = unicode(soup)
+                html = str(soup)
 
                 base_name = os.path.splitext(os.path.basename(filename))[0]
                 found_chapters[base_name] = True
@@ -104,4 +106,4 @@ class Md2HtmlConverter(Converter):
                         copyfile(filename, output_file)
                 except:
                     pass
-        self.log.info('Finished processing Markdown files.')
+        self.log.info("Finished processing Markdown files.")
