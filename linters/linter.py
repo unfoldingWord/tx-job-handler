@@ -22,13 +22,14 @@ class Linter(metaclass=ABCMeta):
         """
         :param string source_url: The main way to give Linter the files
         :param string source_file: If set, will just unzip this local file
-        :param string source_dir: If set, wil just use this directory
+        :param string source_dir: If set, will just use this directory
         :param dict commit_data: Can get the changes, commit_url, etc from this
         :param string lint_callback: If set, will do callback
         :param string identifier:
         :param string s3_results_key:
         :params dict kwargs:
         """
+        GlobalSettings.logger.debug(f"Linter.__init__(su={source_url}, sf={source_file}, sd={source_dir}, cd={commit_data}, callback={lint_callback}, id={identifier}, s3k={s3_results_key})")
         self.source_zip_url = source_url
         self.source_zip_file = source_file
         self.source_dir = source_dir

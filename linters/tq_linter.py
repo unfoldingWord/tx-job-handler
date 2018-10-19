@@ -1,4 +1,5 @@
 import os
+
 from global_settings.global_settings import GlobalSettings
 from preprocessors.preprocessors import TqPreprocessor
 from linters.markdown_linter import MarkdownLinter
@@ -15,9 +16,11 @@ class TqLinter(MarkdownLinter):
         self.source_dir is the directory of source files (.md)
         :return bool:
         """
+        GlobalSettings.logger.debug(f"TqLinter.lint() with '{self.source_dir}' containing {os.listdir(self.source_dir)}")
+
         for book in BOOK_NUMBERS:
             found_files = False
-            link = self.get_link_for_book('{0}-{1}'.format(BOOK_NUMBERS[book], book.upper()))
+            link = self.get_link_for_book(f'{BOOK_NUMBERS[book]}-{book.upper()}')
             file_path = os.path.join(self.source_dir, link)
             for root, dirs, files in os.walk(file_path):
                 if root == file_path:
@@ -25,7 +28,7 @@ class TqLinter(MarkdownLinter):
 
                 for file in files:
                     parts = os.path.splitext(file)
-                    if (len(parts) > 1) and (parts[1] == ".md"):
+                    if (len(parts) > 1) and (parts[1] == '.md'):
                         found_files = True
                         break
 
@@ -33,7 +36,7 @@ class TqLinter(MarkdownLinter):
                     break
 
             if not found_files:
-                msg = "missing book: '{0}'".format(link)
+                msg = f"missing book: '{link}'"
                 self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
 

@@ -21,8 +21,6 @@ from general_tools.file_utils import unzip, add_contents_to_zip, write_file, rem
 from general_tools.url_utils import download_file
 from resource_container.ResourceContainer import RC
 from preprocessors.preprocessors import do_preprocess
-#from models.manifest import TxManifest
-#from models.job import TxJob
 from models.module import TxModule
 from global_settings.global_settings import GlobalSettings
 
@@ -83,8 +81,10 @@ def do_linting(param_dict, source_dir, linter_name):
 
     # Find the right linter
     try:
-        #linter = LINTER_MAP[linter_name](source_url=param_dict['source'])
-        linter = LINTER_MAP[linter_name](source_dir=source_dir)
+        # TODO: Why does the linter download the (zip) file again???
+        linter = LINTER_MAP[linter_name](source_url=param_dict['source'])
+        # TODO: Why does the linter not find books if we give it the preprocessed files???
+        #linter = LINTER_MAP[linter_name](source_dir=source_dir)
     except KeyError:
         GlobalSettings.logger.critical(f"Can't find correct linter for {linter_name!r}")
         linter = None
@@ -345,7 +345,7 @@ def download_source_file(source_url, destination_folder):
     GlobalSettings.logger.info(f"source_filepath: {source_filepath}")
 
     try:
-        GlobalSettings.logger.debug(f'Downloading {source_url} ...')
+        GlobalSettings.logger.debug(f"Downloading {source_url} ...")
 
         # if the file already exists, remove it, we want a fresh copy
         if os.path.isfile(source_filepath):
@@ -353,21 +353,21 @@ def download_source_file(source_url, destination_folder):
 
         download_file(source_url, source_filepath)
     finally:
-        GlobalSettings.logger.debug('Downloading finished.')
+        GlobalSettings.logger.debug("Downloading finished.")
 
     if source_url.lower().endswith('.zip'):
         try:
-            GlobalSettings.logger.debug(f'Unzipping {source_filepath}...')
+            GlobalSettings.logger.debug(f"Unzipping {source_filepath} ...")
             # TODO: This is unsafe if the zipfile comes from an untrusted source
             unzip(source_filepath, destination_folder)
         finally:
-            GlobalSettings.logger.debug('Unzipping finished.')
+            GlobalSettings.logger.debug("Unzipping finished.")
 
         # clean up the downloaded zip file
         if os.path.isfile(source_filepath):
             os.remove(source_filepath)
 
-    GlobalSettings.logger.debug(f"Destination folder now has: {os.listdir(destination_folder)}")
+    GlobalSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {os.listdir(destination_folder)}")
 #end of download_repo function
 
 
@@ -480,13 +480,16 @@ def process_tx_job(pj_prefix, queued_json_payload):
     # Find correct source folder
     source_folder_path = base_temp_dir_name
     dirList = os.listdir(base_temp_dir_name)
-    GlobalSettings.logger.debug(f"Discovering source folder from {dirList}...")
+    GlobalSettings.logger.debug(f"Discovering source folder from"
+                                f" '{base_temp_dir_name}' with {dirList} ...")
     if len(dirList)==1:
         tryFolder = os.path.join(base_temp_dir_name, dirList[0])
         if os.path.isdir(tryFolder):
             GlobalSettings.logger.debug(f"Switching source folder to {tryFolder}")
             source_folder_path = tryFolder
-    GlobalSettings.logger.info(f"Source folder contains {os.listdir(source_folder_path)}")
+    if source_folder_path != base_temp_dir_name:
+        GlobalSettings.logger.info(f"Source folder '{source_folder_path}'"
+                                   f" contains {os.listdir(source_folder_path)}")
 
 
     ##print(f"Webhook.process_tx_job setting up TxJob with username={user.username}...")
