@@ -33,7 +33,8 @@ from linters.tw_linter import TwLinter
 from linters.udb_linter import UdbLinter
 from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
-LINTER_MAP = {'md':MarkdownLinter, 'obs':ObsLinter,
+LINTER_MAP = {'md':MarkdownLinter, 'markdown':MarkdownLinter,
+              'obs':ObsLinter,
               'ta':TaLinter, 'tn':TnLinter, 'tq':TqLinter, 'tw':TwLinter,
               'udb':UdbLinter, 'ulb':UlbLinter,
               'usfm':UsfmLinter}
@@ -86,7 +87,7 @@ def do_linting(param_dict, source_dir, linter_name):
         # TODO: Why does the linter not find books if we give it the preprocessed files???
         #linter = LINTER_MAP[linter_name](source_dir=source_dir)
     except KeyError:
-        GlobalSettings.logger.critical(f"Can't find correct linter for {linter_name!r}")
+        GlobalSettings.logger.critical(f"Can't find correct linter for '{linter_name}'")
         linter = None
 
     if linter: # Run the linter and grab the results
@@ -96,7 +97,7 @@ def do_linting(param_dict, source_dir, linter_name):
         param_dict['linter_warnings'] = lint_result['warnings']
     else:
         param_dict['linter_success'] = 'false'
-        param_dict['linter_warnings'] = ['Cannot find correct linter']
+        param_dict['linter_warnings'] = [f"Cannot find '{linter_name}' linter"]
 
     param_dict['status'] = 'linted'
     GlobalSettings.logger.debug(f'do_lint is returning with {param_dict}')
@@ -135,7 +136,7 @@ def do_converting(param_dict, source_dir, converter_name):
                                                   param_dict['resource_type'],
                                                   cdn_file=cdn_file_key)
     except KeyError:
-        GlobalSettings.logger.critical(f"Can't find correct converter for {converter_name!r}")
+        GlobalSettings.logger.critical(f"Can't find correct converter for '{converter_name}'")
         converter = None
 
     if converter: # Run the converter and grab the results
@@ -147,7 +148,9 @@ def do_converting(param_dict, source_dir, converter_name):
         param_dict['converter_errors'] = convert_result['errors']
     else:
         param_dict['converter_success'] = 'false'
-        param_dict['converter_warnings'] = ['Cannot find correct converter']
+        param_dict['converter_info'] = []
+        param_dict['converter_warnings'] = []
+        param_dict['converter_errors'] = [f"Cannot find '{converter_name}' converter"]
 
     param_dict['status'] = 'converted'
     GlobalSettings.logger.debug(f'do_convert is returning with {param_dict}')
@@ -520,7 +523,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     #pj_job.success = False
 
 
-    GlobalSettings.logger.debug(f"Finding linter/converter for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
+    GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
     linter = get_linter_module(queued_json_payload)
     GlobalSettings.logger.debug(f"Got linter = {linter}, {linter.__dict__}")
     converter = get_converter_module(queued_json_payload)
@@ -538,6 +541,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
         do_linting(build_log_dict, source_folder_path, linter_name)
     else:
         GlobalSettings.logger.warning(f"No linter was found to lint {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
+        build_log_dict['linter_success'] = 'false'
+        build_log_dict['linter_warnings'] = [f"No linter found for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}"]
 
     if converter:
         converter_name = converter.name
@@ -549,7 +554,11 @@ def process_tx_job(pj_prefix, queued_json_payload):
         # Log dict gets updated by the following line
         do_converting(build_log_dict, source_folder_path, converter_name)
     else:
-        GlobalSettings.logger.warning(f"No converter was found to convert {queued_json_payload['input_format']} {queued_json_payload['resource_type']} to {queued_json_payload['output_format']}")
+        GlobalSettings.logger.error(f"No converter was found to convert {queued_json_payload['input_format']} {queued_json_payload['resource_type']} to {queued_json_payload['output_format']}")
+        build_log_dict['converter_success'] = 'false'
+        build_log_dict['converter_info'] = []
+        build_log_dict['converter_warnings'] = []
+        build_log_dict['converter_errors'] = [f"No converter found for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}"]
 
 
     #if converter:
@@ -641,7 +650,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         callback_payload = build_log_dict
         for key,value in callback_payload.items():
             if isinstance(value, (datetime, date)):
-                callback_payload[key] = value.strftime("%Y-%m-%dT%H:%M:%SZ")
+                callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         stats_client.incr('callbacks.attempted')
         try:
