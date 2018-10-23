@@ -32,7 +32,7 @@ class ObsLinter(MarkdownLinter):
             filename = os.path.join(project_dir, chapter_number + '.md')
 
             if not os.path.isfile(filename):
-                self.log.warning('Chapter {0} does not exist!'.format(chapter_number))
+                self.log.warning(f"Chapter {chapter_number} does not exist!")
                 continue
 
             chapter_md = read_file(filename)
@@ -40,7 +40,7 @@ class ObsLinter(MarkdownLinter):
 
             # Find chapter headings
             if is_title < 0:
-                self.log.warning('Chapter {0} does not have a title!'.format(chapter_number))
+                self.log.warning(f"Chapter {chapter_number} does not have a title!")
 
             # Identify missing frames
             expected_frame_count = obs_data['chapters'][str(chapter).zfill(2)]['frames']
@@ -54,7 +54,7 @@ class ObsLinter(MarkdownLinter):
 
             # look for verse reference
             if not reference_re.search(chapter_md):
-                self.log.warning('Bible reference not found at end of chapter {0}!'.format(chapter_number))
+                self.log.warning(f"Bible reference not found at end of chapter {chapter_number}!")
 
         # Check front and back matter
         for book_end in ['front', 'back']:
@@ -68,12 +68,12 @@ class ObsLinter(MarkdownLinter):
             }
 
             if not os.path.isfile(filename):
-                self.log.warning('{0}.md does not exist!'.format(book_end))
+                self.log.warning(f"{book_end}.md does not exist!")
                 continue
 
             if self.rc.resource.language.identifier != 'en':
                 end_content = read_file(filename)
                 if lines[book_end] in end_content:
-                    self.log.warning('Story {0} matter is not translated!'.format(book_end))
+                    self.log.warning(f"Story {book_end} matter is not translated!")
 
         return super(ObsLinter, self).lint()  # Runs the markdown linter

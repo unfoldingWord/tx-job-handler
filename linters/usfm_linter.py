@@ -49,7 +49,7 @@ class UsfmLinter(Linter):
         book_code, book_full_name = self.get_book_ids(file_name)
 
         try:
-            f = open(file_path, 'rt')  # U handles line endings
+            f = open(file_path, 'rt')
             book_text = f.read().lstrip()
 
             self.parse_usfm_text(sub_path, file_name, book_text, book_full_name, book_code)

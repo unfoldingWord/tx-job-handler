@@ -21,13 +21,15 @@ class TqLinter(MarkdownLinter):
         for book in BOOK_NUMBERS:
             found_files = False
             link = self.get_link_for_book(f'{BOOK_NUMBERS[book]}-{book.upper()}')
+            GlobalSettings.logger.debug(f"Link is '{link}'")
             file_path = os.path.join(self.source_dir, link)
+            GlobalSettings.logger.debug(f"file_path is '{file_path}'")
             for root, dirs, files in os.walk(file_path):
                 if root == file_path:
                     continue  # skip book folder
 
-                for file in files:
-                    parts = os.path.splitext(file)
+                for this_file in files:
+                    parts = os.path.splitext(this_file)
                     if (len(parts) > 1) and (parts[1] == '.md'):
                         found_files = True
                         break
@@ -36,7 +38,7 @@ class TqLinter(MarkdownLinter):
                     break
 
             if not found_files:
-                msg = f"missing book: '{link}'"
+                msg = f"missing tQ book: '{link}'"
                 self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
 

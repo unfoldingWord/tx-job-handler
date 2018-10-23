@@ -85,7 +85,7 @@ class MarkdownLinter(Linter):
         GlobalSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload['options'].keys()}/{payload['options']['config']}/{len(payload['options']['strings'])} )")
         lambda_handler = LambdaHandler()
         lint_function = f'{GlobalSettings.prefix}tx_markdown_linter'
-        GlobalSettings.logger.debug("Size of {0} lint data={1}".format(self.s3_results_key, len(payload)))
+        GlobalSettings.logger.debug(f"Size of {self.s3_results_key} lint data={len(payload)}")
         response = lambda_handler.invoke(lint_function, payload)
         if 'errorMessage' in response:
             GlobalSettings.logger.error(response['errorMessage'])
@@ -112,6 +112,7 @@ class TagStripper(HTMLParser):
     def __init__(self):
         self.reset()
         self.fed = []
+        super().__init__(convert_charrefs=True) # See https://stackoverflow.com/questions/48203228/python-3-4-deprecationwarning-convert-charrefs
 
     def handle_data(self, d):
         self.fed.append(d)

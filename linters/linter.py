@@ -15,7 +15,7 @@ from abc import ABCMeta, abstractmethod
 class Linter(metaclass=ABCMeta):
     """
     """
-    EXCLUDED_FILES = ["license.md", "package.json", "project.json", 'readme.md']
+    EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
 
     def __init__(self, source_url=None, source_file=None, source_dir=None, commit_data=None,
                  lint_callback=None, identifier=None, s3_results_key=None, **kwargs):
@@ -27,9 +27,11 @@ class Linter(metaclass=ABCMeta):
         :param string lint_callback: If set, will do callback
         :param string identifier:
         :param string s3_results_key:
-        :params dict kwargs:
+        :params dict kwargs: Seem to be ignored
         """
-        GlobalSettings.logger.debug(f"Linter.__init__(su={source_url}, sf={source_file}, sd={source_dir}, cd={commit_data}, callback={lint_callback}, id={identifier}, s3k={s3_results_key})")
+        GlobalSettings.logger.debug(f"Linter.__init__(url={source_url}, file={source_file},"
+                                    f" dir={source_dir}, cd={commit_data}, callback={lint_callback},"
+                                    f" id={identifier}, s3k={s3_results_key})")
         self.source_zip_url = source_url
         self.source_zip_file = source_file
         self.source_dir = source_dir
@@ -103,7 +105,7 @@ class Linter(metaclass=ABCMeta):
         warnings = self.log.warnings
         if len(warnings) > 200:  # sanity check so we don't overflow callback size limits
             warnings = warnings[0:199]
-            msg = 'Warnings truncated for {0}'.format(self.s3_results_key)
+            msg = f"Warnings truncated for {self.s3_results_key}"
             GlobalSettings.logger.debug(msg)
             warnings.append(msg)
         results = {
@@ -117,7 +119,7 @@ class Linter(metaclass=ABCMeta):
             self.callback_results = results
             self.do_callback(self.callback, self.callback_results)
 
-        GlobalSettings.logger.debug("Linter results: " + str(results))
+        GlobalSettings.logger.debug(f"Linter results: {results}")
         return results
 
     def download_archive(self):
@@ -129,10 +131,10 @@ class Linter(metaclass=ABCMeta):
                 download_file(self.source_zip_url, self.source_zip_file)
             finally:
                 if not os.path.isfile(self.source_zip_file):
-                    raise Exception("Failed to download {0}".format(self.source_zip_url))
+                    raise Exception(f"Failed to download {self.source_zip_url}")
 
     def unzip_archive(self):
-        GlobalSettings.logger.debug("Unzipping {0} to {1}".format(self.source_zip_file, self.temp_dir))
+        GlobalSettings.logger.debug(f"Unzipping {self.source_zip_file} to {self.temp_dir}")
         unzip(self.source_zip_file, self.temp_dir)
         dirs = [d for d in os.listdir(self.temp_dir) if os.path.isdir(os.path.join(self.temp_dir, d))]
         if len(dirs):
@@ -152,4 +154,4 @@ class Linter(metaclass=ABCMeta):
             else:
                 GlobalSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
         else:
-            GlobalSettings.logger.error('Invalid callback url: {0}'.format(url))
+            GlobalSettings.logger.error(f"Invalid callback url: {url}")
