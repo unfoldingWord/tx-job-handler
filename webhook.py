@@ -526,7 +526,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
                                 f" {queued_json_payload['resource_type']}")
     linter = get_linter_module(queued_json_payload)
-    GlobalSettings.logger.debug(f"Got linter = {linter}, {linter.__dict__}")
+    GlobalSettings.logger.debug(f"Got linter = {linter}")
     converter = get_converter_module(queued_json_payload)
     GlobalSettings.logger.debug(f"Got converter = {converter}")
 
