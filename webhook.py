@@ -541,6 +541,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         do_linting(build_log_dict, source_folder_path, linter_name)
     else:
         GlobalSettings.logger.warning(f"No linter was found to lint {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
+        build_log_dict['lint_module'] = 'NO LINTER'
         build_log_dict['linter_success'] = 'false'
         build_log_dict['linter_warnings'] = [f"No linter found for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}"]
 
@@ -555,6 +556,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         do_converting(build_log_dict, source_folder_path, converter_name)
     else:
         GlobalSettings.logger.error(f"No converter was found to convert {queued_json_payload['input_format']} {queued_json_payload['resource_type']} to {queued_json_payload['output_format']}")
+        build_log_dict['convert_module'] = 'NO CONVERTER'
         build_log_dict['converter_success'] = 'false'
         build_log_dict['converter_info'] = []
         build_log_dict['converter_warnings'] = []
