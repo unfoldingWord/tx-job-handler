@@ -523,7 +523,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
     #pj_job.success = False
 
 
-    GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
+    GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
+                                f" {queued_json_payload['resource_type']}")
     linter = get_linter_module(queued_json_payload)
     GlobalSettings.logger.debug(f"Got linter = {linter}, {linter.__dict__}")
     converter = get_converter_module(queued_json_payload)
@@ -540,10 +541,12 @@ def process_tx_job(pj_prefix, queued_json_payload):
         # Log dict gets updated by the following line
         do_linting(build_log_dict, source_folder_path, linter_name)
     else:
-        GlobalSettings.logger.warning(f"No linter was found to lint {queued_json_payload['input_format']} {queued_json_payload['resource_type']}")
+        warning_message = f"No linter was found to lint {queued_json_payload['input_format']}" \
+                          f" {queued_json_payload['resource_type']}"
+        GlobalSettings.logger.warning(warning_message)
         build_log_dict['lint_module'] = 'NO LINTER'
         build_log_dict['linter_success'] = 'false'
-        build_log_dict['linter_warnings'] = [f"No linter found for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}"]
+        build_log_dict['linter_warnings'] = [warning_message]
 
     if converter:
         converter_name = converter.name
@@ -555,12 +558,14 @@ def process_tx_job(pj_prefix, queued_json_payload):
         # Log dict gets updated by the following line
         do_converting(build_log_dict, source_folder_path, converter_name)
     else:
-        GlobalSettings.logger.error(f"No converter was found to convert {queued_json_payload['input_format']} {queued_json_payload['resource_type']} to {queued_json_payload['output_format']}")
+        error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
+                        f" from {queued_json_payload['input_format']} to {queued_json_payload['output_format']}"
+        GlobalSettings.logger.error(error_message)
         build_log_dict['convert_module'] = 'NO CONVERTER'
         build_log_dict['converter_success'] = 'false'
         build_log_dict['converter_info'] = []
         build_log_dict['converter_warnings'] = []
-        build_log_dict['converter_errors'] = [f"No converter found for {queued_json_payload['input_format']} {queued_json_payload['resource_type']}"]
+        build_log_dict['converter_errors'] = [error_message]
 
 
     #if converter:
