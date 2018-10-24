@@ -121,6 +121,7 @@ class GlobalSettings:
     logger = logging.getLogger()
     setup_logger(logger, logging.DEBUG if os.getenv('DEBUG_MODE', '') else logging.INFO)
 
+
     def __init__(self, **kwargs):
         """
         Using init to set the class variables with GlobalSettings(var=value)
@@ -150,7 +151,9 @@ class GlobalSettings:
         Prefixes any variables in GlobalSettings.prefixable_variables. This includes URLs
         :return:
         """
-        #print("GlobalSettings.prefix_vars with {!r}".format(prefix))
+        if prefix:
+            setup_logger(cls.logger, logging.DEBUG)
+        cls.logger.debug(f"GlobalSettings.prefix_vars with '{prefix}'")
         url_re = re.compile(r'^(https*://)')  # Current prefix in URLs
         for var in cls.prefixable_vars:
             value = getattr(GlobalSettings, var)
@@ -254,11 +257,11 @@ class GlobalSettings:
             cls._db_session = sessionmaker(bind=cls.db_engine(echo), expire_on_commit=False)()
             from models.manifest import TxManifest
             TxManifest.__table__.name = cls.manifest_table_name
-            from models.job import TxJob
-            TxJob.__table__.name = cls.job_table_name
+            #from models.job import TxJob
+            #TxJob.__table__.name = cls.job_table_name
             from models.module import TxModule
             TxModule.__table__.name = cls.module_table_name
-            cls.db_create_tables([TxManifest.__table__, TxJob.__table__, TxModule.__table__])
+            cls.db_create_tables([TxManifest.__table__, TxModule.__table__])
         return cls._db_session
 
     @classmethod
