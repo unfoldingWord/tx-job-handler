@@ -21,28 +21,39 @@ from general_tools.file_utils import unzip, add_contents_to_zip, write_file, rem
 from general_tools.url_utils import download_file
 from resource_container.ResourceContainer import RC
 from preprocessors.preprocessors import do_preprocess
-from models.module import TxModule
 from global_settings.global_settings import GlobalSettings
 
-from linters.markdown_linter import MarkdownLinter
 from linters.obs_linter import ObsLinter
 from linters.ta_linter import TaLinter
 from linters.tn_linter import TnLinter
 from linters.tq_linter import TqLinter
 from linters.tw_linter import TwLinter
+from linters.markdown_linter import MarkdownLinter
 from linters.udb_linter import UdbLinter
 from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
-LINTER_MAP = {'md':MarkdownLinter, 'markdown':MarkdownLinter,
-              'obs':ObsLinter,
-              'ta':TaLinter, 'tn':TnLinter, 'tq':TqLinter, 'tw':TwLinter,
-              'udb':UdbLinter, 'ulb':UlbLinter,
-              'usfm':UsfmLinter}
 
 from converters.md2html_converter import Md2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
-CONVERTER_MAP = {'md2html':Md2HtmlConverter, 'usfm2html':Usfm2HtmlConverter}
 
+# NOTE: The following two tables are scanned in order (so put 'other' entries lower)
+LINTER_TABLE = (
+    ('obs',      ObsLinter,      ('md','markdown',),      ('obs',),                   ),
+    ('ta',       TaLinter,       ('md','markdown',),      ('ta',),                    ),
+    ('tn',       TnLinter,       ('md','markdown',),      ('tn',),                    ),
+    ('tq',       TqLinter,       ('md','markdown',),      ('tq',),                    ),
+    ('tw',       TwLinter,       ('md','markdown',),      ('tw',),                    ),
+    ('markdown', MarkdownLinter, ('md','markdown','txt'), ('other',),                 ),
+    ('udb',      UdbLinter,      ('usfm',),               ('udb',),                   ),
+    ('ulb',      UlbLinter,      ('usfm',),               ('ulb',),                   ),
+    ('usfm',     UsfmLinter,     ('usfm',),               ('bible', 'reg', 'other',), ),
+    )
+CONVERTER_TABLE = (
+    ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
+                    ('obs', 'ta', 'tq', 'tw', 'tn', 'other',),              'html'),
+    ('usfm2html', Usfm2HtmlConverter, ('usfm',),
+                    ('bible', 'ult', 'ust', 'ulb', 'udb', 'reg', 'other',), 'html'),
+    )
 
 #OUR_NAME = 'tX_job_handler'
 
@@ -61,46 +72,39 @@ stats_client = StatsClient(host=graphite_url, port=8125, prefix=stats_prefix)
 def get_linter_module(glm_job):
     """
     :param dict glm_job:
-    :return TxModule:
+    :return linter name and linter class:
     """
-    linters = TxModule.query().filter(TxModule.type == 'linter') \
-        .filter(TxModule.input_format.contains(glm_job['input_format']))
-    linter = linters.filter(TxModule.resource_types.contains(glm_job['resource_type'])).first()
-    if not linter:
-        linter = linters.filter(TxModule.resource_types.contains('other')).first()
-    return linter
+    for linter_name, linter_class, input_formats, resource_types in LINTER_TABLE:
+        if glm_job['input_format'] in input_formats \
+        and (glm_job['resource_type'] in resource_types or 'other' in resource_types):
+            return linter_name, linter_class
+    #linters = TxModule.query().filter(TxModule.type == 'linter') \
+        #.filter(TxModule.input_format.contains(glm_job['input_format']))
+    #linter = linters.filter(TxModule.resource_types.contains(glm_job['resource_type'])).first()
+    #if not linter:
+        #linter = linters.filter(TxModule.resource_types.contains('other')).first()
+    return None, None
 # end of get_linter_module function
 
 
-def do_linting(param_dict, source_dir, linter_name):
+def do_linting(param_dict, source_dir, linter_name, linter_class):
     """
     :param dict param_dict: Will be updated!
     :param str linter_name:
     """
-    GlobalSettings.logger.debug(f'do_linting( {param_dict}, {source_dir}, {linter_name} )')
+    GlobalSettings.logger.debug(f'do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )')
     param_dict['status'] = 'linting'
 
-    # Find the right linter
-    try:
-        # TODO: Why does the linter download the (zip) file again???
-        linter = LINTER_MAP[linter_name](source_url=param_dict['source'])
-        # TODO: Why does the linter not find books if we give it the preprocessed files???
-        #linter = LINTER_MAP[linter_name](source_dir=source_dir)
-    except KeyError:
-        GlobalSettings.logger.critical(f"Can't find correct linter for '{linter_name}'")
-        linter = None
-
-    if linter: # Run the linter and grab the results
-        lint_result = linter.run()
-        linter.close()  # do cleanup after run
-        param_dict['linter_success'] = lint_result['success']
-        param_dict['linter_warnings'] = lint_result['warnings']
-    else:
-        param_dict['linter_success'] = 'false'
-        param_dict['linter_warnings'] = [f"Cannot find '{linter_name}' linter"]
-
+    # TODO: Why does the linter download the (zip) file again???
+    #linter = linter_class(source_url=param_dict['source'])
+    # TODO: Why does the linter not find books if we give it the preprocessed files???
+    linter = linter_class(source_dir=source_dir)
+    lint_result = linter.run()
+    linter.close()  # do cleanup after run
+    param_dict['linter_success'] = lint_result['success']
+    param_dict['linter_warnings'] = lint_result['warnings']
     param_dict['status'] = 'linted'
-    GlobalSettings.logger.debug(f'do_lint is returning with {param_dict}')
+    GlobalSettings.logger.debug(f'do_linting is returning with {param_dict}')
     #return param_dict
 # end of do_linting function
 
@@ -110,50 +114,42 @@ def get_converter_module(gcm_job):
     :param dict gcm_job:
     :return TxModule:
     """
-    converters = TxModule.query().filter(TxModule.type == 'converter') \
-        .filter(TxModule.input_format.contains(gcm_job['input_format'])) \
-        .filter(TxModule.output_format.contains(gcm_job['output_format']))
-    converter = converters.filter(TxModule.resource_types.contains(gcm_job['resource_type'])).first()
-    if not converter:
-        converter = converters.filter(TxModule.resource_types.contains('other')).first()
-    return converter
+    for converter_name, converter_class, input_formats, resource_types, output_format in CONVERTER_TABLE:
+        if gcm_job['input_format'] in input_formats \
+        and output_format == gcm_job['output_format'] \
+        and (gcm_job['resource_type'] in resource_types or 'other' in resource_types):
+            return converter_name, converter_class
+    #converters = TxModule.query().filter(TxModule.type == 'converter') \
+        #.filter(TxModule.input_format.contains(gcm_job['input_format'])) \
+        #.filter(TxModule.output_format.contains(gcm_job['output_format']))
+    #converter = converters.filter(TxModule.resource_types.contains(gcm_job['resource_type'])).first()
+    #if not converter:
+        #converter = converters.filter(TxModule.resource_types.contains('other')).first()
+    return None, None
 # end if get_converter_module function
 
 
-def do_converting(param_dict, source_dir, converter_name):
+def do_converting(param_dict, source_dir, converter_name, converter_class):
     """
     :param dict param_dict: Will be updated!
     :param str converter_name:
     """
-    GlobalSettings.logger.debug(f'do_converting( {param_dict}, {source_dir}, {converter_name} )')
+    GlobalSettings.logger.debug(f'do_converting( {param_dict}, {source_dir}, {converter_name}, {converter_class} )')
     param_dict['status'] = 'converting'
     cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
 
-    # Find the right converter
-    try:
-        # TODO: Why does the converter download the (zip) file again???
-        converter = CONVERTER_MAP[converter_name](param_dict['source'],
-                                                  param_dict['resource_type'],
-                                                  cdn_file=cdn_file_key)
-    except KeyError:
-        GlobalSettings.logger.critical(f"Can't find correct converter for '{converter_name}'")
-        converter = None
-
-    if converter: # Run the converter and grab the results
-        convert_result = converter.run()
-        converter.close()  # do cleanup after run
-        param_dict['converter_success'] = convert_result['success']
-        param_dict['converter_info'] = convert_result['info']
-        param_dict['converter_warnings'] = convert_result['warnings']
-        param_dict['converter_errors'] = convert_result['errors']
-    else:
-        param_dict['converter_success'] = 'false'
-        param_dict['converter_info'] = []
-        param_dict['converter_warnings'] = []
-        param_dict['converter_errors'] = [f"Cannot find '{converter_name}' converter"]
-
+    # TODO: Why does the converter download the (zip) file again???
+    converter = converter_class(param_dict['source'],
+                                                param_dict['resource_type'],
+                                                cdn_file=cdn_file_key)
+    convert_result = converter.run()
+    converter.close()  # do cleanup after run
+    param_dict['converter_success'] = convert_result['success']
+    param_dict['converter_info'] = convert_result['info']
+    param_dict['converter_warnings'] = convert_result['warnings']
+    param_dict['converter_errors'] = convert_result['errors']
     param_dict['status'] = 'converted'
-    GlobalSettings.logger.debug(f'do_convert is returning with {param_dict}')
+    GlobalSettings.logger.debug(f'do_converting is returning with {param_dict}')
     #return param_dict
 # end of do_converting function
 
@@ -525,21 +521,18 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
                                 f" {queued_json_payload['resource_type']}")
-    linter = get_linter_module(queued_json_payload)
-    GlobalSettings.logger.debug(f"Got linter = {linter}")
-    converter = get_converter_module(queued_json_payload)
-    GlobalSettings.logger.debug(f"Got converter = {converter}")
+    linter_name, linter = get_linter_module(queued_json_payload)
+    GlobalSettings.logger.debug(f"Got linter = {linter_name}")
+    converter_name, converter = get_converter_module(queued_json_payload)
+    GlobalSettings.logger.debug(f"Got converter = {converter_name}")
 
 
     if linter:
-        linter_name = linter.name
-        if not isinstance(linter_name, str): # bytes
-            linter_name = linter_name.decode()
         build_log_dict['lint_module'] = linter_name
         #extra_payload = {'s3_results_key': s3_commit_key}
         #send_request_to_linter(pj_job, linter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
-        do_linting(build_log_dict, source_folder_path, linter_name)
+        do_linting(build_log_dict, source_folder_path, linter_name, linter)
     else:
         warning_message = f"No linter was found to lint {queued_json_payload['input_format']}" \
                           f" {queued_json_payload['resource_type']}"
@@ -549,14 +542,11 @@ def process_tx_job(pj_prefix, queued_json_payload):
         build_log_dict['linter_warnings'] = [warning_message]
 
     if converter:
-        converter_name = converter.name
-        if not isinstance(converter_name, str): # bytes
-            converter_name = converter_name.decode()
         build_log_dict['convert_module'] = converter_name
         #extra_payload = {'s3_results_key': s3_commit_key}
         #send_request_to_converter(pj_job, converter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
-        do_converting(build_log_dict, source_folder_path, converter_name)
+        do_converting(build_log_dict, source_folder_path, converter_name, converter)
     else:
         error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
                         f" from {queued_json_payload['input_format']} to {queued_json_payload['output_format']}"
