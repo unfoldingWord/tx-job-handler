@@ -37,6 +37,7 @@ from converters.md2html_converter import Md2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
 # NOTE: The following two tables are scanned in order (so put 'other' entries lower)
+# Columns are: 1/ linter name 2/ linter 3/ input formats 4/ resource types
 LINTER_TABLE = (
     ('obs',      ObsLinter,      ('md','markdown',),      ('obs',),                   ),
     ('ta',       TaLinter,       ('md','markdown',),      ('ta',),                    ),
@@ -48,6 +49,7 @@ LINTER_TABLE = (
     ('ulb',      UlbLinter,      ('usfm',),               ('ulb',),                   ),
     ('usfm',     UsfmLinter,     ('usfm',),               ('bible', 'reg', 'other',), ),
     )
+# Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
                     ('obs', 'ta', 'tq', 'tw', 'tn', 'other',),              'html'),
@@ -251,8 +253,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
                                    f" contains {os.listdir(source_folder_path)}")
 
     # Save some stats
-    stats_client.set('jobs.format', f"{queued_json_payload['input_format']}_{queued_json_payload['output_format']}")
-    stats_client.set('jobs.identifier', queued_json_payload['resource_type'])
+    stats_client.incr(f"jobs.format.{queued_json_payload['input_format']}_{queued_json_payload['output_format']}")
+    stats_client.incr(f"jobs.identifier.{queued_json_payload['resource_type']}")
 
 
     # Find the correct linter and converter
