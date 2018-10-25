@@ -5,6 +5,7 @@ import ssl
 from contextlib import closing
 
 import urllib.request as urllib2
+from global_settings.global_settings import GlobalSettings
 
 
 def get_url(url, catch_exception=False):
@@ -48,9 +49,8 @@ def _download_file(url, outfile, urlopen):
             with open(outfile, 'wb') as fp:
                 shutil.copyfileobj(request, fp)
     except IOError as err:
-        print('ERROR retrieving %s' % url)
-        print(err)
-        sys.exit(1)
+        GlobalSettings.logger.critical(f"Error retrieving {url}: {err}")
+        raise Exception(err)
 
 
 def get_languages():
