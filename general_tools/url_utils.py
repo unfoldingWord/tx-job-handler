@@ -36,7 +36,9 @@ def _get_url(url, catch_exception, urlopen):
 
 
 def download_file(url, outfile):
-    """Downloads a file and saves it."""
+    """
+    Downloads a file and saves it.
+    """
     _download_file(url, outfile, urlopen=urllib2.urlopen)
 
 
@@ -49,8 +51,9 @@ def _download_file(url, outfile, urlopen):
             with open(outfile, 'wb') as fp:
                 shutil.copyfileobj(request, fp)
     except IOError as err:
-        GlobalSettings.logger.critical(f"Error retrieving {url}: {err}")
-        raise Exception(err)
+        error_message = f"Error retrieving {url}: {err}"
+        GlobalSettings.logger.critical(error_message)
+        raise IOError(error_message)
 
 
 def get_languages():

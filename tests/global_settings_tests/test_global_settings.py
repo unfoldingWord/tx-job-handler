@@ -18,9 +18,7 @@ class User(GlobalSettings.Base, TxModel):
 class TestGlobalSettings(unittest.TestCase):
 
     def test_init(self):
-        gogs_url = 'https://my.gogs.org'
-        GlobalSettings(gogs_url=gogs_url)
-        self.assertEqual(GlobalSettings.gogs_url, gogs_url)
+        GlobalSettings()
 
     def test_construction_connection_string(self):
         """
