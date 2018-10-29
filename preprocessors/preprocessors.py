@@ -34,7 +34,7 @@ def do_preprocess(rc, repo_dir, output_dir):
     return preprocessor.run(), preprocessor
 
 
-class Preprocessor(object):
+class Preprocessor:
     # NOTE: Both of these lists are used for case-sensitive comparisons
     ignoreDirectories = ['.git', '00']
     ignoreFiles = ['.DS_Store', 'reference.txt', 'title.txt', 'LICENSE.md', 'README.md', 'README.rst']
@@ -273,7 +273,7 @@ class BiblePreprocessor(Preprocessor):
                                 translated_title = read_file(os.path.join(project_path, chapter, 'title.txt'))
                                 book_name = re.sub(r' \d+$', '', translated_title).strip()
                                 if book_name.lower() != title.lower():
-                                    usfm += "\cl {0}\n".format(translated_title)
+                                    usfm += "\\cl {0}\n".format(translated_title)
                             for chunk in chunks:
                                 if chunk in self.ignoreFiles:
                                     continue
@@ -446,7 +446,7 @@ class TqPreprocessor(Preprocessor):
             'book_codes': {}
         }
         headers_re = re.compile('^(#+) +(.+?) *#*$', flags=re.MULTILINE)
-        for idx, project in enumerate(self.rc.projects):
+        for project in self.rc.projects:
             if project.identifier in BOOK_NAMES:
                 markdown = ''
                 book = project.identifier.lower()
@@ -501,7 +501,7 @@ class TwPreprocessor(Preprocessor):
         }
         title_re = re.compile('^# +(.*?) *#*$', flags=re.MULTILINE)
         headers_re = re.compile('^(#+) +(.+?) *#*$', flags=re.MULTILINE)
-        for idx, project in enumerate(self.rc.projects):
+        for project in self.rc.projects:
             term_text = {}
             section_dirs = sorted(glob(os.path.join(self.source_dir, project.path, '*')))
             for section_dir in section_dirs:
@@ -598,7 +598,7 @@ class TnPreprocessor(Preprocessor):
             'book_codes': {}
         }
         headers_re = re.compile('^(#+) +(.+?) *#*$', flags=re.MULTILINE)
-        for idx, project in enumerate(self.rc.projects):
+        for project in self.rc.projects:
             GlobalSettings.logger.debug('TnPreprocessor: processing project: {0}'.format(project.identifier))
             if project.identifier in BOOK_NAMES:
                 markdown = ''

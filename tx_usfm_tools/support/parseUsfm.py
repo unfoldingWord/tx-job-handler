@@ -506,7 +506,7 @@ def createToken(t):
 
 
 # noinspection PyMethodMayBeStatic
-class UsfmToken(object):
+class UsfmToken:
     def __init__(self, value=""):
         self.value = value
 

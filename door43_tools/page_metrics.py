@@ -9,7 +9,7 @@ from models.manifest import TxManifest
 from global_settings.global_settings import GlobalSettings
 
 
-class PageMetrics(object):
+class PageMetrics:
     INVALID_URL_ERROR = 'repo not found for: '
     INVALID_LANG_URL_ERROR = 'language not found for: '
     DB_ACCESS_ERROR = 'could not access view counts for: '
@@ -25,7 +25,7 @@ class PageMetrics(object):
         :param increment:
         :return:
         """
-        App.logger.debug("Start: get_view_count")
+        GlobalSettings.logger.debug("Start: get_view_count")
 
         response = {  # default to error
             'ErrorMessage': PageMetrics.INVALID_URL_ERROR + path
@@ -35,28 +35,28 @@ class PageMetrics(object):
         try:
             empty, u, repo_owner, repo_name = parsed.path.split('/')[0:4]
         except:
-            App.logger.warning("Invalid repo url: " + path)
+            GlobalSettings.logger.warning("Invalid repo url: " + path)
             return response
 
         if (empty != '') or (u != 'u'):
-            App.logger.warning("Invalid repo url: " + path)
+            GlobalSettings.logger.warning("Invalid repo url: " + path)
             return response
 
         del response['ErrorMessage']
 
-        App.logger.debug("Valid repo url: " + path)
+        GlobalSettings.logger.debug("Valid repo url: " + path)
         # First see record already exists in DB
         tx_manifest = TxManifest.get(repo_name=repo_name, user_name=repo_owner)
         if tx_manifest:
             if increment:
                 tx_manifest.views += 1
-                App.logger.debug('Incrementing view count to {0}'.format(tx_manifest.views))
+                GlobalSettings.logger.debug('Incrementing view count to {0}'.format(tx_manifest.views))
                 tx_manifest.update()
             else:
-                App.logger.debug('Returning stored view count of {0}'.format(tx_manifest.views))
+                GlobalSettings.logger.debug('Returning stored view count of {0}'.format(tx_manifest.views))
             view_count = tx_manifest.views
         else:  # record is not present
-            App.logger.debug('No entries for page in manifest table')
+            GlobalSettings.logger.debug('No entries for page in manifest table')
             view_count = 0
         response['view_count'] = view_count
         return response
@@ -68,7 +68,7 @@ class PageMetrics(object):
         :param increment:
         :return:
         """
-        App.logger.debug("Start: get_language_count")
+        GlobalSettings.logger.debug("Start: get_language_count")
 
         response = {  # default to error
             'ErrorMessage': PageMetrics.INVALID_LANG_URL_ERROR + path
@@ -82,40 +82,40 @@ class PageMetrics(object):
             else:
                 empty, language_code, page = parts
         except:
-            App.logger.warning("Invalid language page url: " + path)
+            GlobalSettings.logger.warning("Invalid language page url: " + path)
             return response
 
         language_code = self.validate_language_code(language_code)
         if not language_code:
-            App.logger.warning("Invalid language page url: " + path)
+            GlobalSettings.logger.warning("Invalid language page url: " + path)
             return response
 
         del response['ErrorMessage']
         language_code = language_code.lower()
 
-        App.logger.debug("Valid '" + language_code + "' url: " + path)
+        GlobalSettings.logger.debug("Valid '" + language_code + "' url: " + path)
         try:
             # First see record already exists in DB
             lang_stats = LanguageStats({'lang_code': language_code})
             if lang_stats.lang_code:  # see if data in table
                 if increment:
                     lang_stats.views += 1
-                    App.logger.debug('Incrementing view count to {0}'.format(lang_stats.views))
+                    GlobalSettings.logger.debug('Incrementing view count to {0}'.format(lang_stats.views))
                     self.update_lang_stats(lang_stats)
                 else:
-                    App.logger.debug('Returning stored view count of {0}'.format(lang_stats.views))
+                    GlobalSettings.logger.debug('Returning stored view count of {0}'.format(lang_stats.views))
 
             else:  # record is not present
                 lang_stats.views = 0
                 if increment:
                     lang_stats.lang_code = language_code
                     lang_stats.views += 1
-                    App.logger.debug('No entries for {0} in {1} table, creating'.format(language_code,
-                                                                                        App.language_stats_table_name))
+                    GlobalSettings.logger.debug('No entries for {0} in {1} table, creating'.format(language_code,
+                                                                                        GlobalSettings.language_stats_table_name))
                     self.update_lang_stats(lang_stats)
                 else:
-                    App.logger.debug('No entries for {0} in {1} table'.format(language_code,
-                                                                              App.language_stats_table_name))
+                    GlobalSettings.logger.debug('No entries for {0} in {1} table'.format(language_code,
+                                                                              GlobalSettings.language_stats_table_name))
 
             view_count = lang_stats.views
             if type(view_count) is Decimal:
@@ -123,7 +123,7 @@ class PageMetrics(object):
             response['view_count'] = view_count
 
         except Exception as e:
-            App.logger.exception('Error accessing {0} table'.format(App.language_stats_table_name), exc_info=e)
+            GlobalSettings.logger.exception('Error accessing {0} table'.format(GlobalSettings.language_stats_table_name), exc_info=e)
             response['ErrorMessage'] = PageMetrics.DB_ACCESS_ERROR + path
             return response
 
@@ -139,17 +139,17 @@ class PageMetrics(object):
         if (len(parts) > 1) and (len(parts[1]) > 0):
             search_params = '?' + parts[1]
         else:
-            App.logger.warning("Invalid language page url: '{0}'".format(path))
+            GlobalSettings.logger.warning("Invalid language page url: '{0}'".format(path))
             return -1
 
-        App.logger.debug("Valid search params '" + search_params + "' from url: " + path)
+        GlobalSettings.logger.debug("Valid search params '" + search_params + "' from url: " + path)
         try:
             # First see record already exists in DB
             lang_stats = LanguageStats({'lang_code': search_params})
             if lang_stats.lang_code:  # see if data in table
                 lang_stats.views += 1
                 lang_stats.search_type = 'Y'
-                App.logger.debug('Incrementing view count to {0}'.format(lang_stats.views))
+                GlobalSettings.logger.debug('Incrementing view count to {0}'.format(lang_stats.views))
                 self.update_lang_stats(lang_stats)
 
             else:  # record is not present, creat
@@ -157,8 +157,8 @@ class PageMetrics(object):
                 lang_stats.lang_code = search_params
                 lang_stats.views += 1
                 lang_stats.search_type = 'Y'
-                App.logger.debug('No entries for {0} in {1} table, creating'.format(search_params,
-                                                                                    App.language_stats_table_name))
+                GlobalSettings.logger.debug('No entries for {0} in {1} table, creating'.format(search_params,
+                                                                                    GlobalSettings.language_stats_table_name))
                 self.update_lang_stats(lang_stats)
 
             view_count = lang_stats.views
@@ -166,7 +166,7 @@ class PageMetrics(object):
                 view_count = int(view_count.to_integral_value())
 
         except Exception as e:
-            App.logger.exception('Error accessing {0} table'.format(App.language_stats_table_name), exc_info=e)
+            GlobalSettings.logger.exception('Error accessing {0} table'.format(GlobalSettings.language_stats_table_name), exc_info=e)
             return -1
 
         return view_count
@@ -182,10 +182,10 @@ class PageMetrics(object):
         lang_code_pattern = re.compile("^[a-z]{2,3}(-[a-z0-9]{2,4})?$")  # e.g. ab, abc, pt-br, es-419, sr-latn
         valid_lang_code = lang_code_pattern.match(language_code)
         if not valid_lang_code:
-            extended_lang_code_pattern = re.compile("^[a-z]{2,3}(-x-[\w\d]+)?$", re.UNICODE)  # e.g. abc-x-abcdefg
+            extended_lang_code_pattern = re.compile(r'^[a-z]{2,3}(-x-[\w\d]+)?$', re.UNICODE)  # e.g. abc-x-abcdefg
             valid_lang_code = extended_lang_code_pattern.match(language_code)
             if not valid_lang_code:
-                extended_lang_code_pattern2 = re.compile("^(-x-[\w\d]+)$", re.UNICODE)  # e.g. -x-abcdefg
+                extended_lang_code_pattern2 = re.compile(r'^(-x-[\w\d]+)$', re.UNICODE)  # e.g. -x-abcdefg
                 valid_lang_code = extended_lang_code_pattern2.match(language_code)
                 if not valid_lang_code:
                     language_code = None
@@ -233,7 +233,7 @@ class PageMetrics(object):
         }
         if max_count > 0:
             params['Limit'] = max_count
-        db_handler = App.language_stats_db_handler()
+        db_handler = GlobalSettings.language_stats_db_handler()
         results = db_handler.query_raw(**params)
         items = results['Items']
         return items

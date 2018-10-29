@@ -3,13 +3,13 @@ import os
 from tx_usfm_tools.support import parseUsfm
 from tx_usfm_tools.support import books
 
-class DummyFile(object):
+class DummyFile:
     def close(self):
         pass
     def write(self, str):
         pass
 
-class TokenStream(object):
+class TokenStream:
     def __init__(self, array):
         self.tokens = array
         self.i = 0
@@ -39,7 +39,7 @@ class TokenStream(object):
     def position(self):
         return self.i
 
-class ReaderPrinter(object):
+class ReaderPrinter:
     def __init__(self, outputDir):
         self.outputDir = outputDir
         self.f = DummyFile()
@@ -104,7 +104,7 @@ class ReaderPrinter(object):
         t = self.tokenStream.copy()
         c = 1
         b = self.cb
-        p = t.position()
+        # p = t.position()
         if t.peek().isC(): t.previous(1)
         while t.position() > 0:
             n = t.previous()
@@ -252,7 +252,8 @@ class ReaderPrinter(object):
     def renderBDITS(self, token):   self.f.write(u'<b><i>')
     def renderBDITE(self, token):   self.f.write(u'</b></i>')
     def renderB(self, token):       self.write(u'<p />')
-    def renderD(self, token):       self.write(u'<p />')
+    # def renderD(self, token):       self.write(u'<p />')
+    def renderD(self, token):       pass # For now
     def renderADDS(self, token):    self.write(u'<i>')
     def renderADDE(self, token):    self.write(u'</i>')
     def renderLI(self, token):      self.write(u'<p />')
@@ -260,14 +261,13 @@ class ReaderPrinter(object):
     def renderNDS(self, token):     self.write(u' ')
     def renderNDE(self, token):     self.write(u' ')
     def renderPBR(self, token):     self.write(u'<br />')
-    def renderD(self, token):       pass # For now
     def renderREM(self, token):     pass # This is for comments in the USFM
     def render_imt1(self, token):   self.write(u'\n<h3>' + token.value + u'</h3>')
     def render_imt2(self, token):   self.write(u'\n<h3>' + token.value + u'</h3>')
     def render_imt3(self, token):   self.write(u'\n<h3>' + token.value + u'</h3>')
 
 
-class TransformForReader(object):
+class TransformForReader:
     outputDir = ''
     patchedDir = ''
     prefaceDir = ''

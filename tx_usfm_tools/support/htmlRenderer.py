@@ -5,7 +5,7 @@ from tx_usfm_tools.support import books
 #   Renders as set of web pages
 #
 
-class DummyFile(object):
+class DummyFile:
     def close(self):
         pass
     def write(self, str):

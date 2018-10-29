@@ -1,7 +1,7 @@
 from global_settings.global_settings import GlobalSettings
 
 
-class ConvertLogger(object):
+class ConvertLogger:
     def __init__(self):
         self.logs = {
             "error": [],

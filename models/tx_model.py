@@ -5,7 +5,7 @@ from sqlalchemy import inspect
 from global_settings.global_settings import GlobalSettings
 
 
-class TxModel(object):
+class TxModel:
 
     def __init__(self, **kwargs):
         pass

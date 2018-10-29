@@ -3,7 +3,7 @@ import json
 from general_tools import url_utils
 
 
-class TdLanguage(object):
+class TdLanguage:
 
     language_list = {}
 

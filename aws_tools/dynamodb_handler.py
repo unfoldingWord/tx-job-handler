@@ -3,7 +3,7 @@ from boto3 import Session
 from boto3.dynamodb.conditions import Attr
 
 
-class DynamoDBHandler(object):
+class DynamoDBHandler:
 
     def __init__(self, table_name, aws_access_key_id=None, aws_secret_access_key=None, aws_region_name='us-west-2'):
         self.table_name = table_name

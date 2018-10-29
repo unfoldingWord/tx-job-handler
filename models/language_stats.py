@@ -27,5 +27,5 @@ class LanguageStats(Model):
         self.monitor = True
         self.search_type = 'N'
         if 'db_handler' not in kwargs or not kwargs['db_handler']:
-            kwargs['db_handler'] = App.language_stats_db_handler()
+            kwargs['db_handler'] = GlobalSettings.language_stats_db_handler()
         super(LanguageStats, self).__init__(*args, **kwargs)
