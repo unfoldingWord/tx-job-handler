@@ -1,7 +1,6 @@
 import os
 
 from global_settings.global_settings import GlobalSettings
-from preprocessors.preprocessors import TqPreprocessor
 from linters.markdown_linter import MarkdownLinter
 from door43_tools.bible_books import BOOK_NUMBERS
 
