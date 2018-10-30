@@ -86,4 +86,4 @@ class UsfmLinter(Linter):
 
         except Exception as e:
             # for debugging
-            self.log.warning("Failed to verify book '{0}', exception: {1}".format(file_name, str(e)))
+            self.log.warning(f"Failed to verify book '{file_name}', exception: {e}")

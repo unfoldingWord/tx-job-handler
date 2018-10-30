@@ -28,7 +28,6 @@ class Converter(metaclass=ABCMeta):
         :param string identifier:
         """
         GlobalSettings.logger.debug(f"Converter.__init__(s={source}, r={resource}, cdn_file={cdn_file}, options={options}, callback={convert_callback}, id={identifier})")
-        self.options = {}
         self.source = source
         self.resource = resource
         self.cdn_file = cdn_file

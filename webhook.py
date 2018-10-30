@@ -10,6 +10,8 @@ import tempfile
 import json
 from datetime import datetime, timedelta, date
 from time import time
+import sys
+sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
 
 # Library (PyPi) imports
 import requests
@@ -17,10 +19,8 @@ from statsd import StatsClient # Graphite front-end
 
 # Local imports
 from rq_settings import prefix, debug_mode_flag
-from general_tools.file_utils import unzip, add_contents_to_zip, write_file, remove_tree
+from general_tools.file_utils import unzip, remove_tree
 from general_tools.url_utils import download_file
-from resource_container.ResourceContainer import RC
-from preprocessors.preprocessors import do_preprocess
 from global_settings.global_settings import GlobalSettings
 
 from linters.obs_linter import ObsLinter
@@ -136,7 +136,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     :param dict param_dict: Will be updated!
     :param str converter_name:
     """
-    GlobalSettings.logger.debug(f'do_converting( {param_dict}, {source_dir}, {converter_name}, {converter_class} )')
+    GlobalSettings.logger.debug(f'do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )')
     param_dict['status'] = 'converting'
     cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
 
@@ -151,7 +151,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     param_dict['converter_warnings'] = convert_result['warnings']
     param_dict['converter_errors'] = convert_result['errors']
     param_dict['status'] = 'converted'
-    GlobalSettings.logger.debug(f'do_converting is returning with {param_dict}')
+    # GlobalSettings.logger.debug(f'do_converting is returning with {param_dict}')
     #return param_dict
 # end of do_converting function
 
