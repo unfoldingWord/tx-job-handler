@@ -32,4 +32,4 @@ markdown2==2.3.6
 #usfm-tools==0.0.22
 
 # BeautifulSoup is used by converters/md2html_converter.py
-bs4==0.0.1
+beautifulsoup4==4.6.3

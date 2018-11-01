@@ -45,8 +45,7 @@ def setup_logger(logger, level):
     for h in logger.handlers:
         logger.removeHandler(h)
     sh = logging.StreamHandler(sys.stdout)
-    head = '%(asctime)s - %(levelname)s: %(message)s'
-    sh.setFormatter(logging.Formatter(head))
+    sh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s: %(message)s'))
     logger.addHandler(sh)
     logger.setLevel(level)
     # Change these loggers to only report errors:

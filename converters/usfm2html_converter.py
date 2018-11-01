@@ -12,7 +12,7 @@ from tx_usfm_tools.transform import UsfmTransform
 class Usfm2HtmlConverter(Converter):
 
     def convert(self):
-        GlobalSettings.logger.debug("Processing the Bible USFM files")
+        GlobalSettings.logger.debug("Processing the Bible USFM files ...")
 
         # Find the first directory that has usfm files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -22,17 +22,16 @@ class Usfm2HtmlConverter(Converter):
         with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
             template_html = template_file.read()
 
+        # Convert usfm files and copy across other files
+        num_successful_books = num_failed_books = 0
         for filename in files:
             if filename.endswith('.usfm'):
                 base_name = os.path.basename(filename)
                 if convert_only_list and (base_name not in convert_only_list):  # see if this is a file we are to convert
                     continue
 
-                msg = f"Converting Bible USFM file: {base_name}"
-                self.log.info(msg)
-                GlobalSettings.logger.debug(msg)
-
                 # Convert the USFM file
+                self.log.info(f"Converting Bible USFM file: {base_name} ...") # Logger also issues DEBUG msg
                 scratch_dir = tempfile.mkdtemp(prefix='scratch_')
                 copyfile(filename, os.path.join(scratch_dir, os.path.basename(filename)))
                 filebase = os.path.splitext(os.path.basename(filename))[0]
@@ -40,7 +39,7 @@ class Usfm2HtmlConverter(Converter):
                 html_filename = filebase + '.html'
                 with open(os.path.join(scratch_dir, html_filename), 'rt', encoding='utf-8') as html_file:
                     converted_html = html_file.read()
-                #print("Got converted html:", converted_html[:500])
+                # GlobalSettings.logger.debug(f"Got converted html: {converted_html[:500]}")
                 template_soup = BeautifulSoup(template_html, 'html.parser')
                 template_soup.head.title.string = self.resource.upper()
                 converted_soup = BeautifulSoup(converted_html, 'html.parser')
@@ -49,8 +48,19 @@ class Usfm2HtmlConverter(Converter):
                 if converted_soup and converted_soup.body:
                     content_div.append(converted_soup.body)
                     content_div.body.unwrap()
+                    num_successful_books += 1
                 else:
                     content_div.append('<div class="error">ERROR! NOT CONVERTED!</div>')
+                    # TODO: Clarify exactly what causes this particular error
+                    self.log.warning(f"USFM parsing or conversion error for {base_name}")
+                    GlobalSettings.logger.debug(f"Got converted html: {converted_html[:500]}")
+                    if not converted_soup:
+                        GlobalSettings.logger.debug(f"No converted_soup")
+                    elif not converted_soup.body:
+                        GlobalSettings.logger.debug(f"No converted_soup.body")
+                    # from bs4.diagnose import diagnose
+                    # diagnose(converted_html)                    
+                    num_failed_books += 1
                 output_file = os.path.join(self.output_dir, html_filename)
                 #print("template_soup type is", type(template_soup)) # <class 'bs4.BeautifulSoup'>
                 write_file(output_file, str(template_soup))
@@ -65,5 +75,7 @@ class Usfm2HtmlConverter(Converter):
                         copyfile(filename, output_file)
                 except:
                     pass
+        if num_failed_books and not num_successful_books:
+            self.log.error(f"Conversion of all books failed!")
         self.log.info("Finished processing Bible USFM files.")
         return True

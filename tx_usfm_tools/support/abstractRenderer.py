@@ -1,3 +1,5 @@
+# import logging
+
 from tx_usfm_tools.support.books import loadBooks, silNames
 from tx_usfm_tools.support.parseUsfm import parseString
 
@@ -15,14 +17,17 @@ class AbstractRenderer:
         self.booksUsfm = loadBooks(usfmDir)
 
     def run(self):
+        # logging.debug("AbstractRenderer.run() ...")
         self.unknowns = []
         try:
+            # logging.debug("AbstractRenderer.run() try using renderBook...")
             bookName = self.renderBook
             if bookName in self.booksUsfm:
                 self.writeLog('     (' + bookName + ')')
                 tokens = parseString(self.booksUsfm[bookName])
                 for t in tokens: t.renderOn(self)
         except:
+            # logging.debug("AbstractRenderer.run() now using silNames...")
             for bookName in silNames:
                 if bookName in self.booksUsfm:
                     self.writeLog('     (' + bookName + ')')

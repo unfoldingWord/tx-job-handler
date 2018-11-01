@@ -18,7 +18,7 @@ class LambdaHandler:
 
     def invoke(self, function_name, payload, asyncFlag=False):
         invocation_type = 'RequestResponse' if not asyncFlag else 'Event'
-        print(f"INVOKE LAMBDA FUNCTION: {function_name} {invocation_type}...")
+        print(f"INVOKE LAMBDA FUNCTION: {function_name} {invocation_type} ...")
         #print("PAYLOAD1", repr(payload))
         #print("PAYLOAD2", repr(json.dumps(payload)))
         payloadString = json.dumps(payload)

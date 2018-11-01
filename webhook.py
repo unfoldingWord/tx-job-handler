@@ -208,6 +208,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         if an exception is thrown in this module.
     """
     GlobalSettings.logger.debug(f"Processing {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
+    job_descriptive_name = f"{queued_json_payload['resource_type']}({queued_json_payload['input_format']})"
 
     # Create a build log
     build_log_dict = queued_json_payload.copy()
@@ -235,7 +236,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
 
     # Download and unzip the specified source file
-    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']}...")
+    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']} ...")
     download_source_file(queued_json_payload['source'], base_temp_dir_name)
 
     # Find correct source folder
@@ -332,7 +333,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.info("No callback requested")
 
     remove_tree(base_temp_dir_name)  # cleanup
-    GlobalSettings.logger.info(f"{prefix}process_tx_job() is returning with {build_log_dict}")
+    GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {build_log_dict}")
+    return job_descriptive_name
 #end of process_tx_job function
 
 
@@ -359,11 +361,14 @@ def job(queued_json_payload):
     #print(f"\nGot job {current_job.id} from {current_job.origin} queue")
     #queue_prefix = 'dev-' if current_job.origin.startswith('dev-') else ''
     #assert queue_prefix == prefix
-    process_tx_job(prefix, queued_json_payload)
+    job_descriptive_name = process_tx_job(prefix, queued_json_payload)
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('job.duration', elapsed_milliseconds)
-    GlobalSettings.logger.info(f"tX job handling completed in {elapsed_milliseconds:,} milliseconds!")
+    if elapsed_milliseconds < 2000:
+        GlobalSettings.logger.info(f"tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds")
+    else:
+        GlobalSettings.logger.info(f"tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds")
 
     stats_client.incr('jobs.completed')
 # end of job function

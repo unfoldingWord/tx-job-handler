@@ -1,3 +1,5 @@
+# import logging
+
 from tx_usfm_tools.support.abstractRenderer import AbstractRenderer
 from tx_usfm_tools.support.books import bookKeyForIdValue
 from tx_usfm_tools.support.parseUsfm import UsfmToken
@@ -8,6 +10,7 @@ from tx_usfm_tools.support.parseUsfm import UsfmToken
 
 class SingleHTMLRenderer(AbstractRenderer):
     def __init__(self, inputDir, outputFilename):
+        # logging.debug(f"SingleHTMLRenderer.__init__( {inputDir}, {outputFilename} ) ...")
         # Unset
         self.f = None  # output file stream
         # IO
@@ -29,8 +32,9 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.footnote_text = ''
 
     def render(self):
+        # logging.debug("SingleHTMLRenderer.render() ...")
         self.loadUSFM(self.inputDir) # Result is in self.booksUsfm
-        #print(f"About to render USFM ({len(self.booksUsfm)} books): {str(self.booksUsfm)[:300]}...")
+        #print(f"About to render USFM ({len(self.booksUsfm)} books): {str(self.booksUsfm)[:300]} ...")
         self.f = open(self.outputFilename, 'wt', encoding='utf-8')
         self.run()
         self.writeFootnotes()
@@ -77,6 +81,9 @@ class SingleHTMLRenderer(AbstractRenderer):
     }
     .tetragrammaton {
         font-variant: small-caps;
+    }
+    .d {
+        font-style: italic;
     }
     .footnotes {
         font-size: 0.8em;
@@ -315,6 +322,10 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderS5(self, token):
         self.write('\n<span class="chunk-break"></span>\n')
 
+    def renderD(self, token): # Added by RJH
+        # logging.debug(f"singlehtmlRenderer.renderD( '{token}' at {self.cb} {self.cc}:{self.cv}")
+        self.write('<span class="d">' + token.value + '</span>')
+
     def render_imt1(self, token):
         self.write('\n\n<h2>' + token.value + '</h2>')
 
@@ -331,12 +342,12 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('<i class="quote right" style="display:block;float:right;">'+token.value+'</i>')
 
     def renderFQA(self, token):
-        self.footnote_text += '<i>'+token.value
+        self.footnote_text += '<i>' + token.value
         self.fqaFlag = True
 
     def renderFQAE(self, token):
         if self.fqaFlag:
-            self.footnote_text += '</i>'+token.value
+            self.footnote_text += '</i>' + token.value
         self.fqaFlag = False
 
     def closeFootnote(self):

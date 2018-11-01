@@ -32,6 +32,7 @@ class UsfmTransform():
 
     @staticmethod
     def setup():
+        UsfmTransform.__logger.debug("transform.setup() ...")
         c = """
         cd support/thirdparty
         rm -rf context
@@ -89,15 +90,16 @@ class UsfmTransform():
         c.render()
 
     @staticmethod
-    def buildWeb(usfmDir, builtDir, buildName, oebFlag=False):
+    def buildWeb(usfmDir, builtDir, buildName):
         # Convert to HTML
         UsfmTransform.__logger.info("Building Web HTML...")
         UsfmTransform.ensureOutputDir(builtDir + '/' + buildName + '_html')
-        c = htmlRenderer.HTMLRenderer(usfmDir, builtDir + '/' + buildName + '_html', oebFlag)
+        c = htmlRenderer.HTMLRenderer(usfmDir, builtDir + '/' + buildName + '_html')
         c.render()
 
     @staticmethod
     def buildSingleHtml(usfmDir, builtDir, buildName):
+        UsfmTransform.__logger.debug("transform.buildSingleHtml( ... ) ...")
         # Convert to HTML
         UsfmTransform.__logger.info("Building Single Page HTML...")
         UsfmTransform.ensureOutputDir(builtDir)
@@ -170,7 +172,6 @@ class UsfmTransform():
     @staticmethod
     def run(argv):
         UsfmTransform.saveCWD()
-        oeb_flag = False
         by_book_flag = False
         targets = ''
         build_dir = ''
@@ -198,8 +199,6 @@ class UsfmTransform():
                 build_dir = arg
             elif opt in ("-n", "--name"):
                 build_name = arg
-            elif opt in ("-o", "--oeb"):
-                oeb_flag = True
             elif opt in ("-f", "--fileByBook"):
                 by_book_flag = True
             else:
@@ -208,7 +207,7 @@ class UsfmTransform():
         if targets == 'context':
             UsfmTransform.buildConTeXt(usfm_dir, build_dir, build_name)
         elif targets == 'html':
-            UsfmTransform.buildWeb(usfm_dir, build_dir, build_name, oeb_flag)
+            UsfmTransform.buildWeb(usfm_dir, build_dir, build_name)
         elif targets == 'singlehtml':
             UsfmTransform.buildSingleHtml(usfm_dir, build_dir, build_name)
         elif targets == 'md':
