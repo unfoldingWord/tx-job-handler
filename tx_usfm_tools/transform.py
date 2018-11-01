@@ -99,7 +99,7 @@ class UsfmTransform():
 
     @staticmethod
     def buildSingleHtml(usfmDir, builtDir, buildName):
-        UsfmTransform.__logger.debug("transform.buildSingleHtml( ... ) ...")
+        # UsfmTransform.__logger.debug("transform.buildSingleHtml( ... ) ...")
         # Convert to HTML
         UsfmTransform.__logger.info("Building Single Page HTML...")
         UsfmTransform.ensureOutputDir(builtDir)
