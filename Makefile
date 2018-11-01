@@ -9,11 +9,14 @@ XXXclean_doc:
 	cd docs && rm -f source/enqueue*.rst
 
 dependencies:
+	pip3 install --upgrade pip
 	pip3 install --requirement requirements.txt
 
 testDependencies:
+	pip3 install --upgrade pip
 	pip3 install --requirement test_requirements.txt
 dependenciesTest:
+	pip3 install --upgrade pip
 	pip3 install --requirement test_requirements.txt
 
 # NOTE: The following environment variables are expected to be set for testing:

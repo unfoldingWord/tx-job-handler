@@ -6,6 +6,7 @@ FROM python:alpine
 ADD . /code
 WORKDIR /code
 
+RUN pip3 install --upgrade pip
 RUN pip3 install --requirement requirements.txt
 
 CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_Dev_JobHandler" ]

@@ -537,7 +537,7 @@ def createToken(t):
     raise Exception(t[0])
 
 # noinspection PyMethodMayBeStatic
-class UsfmToken(object):
+class UsfmToken:
     def __init__(self, value=""):
         self.value = value
         self.type = None

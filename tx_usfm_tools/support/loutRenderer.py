@@ -227,11 +227,11 @@ class LoutRenderer(abstractRenderer.AbstractRenderer):
     def renderPI(self, token):
         self.newPara(outdent = True)
     def renderS(self, token):
-        self.closePoetry();
-        self.closeDropCap();
+        self.closePoetry()
+        self.closeDropCap()
         self.write(u'\n@DP @CNP @Display @Heading {' + self.escape(token.value) + u'}\n')
     def renderS2(self, token):
-        self.closeDropCap();
+        self.closeDropCap()
         self.write(u'\n\n@DP\n')
     def renderC(self, token):
         self.cc = token.value.zfill(3)

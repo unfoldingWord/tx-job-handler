@@ -1,7 +1,7 @@
 import copy
 
 
-class Model(object):
+class Model:
     db_keys = []
     db_fields = []
     default_values = {}

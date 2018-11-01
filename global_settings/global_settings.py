@@ -3,15 +3,13 @@ import os
 import logging
 import re
 
-from sqlalchemy import *
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
 from aws_tools.s3_handler import S3Handler
 from aws_tools.dynamodb_handler import DynamoDBHandler
-#from aws_tools.lambda_handler import LambdaHandler
-from gogs_tools.gogs_handler import GogsHandler
 
 
 # TODO: Investigate if this GlobalSettings (was tx-Manager App) class still needs to be resetable now
@@ -47,8 +45,7 @@ def setup_logger(logger, level):
     for h in logger.handlers:
         logger.removeHandler(h)
     sh = logging.StreamHandler(sys.stdout)
-    head = '%(asctime)s - %(levelname)s: %(message)s'
-    sh.setFormatter(logging.Formatter(head))
+    sh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s: %(message)s'))
     logger.addHandler(sh)
     logger.setLevel(level)
     # Change these loggers to only report errors:
@@ -71,10 +68,6 @@ class GlobalSettings:
     pre_convert_bucket_name = 'tx-webhook-client'
     cdn_bucket_name = 'cdn.door43.org'
     door43_bucket_name = 'door43.org'
-    gogs_user_token = None
-    gogs_url = 'https://git.door43.org'
-    gogs_domain_name = 'git.door43.org'
-    gogs_ip_address = '127.0.0.1'
     module_table_name = 'modules'
     language_stats_table_name = 'language-stats'
     linter_messaging_name = 'linter_complete'
@@ -98,7 +91,7 @@ class GlobalSettings:
     Base = declarative_base()  # To be used in all model classes as the parent class: GlobalSettings.ModelBase
     auto_setup_db = True
     manifest_table_name = 'manifests'
-    job_table_name = 'jobs'
+    # job_table_name = 'jobs'
     db_echo = False  # Whether or not to echo DB queries to the debug log. Useful for debugging. Set before setup_db()
     echo = False
 
@@ -114,8 +107,6 @@ class GlobalSettings:
     _door43_s3_handler = None
     _pre_convert_s3_handler = None
     _language_stats_db_handler = None
-    #_lambda_handler = None
-    _gogs_handler = None
 
     # Logger
     logger = logging.getLogger()
@@ -215,21 +206,6 @@ class GlobalSettings:
                                                              aws_region_name=cls.aws_region_name)
         return cls._language_stats_db_handler
 
-    #@classmethod
-    #def lambda_handler(cls):
-        #if not cls._lambda_handler:
-            #cls._lambda_handler = LambdaHandler(aws_access_key_id=cls.aws_access_key_id,
-                                                #aws_secret_access_key=cls.aws_secret_access_key,
-                                                #aws_region_name=cls.aws_region_name)
-        #return cls._lambda_handler
-
-    @classmethod
-    def gogs_handler(cls):
-        #print("GlobalSettings.gogs_handler()...")
-        if not cls._gogs_handler:
-            cls._gogs_handler = GogsHandler(gogs_url=cls.gogs_url)
-        return cls._gogs_handler
-
     @classmethod
     def db_engine(cls, echo=None):
         """
@@ -257,10 +233,6 @@ class GlobalSettings:
             cls._db_session = sessionmaker(bind=cls.db_engine(echo), expire_on_commit=False)()
             from models.manifest import TxManifest
             TxManifest.__table__.name = cls.manifest_table_name
-            #from models.job import TxJob
-            #TxJob.__table__.name = cls.job_table_name
-            #from models.module import TxModule
-            #TxModule.__table__.name = cls.module_table_name
             cls.db_create_tables([TxManifest.__table__])
         return cls._db_session
 

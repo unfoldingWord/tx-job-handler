@@ -3,13 +3,13 @@ import os
 from tx_usfm_tools.support import parseUsfm
 from tx_usfm_tools.support import books
 
-class DummyFile(object):
+class DummyFile:
     def close(self):
         pass
     def write(self, str):
         pass
 
-class MediaWikiPrinter(object):
+class MediaWikiPrinter:
     def __init__(self, outputDir):
         self.outputDir = outputDir
         self.f = DummyFile()
@@ -24,25 +24,25 @@ class MediaWikiPrinter(object):
         self.f.write(unicodeString.encode('utf-8'))
 
     def renderID(self, token):
-        self.write(u'</p>')
+        self.write('</p>')
         self.f.close()
         self.cb = books.bookKeyForIdValue(token.value)
         self.f = open(self.outputDir + u'/c' + self.cb + u'001.html', 'w')
-        self.write(u'\n<!-- \\id ' + self.cb + u' -->')
+        self.write('\n<!-- \\id ' + self.cb + u' -->')
         self.indentFlag = False
     def renderIDE(self, token):     pass
     def renderSTS(self, token):     pass
-    def renderTOC2(self, token):    self.write(u' Bible:' + token.value + u'_# ')
-    def renderH(self, token):       self.write(u'\n<!-- \\h ' + token.value + u' -->')
-    def renderMT(self, token):      self.write(u'\n<!-- \\mt1 ' + token.value + u' -->')
+    def renderTOC2(self, token):    self.write(' Bible:' + token.value + u'_# ')
+    def renderH(self, token):       self.write('\n<!-- \\h ' + token.value + u' -->')
+    def renderMT(self, token):      self.write('\n<!-- \\mt1 ' + token.value + u' -->')
     def renderMS(self, token):      pass
     def renderMS2(self, token):     pass
     def renderP(self, token):
         self.indentFlag = False
-        self.write(u'\n\n')
+        self.write('\n\n')
     def renderS(self, token):
         self.indentFlag = False
-        self.write(u'\n=== ' + token.value + u' === ')
+        self.write('\n=== ' + token.value + u' === ')
     def renderS2(self, token):
         self.indentFlag = False
         pass
@@ -51,45 +51,44 @@ class MediaWikiPrinter(object):
         self.cc = token.value.zfill(3)
         self.ccUnfil = token.getValue()
         if self.cc == u'001':
-            self.write(u'Bible:' + self.cb + u'_' + token.value + u' ')
+            self.write('Bible:' + self.cb + u'_' + token.value + u' ')
         else:
-            self.write(u'\n\n')
+            self.write('\n\n')
             self.f.close()
             self.f = open(self.outputDir + u'/c' + self.cb + self.cc + u'.html', 'w')
-            self.write(u'Bible:' + self.cb + u'_' + token.value + u' ')
+            self.write('Bible:' + self.cb + u'_' + token.value + u' ')
     def renderV(self, token):
         self.cv = token.value.zfill(3)
-        if not self.cv == u'001': self.write(u'<\span>\n')
-        self.write(u'<span id="' + self.ccUnfil + u'_' + token.getValue() + u'"><sup>' + token.getValue() + u'</sup>')
+        if not self.cv == u'001': self.write('</span>\n')
+        self.write('<span id="' + self.ccUnfil + u'_' + token.getValue() + u'"><sup>' + token.getValue() + u'</sup>')
 
     def renderWJS(self, token):     pass
     def renderWJE(self, token):     pass
     def renderTEXT(self, token):
-        if self.footnoteFlag:       self.footnoteFlag = False; self.write(u' -->')
+        if self.footnoteFlag:       self.footnoteFlag = False; self.write(' -->')
         self.write(token.getValue())
-    def renderQ(self, token):       self.write(u'\n:')
-    def renderQ1(self, token):      self.write(u'\n::')
+    def renderQ(self, token):       self.write('\n:')
+    def renderQ1(self, token):      self.write('\n::')
     def renderQ2(self, token):      pass
     def renderQ3(self, token):      pass
     def renderNB(self, token):      pass
     def renderQTS(self, token):     pass
     def renderQTE(self, token):     pass
-    def renderFS(self, token):      self.write(u'<ref><!-- '); self.footnoteFlag = True
-    def renderFT(self, token):      self.write(u'\\ft ' + token.getValue())
-    def renderFK(self, token):      self.write(u'\\fk ' + token.getValue())
+    def renderFS(self, token):      self.write('<ref><!-- '); self.footnoteFlag = True
+    def renderFT(self, token):      self.write('\\ft ' + token.getValue())
+    def renderFK(self, token):      self.write('\\fk ' + token.getValue())
     def renderFE(self, token):
-        if self.footnoteFlag:       self.footnoteFlag = False; self.write(u' -->')
-        self.write(u'</ref>')
+        if self.footnoteFlag:       self.footnoteFlag = False; self.write(' -->')
+        self.write('</ref>')
     def renderFP(self, token):
         self.indentFlag = False
-        self.write(u'\n\n')
+        self.write('\n\n')
     def renderIS(self, token):      pass
     def renderIE(self, token):      pass
     def renderB(self, token):       pass
-    def renderD(self, token):       pass
     def renderADDS(self, token):    pass
     def renderADDE(self, token):    pass
-    def renderLI(self, token):      self.write(u'\n:<!-- \li -->')
+    def renderLI(self, token):      self.write('\n:<!-- \\li -->')
     def renderSP(self, token):      pass
     def renderNDS(self, token):     pass
     def renderNDE(self, token):     pass
@@ -112,7 +111,7 @@ class MediaWikiPrinter(object):
     def renderD(self, token):       pass # For now
     def renderREM(self, token):     pass # This is for comments in the USFM
 
-class Transform(object):
+class Transform:
 
     def stripUnicodeHeader(self, unicodeString):
         if unicodeString[0] == '\ufeff':

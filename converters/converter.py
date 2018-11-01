@@ -16,7 +16,7 @@ from converters.convert_logger import ConvertLogger
 class Converter(metaclass=ABCMeta):
     """
     """
-    EXCLUDED_FILES = ["license.md", "package.json", "project.json", 'readme.md']
+    EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
 
     def __init__(self, source, resource, cdn_file=None, options=None, convert_callback=None, identifier=None):
         """
@@ -28,7 +28,6 @@ class Converter(metaclass=ABCMeta):
         :param string identifier:
         """
         GlobalSettings.logger.debug(f"Converter.__init__(s={source}, r={resource}, cdn_file={cdn_file}, options={options}, callback={convert_callback}, id={identifier})")
-        self.options = {}
         self.source = source
         self.resource = resource
         self.cdn_file = cdn_file

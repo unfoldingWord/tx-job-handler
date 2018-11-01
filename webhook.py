@@ -10,6 +10,8 @@ import tempfile
 import json
 from datetime import datetime, timedelta, date
 from time import time
+import sys
+sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
 
 # Library (PyPi) imports
 import requests
@@ -17,10 +19,8 @@ from statsd import StatsClient # Graphite front-end
 
 # Local imports
 from rq_settings import prefix, debug_mode_flag
-from general_tools.file_utils import unzip, add_contents_to_zip, write_file, remove_tree
+from general_tools.file_utils import unzip, remove_tree
 from general_tools.url_utils import download_file
-from resource_container.ResourceContainer import RC
-from preprocessors.preprocessors import do_preprocess
 from global_settings.global_settings import GlobalSettings
 
 from linters.obs_linter import ObsLinter
@@ -136,7 +136,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     :param dict param_dict: Will be updated!
     :param str converter_name:
     """
-    GlobalSettings.logger.debug(f'do_converting( {param_dict}, {source_dir}, {converter_name}, {converter_class} )')
+    GlobalSettings.logger.debug(f'do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )')
     param_dict['status'] = 'converting'
     cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
 
@@ -151,7 +151,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     param_dict['converter_warnings'] = convert_result['warnings']
     param_dict['converter_errors'] = convert_result['errors']
     param_dict['status'] = 'converted'
-    GlobalSettings.logger.debug(f'do_converting is returning with {param_dict}')
+    # GlobalSettings.logger.debug(f'do_converting is returning with {param_dict}')
     #return param_dict
 # end of do_converting function
 
@@ -208,6 +208,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         if an exception is thrown in this module.
     """
     GlobalSettings.logger.debug(f"Processing {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
+    job_descriptive_name = f"{queued_json_payload['resource_type']}({queued_json_payload['input_format']})"
 
     # Create a build log
     build_log_dict = queued_json_payload.copy()
@@ -235,7 +236,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
 
     # Download and unzip the specified source file
-    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']}...")
+    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']} ...")
     download_source_file(queued_json_payload['source'], base_temp_dir_name)
 
     # Find correct source folder
@@ -332,7 +333,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.info("No callback requested")
 
     remove_tree(base_temp_dir_name)  # cleanup
-    GlobalSettings.logger.info(f"{prefix}process_tx_job() is returning with {build_log_dict}")
+    GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {build_log_dict}")
+    return job_descriptive_name
 #end of process_tx_job function
 
 
@@ -359,11 +361,14 @@ def job(queued_json_payload):
     #print(f"\nGot job {current_job.id} from {current_job.origin} queue")
     #queue_prefix = 'dev-' if current_job.origin.startswith('dev-') else ''
     #assert queue_prefix == prefix
-    process_tx_job(prefix, queued_json_payload)
+    job_descriptive_name = process_tx_job(prefix, queued_json_payload)
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('job.duration', elapsed_milliseconds)
-    GlobalSettings.logger.info(f"tX job handling completed in {elapsed_milliseconds:,} milliseconds!")
+    if elapsed_milliseconds < 2000:
+        GlobalSettings.logger.info(f"tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds")
+    else:
+        GlobalSettings.logger.info(f"tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds")
 
     stats_client.incr('jobs.completed')
 # end of job function
