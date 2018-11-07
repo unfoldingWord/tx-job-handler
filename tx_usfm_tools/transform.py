@@ -32,7 +32,7 @@ class UsfmTransform():
 
     @staticmethod
     def setup():
-        UsfmTransform.__logger.debug("transform.setup() ...")
+        UsfmTransform.__logger.debug("transform.setup() …")
         c = """
         cd support/thirdparty
         rm -rf context
@@ -48,7 +48,7 @@ class UsfmTransform():
 
     @staticmethod
     def buildLout(usfmDir, builtDir, buildName):
-        UsfmTransform.__logger.info('Building Lout...')
+        UsfmTransform.__logger.info('transform: building Lout…')
 
         # Prepare
         UsfmTransform.__logger.info('Clean working dir')
@@ -78,10 +78,10 @@ class UsfmTransform():
 
     @staticmethod
     def buildConTeXt(usfmDir, builtDir, buildName):
-        UsfmTransform.__logger.info("Building PDF via ConTeXt...")
+        UsfmTransform.__logger.info("transform: building PDF via ConTeXt…")
 
         # Convert to ConTeXt
-        UsfmTransform.__logger.info("Converting to ConTeXt...")
+        UsfmTransform.__logger.info("Converting to ConTeXt…")
         # c = texise.TransformToContext()
         # c.setupAndRun(usfmDir, 'working/tex', buildName)
         UsfmTransform.ensureOutputDir(builtDir + '/working/tex')
@@ -92,16 +92,16 @@ class UsfmTransform():
     @staticmethod
     def buildWeb(usfmDir, builtDir, buildName):
         # Convert to HTML
-        UsfmTransform.__logger.info("Building Web HTML...")
+        UsfmTransform.__logger.info("transform: building Web HTML…")
         UsfmTransform.ensureOutputDir(builtDir + '/' + buildName + '_html')
         c = htmlRenderer.HTMLRenderer(usfmDir, builtDir + '/' + buildName + '_html')
         c.render()
 
     @staticmethod
     def buildSingleHtml(usfmDir, builtDir, buildName):
-        # UsfmTransform.__logger.debug("transform.buildSingleHtml( ... ) ...")
+        # UsfmTransform.__logger.debug("transform.buildSingleHtml( … ) …")
         # Convert to HTML
-        UsfmTransform.__logger.info("Building Single Page HTML...")
+        UsfmTransform.__logger.info("transform: building Single Page HTML…")
         UsfmTransform.ensureOutputDir(builtDir)
         c = singlehtmlRenderer.SingleHTMLRenderer(usfmDir, builtDir + '/' + buildName + '.html')
         c.render()
@@ -109,7 +109,7 @@ class UsfmTransform():
     @staticmethod
     def buildCSV(usfmDir, builtDir, buildName):
         # Convert to CSV
-        UsfmTransform.__logger.info("Building CSV...")
+        UsfmTransform.__logger.info("transform: building CSV…")
         UsfmTransform.ensureOutputDir(builtDir)
         c = csvRenderer.CSVRenderer(usfmDir, builtDir + '/' + buildName + '.csv')
         c.render()
@@ -117,7 +117,7 @@ class UsfmTransform():
     @staticmethod
     def buildReader(usfmDir, builtDir, buildName):
         # Convert to HTML for online reader
-        UsfmTransform.__logger.info("Building for Reader...")
+        UsfmTransform.__logger.info("transform: building for Reader…")
         UsfmTransform.ensureOutputDir(builtDir + 'en_oeb')
         c = readerise.TransformForReader()
         c.setupAndRun(usfmDir, builtDir + 'en_oeb')
@@ -125,7 +125,7 @@ class UsfmTransform():
     @staticmethod
     def buildMarkdown(usfmDir, builtDir, buildName):
         # Convert to Markdown for Pandoc
-        UsfmTransform.__logger.info('Building for Markdown...')
+        UsfmTransform.__logger.info('transform: building for Markdown…')
         UsfmTransform.ensureOutputDir(builtDir)
         c = mdRenderer.MarkdownRenderer(usfmDir, builtDir + '/' + buildName + '.md')
         c.render()
@@ -133,7 +133,7 @@ class UsfmTransform():
     @staticmethod
     def buildASCII(usfmDir, builtDir, buildName):
         # Convert to ASCII
-        UsfmTransform.__logger.info('Building for ASCII...')
+        UsfmTransform.__logger.info('transform: building for ASCII…')
         UsfmTransform.ensureOutputDir(builtDir)
         c = asciiRenderer.ASCIIRenderer(usfmDir, builtDir + '/' + buildName + '.txt')
         c.render()
@@ -141,7 +141,7 @@ class UsfmTransform():
     @staticmethod
     def buildUSX(usfmDir, builtDir, buildName, byBookFlag):
         # Convert to USX
-        UsfmTransform.__logger.info('Building for USX...')
+        UsfmTransform.__logger.info('transform: building for USX…')
         UsfmTransform.ensureOutputDir(builtDir)
         c = usxRenderer.USXRenderer(usfmDir, builtDir + '/', buildName, byBookFlag)
         c.render()
@@ -149,7 +149,7 @@ class UsfmTransform():
     @staticmethod
     def buildMediawiki(usfmDir, builtDir, buildName):
         # Convert to MediaWiki format for Door43
-        UsfmTransform.__logger.info('Building for Mediawiki...')
+        UsfmTransform.__logger.info('transform: building for Mediawiki…')
         # Check output directory
         UsfmTransform.ensureOutputDir(builtDir + '/mediawiki')
         mediawikiPrinter.Transform().setupAndRun(usfmDir, builtDir + '/mediawiki')
@@ -178,7 +178,7 @@ class UsfmTransform():
         usfm_dir = ''
         build_name = ''
 
-        UsfmTransform.__logger.info('Starting Build.')
+        UsfmTransform.__logger.info('transform: Starting Build.')
         try:
             opts, args = getopt.getopt(argv, "sht:u:b:n:o",
                                        ["setup", "help", "target=", "usfmDir=", "builtDir=", "name=", "oeb",
@@ -231,7 +231,7 @@ class UsfmTransform():
         else:
             UsfmTransform.usage()
 
-            UsfmTransform.__logger.info('Finished.')
+            UsfmTransform.__logger.info('Transform finished.')
         UsfmTransform.restoreCWD()
 
     @staticmethod

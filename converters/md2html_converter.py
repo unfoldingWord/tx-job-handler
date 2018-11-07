@@ -21,7 +21,7 @@ class Md2HtmlConverter(Converter):
             return True
 
     def convert_obs(self):
-        self.log.info("Processing OBS markdown files ...")
+        self.log.info("Processing OBS markdown files …")
 
         # find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -56,7 +56,7 @@ class Md2HtmlConverter(Converter):
         self.log.info("Finished processing OBS Markdown files.")
 
     def convert_markdown(self):
-        self.log.info("Processing Markdown files ...")
+        self.log.info("Processing Markdown files …")
 
         # find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)

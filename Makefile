@@ -1,10 +1,10 @@
 XXXdoc: clean_doc
-	echo 'building docs...'
+	echo 'building docs…'
 	cd docs && sphinx-apidoc --force -M -P -e -o source/ ../enqueue
 	cd docs && make html
 
 XXXclean_doc:
-	echo 'cleaning docs...'
+	echo 'cleaning docs…'
 	cd docs && rm -f source/enqueue
 	cd docs && rm -f source/enqueue*.rst
 

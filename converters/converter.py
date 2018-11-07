@@ -79,7 +79,7 @@ class Converter(metaclass=ABCMeta):
             GlobalSettings.logger.debug(f"Converter unzipping {self.input_zip_file} to {self.files_dir}")
             unzip(self.input_zip_file, self.files_dir)
             # convert method called
-            GlobalSettings.logger.debug("Converting files...")
+            GlobalSettings.logger.debug("Converting files…")
             if self.convert():
                 #GlobalSettings.logger.debug(f"Was able to convert {self.resource}")
                 # zip the output dir to the output archive
