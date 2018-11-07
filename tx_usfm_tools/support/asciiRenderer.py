@@ -79,7 +79,7 @@ class ASCIIRenderer(abstractRenderer.AbstractRenderer):
     def renderNDE(self, token):     self.f.write(u' ')
     def renderPBR(self, token):     self.f.write(u'\n')
 
-    # Ignore...
+    # Ignore…
     def renderXS(self,token):       self.inX = True
     def renderXE(self,token):       self.inX = False
     def renderFS(self,token):       self.inFootnote = True

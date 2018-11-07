@@ -1,7 +1,7 @@
-# import logging
+import logging
 
 from tx_usfm_tools.support.abstractRenderer import AbstractRenderer
-from tx_usfm_tools.support.books import bookKeyForIdValue
+from tx_usfm_tools.support.books import bookKeyForIdValue, bookNames
 from tx_usfm_tools.support.parseUsfm import UsfmToken
 
 #
@@ -10,7 +10,7 @@ from tx_usfm_tools.support.parseUsfm import UsfmToken
 
 class SingleHTMLRenderer(AbstractRenderer):
     def __init__(self, inputDir, outputFilename):
-        # logging.debug(f"SingleHTMLRenderer.__init__( {inputDir}, {outputFilename} ) ...")
+        # logging.debug(f"SingleHTMLRenderer.__init__( {inputDir}, {outputFilename} ) …")
         # Unset
         self.f = None  # output file stream
         # IO
@@ -32,9 +32,9 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.footnote_text = ''
 
     def render(self):
-        # logging.debug("SingleHTMLRenderer.render() ...")
+        # logging.debug("SingleHTMLRenderer.render() …")
         self.loadUSFM(self.inputDir) # Result is in self.booksUsfm
-        #print(f"About to render USFM ({len(self.booksUsfm)} books): {str(self.booksUsfm)[:300]} ...")
+        #print(f"About to render USFM ({len(self.booksUsfm)} books): {str(self.booksUsfm)[:300]} …")
         self.f = open(self.outputFilename, 'wt', encoding='utf-8')
         self.run()
         self.writeFootnotes()
@@ -149,7 +149,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.writeHeader()
 
     def renderTOC2(self, token):
-        if not self.bookName:
+        if not self.bookName: # i.e., there was no \h field in the USFM
             self.bookName = token.value
             self.writeHeader()
 
@@ -199,6 +199,10 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('\n\n<h5">' + token.getValue() + '</h5>')
 
     def renderC(self, token):
+        if not self.bookName: # i.e., there was no \h or \toc2 field in the USFM
+            self.bookName = bookNames[int(self.cb)-1]
+            logging.info(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
+            self.writeHeader()
         self.write(self.stopIndent())
         self.closeFootnote()
         self.writeFootnotes()

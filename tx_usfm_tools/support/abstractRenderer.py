@@ -11,23 +11,25 @@ class AbstractRenderer:
     chapterLabel = 'Chapter'
 
     def writeLog(self, s):
+        # logging.info(s)
         pass
 
     def loadUSFM(self, usfmDir):
+        # logging.debug(f"abstractRenderer.loadUSFM({usfmDir}) is loading ALL USFM books…")
         self.booksUsfm = loadBooks(usfmDir)
 
     def run(self):
-        # logging.debug("AbstractRenderer.run() ...")
+        # logging.debug(f"AbstractRenderer.run() to convert {len(self.booksUsfm)} books…")
         self.unknowns = []
         try:
-            # logging.debug("AbstractRenderer.run() try using renderBook...")
+            # logging.debug("AbstractRenderer.run() try using renderBook…")
             bookName = self.renderBook
             if bookName in self.booksUsfm:
                 self.writeLog('     (' + bookName + ')')
                 tokens = parseString(self.booksUsfm[bookName])
                 for t in tokens: t.renderOn(self)
         except:
-            # logging.debug("AbstractRenderer.run() now using silNames...")
+            # logging.debug("AbstractRenderer.run() now using silNames…")
             for bookName in silNames:
                 if bookName in self.booksUsfm:
                     self.writeLog('     (' + bookName + ')')

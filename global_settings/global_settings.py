@@ -159,7 +159,7 @@ class GlobalSettings:
 
     @classmethod
     def set_vars(cls, **kwargs):
-        #print("GlobalSettings.set_vars()...")
+        #print("GlobalSettings.set_vars()…")
         # Sets all the given variables for the class, and then marks it as dirty
         for var, value in kwargs.items():
             if hasattr(GlobalSettings, var):
@@ -168,7 +168,7 @@ class GlobalSettings:
 
     @classmethod
     def cdn_s3_handler(cls):
-        #print("GlobalSettings.cdn_s3_handler()...")
+        #print("GlobalSettings.cdn_s3_handler()…")
         if not cls._cdn_s3_handler:
             cls._cdn_s3_handler = S3Handler(bucket_name=cls.cdn_bucket_name,
                                             aws_access_key_id=cls.aws_access_key_id,
@@ -178,7 +178,7 @@ class GlobalSettings:
 
     @classmethod
     def door43_s3_handler(cls):
-        #print("GlobalSettings.door43_s3_handler()...")
+        #print("GlobalSettings.door43_s3_handler()…")
         if not cls._door43_s3_handler:
             cls._door43_s3_handler = S3Handler(bucket_name=cls.door43_bucket_name,
                                                aws_access_key_id=cls.aws_access_key_id,
@@ -188,7 +188,7 @@ class GlobalSettings:
 
     @classmethod
     def pre_convert_s3_handler(cls):
-        #print("GlobalSettings.pre_convert_s3_handler()...")
+        #print("GlobalSettings.pre_convert_s3_handler()…")
         if not cls._pre_convert_s3_handler:
             cls._pre_convert_s3_handler = S3Handler(bucket_name=cls.pre_convert_bucket_name,
                                                     aws_access_key_id=cls.aws_access_key_id,
@@ -198,7 +198,7 @@ class GlobalSettings:
 
     @classmethod
     def language_stats_db_handler(cls):
-        #print("GlobalSettings.language_stats_db_handler()...")
+        #print("GlobalSettings.language_stats_db_handler()…")
         if not cls._language_stats_db_handler:
             cls._language_stats_db_handler = DynamoDBHandler(table_name=cls.language_stats_table_name,
                                                              aws_access_key_id=cls.aws_access_key_id,
@@ -211,7 +211,7 @@ class GlobalSettings:
         """
         :param mixed echo:
         """
-        #print("GlobalSettings.db_engine(echo={0}) class method running...".format(echo))
+        #print("GlobalSettings.db_engine(echo={0}) class method running…".format(echo))
         if echo is None or not isinstance(echo, bool):
             echo = cls.echo
         if not cls._db_engine:
@@ -228,7 +228,7 @@ class GlobalSettings:
         """
         :param mixed echo:
         """
-        #print("GlobalSettings.db(echo={0}) class method running...".format(echo))
+        #print("GlobalSettings.db(echo={0}) class method running…".format(echo))
         if not cls._db_session:
             cls._db_session = sessionmaker(bind=cls.db_engine(echo), expire_on_commit=False)()
             from models.manifest import TxManifest
@@ -238,7 +238,7 @@ class GlobalSettings:
 
     @classmethod
     def db_close(cls):
-        #print("GlobalSettings.db_close()...")
+        #print("GlobalSettings.db_close()…")
         if cls._db_session:
             cls._db_session.close_all()
             cls._db_session = None
@@ -248,12 +248,12 @@ class GlobalSettings:
 
     @classmethod
     def db_create_tables(cls, tables=None):
-        #print("GlobalSettings.db_create_tables()...")
+        #print("GlobalSettings.db_create_tables()…")
         cls.Base.metadata.create_all(cls.db_engine(), tables=tables)
 
     @classmethod
     def construct_connection_string(cls):
-        #print("GlobalSettings.construct_connection_string()...")
+        #print("GlobalSettings.construct_connection_string()…")
         db_connection_string = cls.db_protocol+'://'
         if cls.db_user:
             db_connection_string += cls.db_user

@@ -170,7 +170,7 @@ def download_source_file(source_url, destination_folder):
     GlobalSettings.logger.info(f"source_filepath: {source_filepath}")
 
     try:
-        GlobalSettings.logger.debug(f"Downloading {source_url} ...")
+        GlobalSettings.logger.debug(f"Downloading {source_url} …")
 
         # if the file already exists, remove it, we want a fresh copy
         if os.path.isfile(source_filepath):
@@ -182,7 +182,7 @@ def download_source_file(source_url, destination_folder):
 
     if source_url.lower().endswith('.zip'):
         try:
-            GlobalSettings.logger.debug(f"Unzipping {source_filepath} ...")
+            GlobalSettings.logger.debug(f"Unzipping {source_filepath} …")
             # TODO: This is unsafe if the zipfile comes from an untrusted source
             unzip(source_filepath, destination_folder)
         finally:
@@ -222,7 +222,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     if 'eta' not in build_log_dict:
         build_log_dict['eta'] = build_log_dict['started_at'] + timedelta(minutes=5)
     build_log_dict['status'] = 'started'
-    build_log_dict['message'] = 'tX job started...'
+    build_log_dict['message'] = 'tX job started…'
 
     # Setup a temp folder to use
     # Move everything down one directory level for simple delete
@@ -236,14 +236,14 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
 
     # Download and unzip the specified source file
-    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']} ...")
+    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']} …")
     download_source_file(queued_json_payload['source'], base_temp_dir_name)
 
     # Find correct source folder
     source_folder_path = base_temp_dir_name
     dirList = os.listdir(base_temp_dir_name)
     GlobalSettings.logger.debug(f"Discovering source folder from"
-                                f" '{base_temp_dir_name}' with {dirList} ...")
+                                f" '{base_temp_dir_name}' with {dirList} …")
     if len(dirList)==1:
         tryFolder = os.path.join(base_temp_dir_name, dirList[0])
         if os.path.isdir(tryFolder):
@@ -301,7 +301,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Do the callback (if requested) to advise the caller of our results
     if 'callback' in queued_json_payload:
-        GlobalSettings.logger.info(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} ...")
+        GlobalSettings.logger.info(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} …")
         # Copy the build log but convert times to strings
         callback_payload = build_log_dict
         for key,value in callback_payload.items():
