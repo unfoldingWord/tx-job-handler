@@ -200,6 +200,7 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderC(self, token):
         if not self.bookName: # i.e., there was no \h or \toc2 field in the USFM
+            # NOTE: The next line is not tested on New Testament -- may be out by one book
             self.bookName = bookNames[int(self.cb)-1]
             logging.info(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
             self.writeHeader()

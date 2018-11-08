@@ -130,7 +130,7 @@ class HTMLRenderer(abstractRenderer.AbstractRenderer):
     def renderC(self, token):
         self.cc = token.value.zfill(3)
         self.cachedChapterMarker = '<span class="chapter">' + token.value + '</span>'
-        # if self.cb==u'019': self.write('<p><em>Psalm ' + token.value + '</em></p>')
+        # if self.cb=='019': self.write('<p><em>Psalm ' + token.value + '</em></p>')
     def renderV(self, token):
         self.cv = token.value.zfill(3)
         if self.cv == '001':

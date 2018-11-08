@@ -33,7 +33,7 @@ backslash = Literal("\\")
 plus = Literal("+")
 
 textBlock = Group(Optional(NoMatch(), "text") + phrase)
-unknown = Group(Optional(NoMatch(), "unknown") + Suppress(backslash) + CharsNotIn(u' \n\t\\'))
+unknown = Group(Optional(NoMatch(), "unknown") + Suppress(backslash) + CharsNotIn(' \n\t\\'))
 escape = usfmTokenValue("\\", phrase)
 
 id_token = usfmTokenValue("id", phrase)

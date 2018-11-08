@@ -22,10 +22,10 @@ vv_re = re.compile(r'([0-9]+)-([0-9]+)')
 error_log = None
 
 # chapter marker
-chapter_marker_re = re.compile(r'\\c', re.UNICODE)
+chapter_marker_re = re.compile(r'\\c')
 
 # verse marker
-verse_marker_re = re.compile(r'\\v', re.UNICODE)
+verse_marker_re = re.compile(r'\\v')
 
 WHITE_SPACE = [' ', '\u00A0', '\r', '\n', '\t']
 SPACE = [' ', '\u00A0']

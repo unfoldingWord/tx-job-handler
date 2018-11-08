@@ -30,54 +30,54 @@ class ASCIIRenderer(abstractRenderer.AbstractRenderer):
     # Support
 
     def startNarrower(self, n):
-        s = u'\n'
-        if not self.narrower: s = s + u'\n'
+        s = '\n'
+        if not self.narrower: s = s + '\n'
         self.narrower = True
-        return s + u'    ' * n
+        return s + '    ' * n
 
     def stopNarrower(self):
         self.narrower = False
-        return u''
+        return ''
 
     def startD(self):
         self.d = True
-        return u''
+        return ''
 
     def stopD(self):
         self.d = False
-        return u''
+        return ''
 
     def escape(self, text):
         if self.inX or self.inFootnote:
-            return u''
-        t = text.replace(u'‘', u"'")
-        t = t.replace(u'’', u"'")
-        t = t.replace(u'“', u'"')
-        t = t.replace(u'”', u'"')
+            return ''
+        t = text.replace('‘', "'")
+        t = t.replace('’', "'")
+        t = t.replace('“', '"')
+        t = t.replace('”', '"')
         t = t.encode('ascii', 'ignore')
         return t
 
     # Tokens
 
-    def renderH(self, token):       self.f.write(u'\n\n\n### ' + token.value + u' ###\n\n\n')
-    def renderMS2(self, token):     self.f.write(u'\n\n[' + token.value + u']\n\n')
-    def renderP(self, token):       self.f.write(self.stopD() + self.stopNarrower() + u'\n\n    ')
-    def renderB(self, token):       self.f.write(self.stopD() + self.stopNarrower() + u'\n\n    ')
-    def renderS(self, token):       self.f.write(self.stopD() + self.stopNarrower() + u'\n\n    ')
-    def renderS2(self, token):      self.f.write(self.stopD() + self.stopNarrower() + u'\n\n    ')
-    def renderC(self, token):       self.f.write(u' ' )
-    def renderV(self, token):       self.f.write(u' ' )
+    def renderH(self, token):       self.f.write('\n\n\n### ' + token.value + ' ###\n\n\n')
+    def renderMS2(self, token):     self.f.write('\n\n[' + token.value + ']\n\n')
+    def renderP(self, token):       self.f.write(self.stopD() + self.stopNarrower() + '\n\n    ')
+    def renderB(self, token):       self.f.write(self.stopD() + self.stopNarrower() + '\n\n    ')
+    def renderS(self, token):       self.f.write(self.stopD() + self.stopNarrower() + '\n\n    ')
+    def renderS2(self, token):      self.f.write(self.stopD() + self.stopNarrower() + '\n\n    ')
+    def renderC(self, token):       self.f.write(' ' )
+    def renderV(self, token):       self.f.write(' ' )
     def renderTEXT(self, token):    self.f.write(self.escape(token.value))
     def renderQ(self, token):       self.f.write(self.stopD() + self.startNarrower(1))
     def renderQ1(self, token):      self.f.write(self.stopD() + self.startNarrower(1))
     def renderQ2(self, token):      self.f.write(self.stopD() + self.startNarrower(2))
     def renderQ3(self, token):      self.f.write(self.stopD() + self.startNarrower(3))
-    def renderNB(self, token):      self.f.write(self.stopD() + self.stopNarrower() + u"\n\n")
-    def renderLI(self, token):      self.f.write(u' ')
+    def renderNB(self, token):      self.f.write(self.stopD() + self.stopNarrower() + "\n\n")
+    def renderLI(self, token):      self.f.write(' ')
     def renderD(self, token):       self.f.write(self.startD())
     def renderSP(self, token):      self.f.write(self.startD())
-    def renderNDE(self, token):     self.f.write(u' ')
-    def renderPBR(self, token):     self.f.write(u'\n')
+    def renderNDE(self, token):     self.f.write(' ')
+    def renderPBR(self, token):     self.f.write('\n')
 
     # Ignore…
     def renderXS(self,token):       self.inX = True
