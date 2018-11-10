@@ -156,15 +156,17 @@ class TnTsvLinter(Linter):
                         B, C, V, ID, SupportReference, OrigQuote, Occurrence, GLQuote, OccurrenceNote = tsv_line.split('\t')
                         if B != expectedB:
                             self.log.warnings.append(f"Unexpected {B} line in {filename}")
-                        if not C.isdigit():
+                        if not C:
+                            self.log.warnings.append(f"Missing chapter number after {lastC}:{lastV} in {filename}")
+                        elif not C.isdigit() and C not in ('front','back'):
                             self.log.warnings.append(f"Bad '{C}' chapter number near verse {V} in {filename}")
-                        elif lastC.isdigit():
+                        elif C.isdigit() and lastC.isdigit():
                             lastCint, Cint = int(lastC), int(C)
                             if Cint < lastCint:
                                 self.log.warnings.append(f"Decrementing '{C}' chapter number after {lastC} in {filename}")
                             elif Cint > lastCint+1:
                                 self.log.warnings.append(f"Missing chapter number {lastCint+1} after {lastC} in {filename}")
-                        if C == lastC:
+                        if C == lastC: # still in the same chapter
                             if not V.isdigit():
                                 self.log.warnings.append(f"Bad '{V}' verse number in chapter {C} in {filename}")
                             elif lastV.isdigit():
@@ -174,11 +176,16 @@ class TnTsvLinter(Linter):
                                 # NOTE: Disabled because missing verse notes are expected
                                 # elif Vint > lastVint+1:
                                     # self.log.warnings.append(f"Missing verse number {lastVint+1} after {lastV} in chapter {C} in {filename}")
+                        else: # just started a new chapter
+                            if not V.isdigit() and V != 'intro':
+                                self.log.warnings.append(f"Bad '{V}' verse number in start of chapter {C} in {filename}")
                         if OccurrenceNote:
                             left_count, right_count = OccurrenceNote.count('['), OccurrenceNote.count(']')
                             if left_count != right_count:
                                 self.log.warnings.append(f"Unmatched square brackets at {B} {C}:{V} in '{OccurrenceNote}'")
                         lastC, lastV = C, V
+                        if lastC == 'front': lastC = '0'
+                        elif lastC == 'back': lastC = '999'
 
         return True
 
