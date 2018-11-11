@@ -94,6 +94,18 @@ class Tsv2HtmlConverter(Converter):
         return True
 
 
+    def get_truncated_string(self, original_string, max_length=100):
+        """
+        If a string is longer than the max_length,
+            return a truncated version.
+        """
+        if not isinstance(original_string, str):
+            original_string = str(original_string)
+        if len(original_string) <= max_length:
+            return original_string
+        return f"{original_string[:max_length*3//4]}…{original_string[-max_length//4:]}"
+
+
     def process_manifest(self, manifest_file_path):
         """
         Load the yaml manifest from the given file path.
@@ -161,7 +173,8 @@ class Tsv2HtmlConverter(Converter):
                     # NOTE: This is not added to warnings because that will be done at convert time (don't want double warnings)
                     GlobalSettings.logger.debug(f"Unexpected {self.current_book_code.upper()} line with {tab_count} tabs (expected {Tsv2HtmlConverter.expected_tab_count}): '{tsv_line}'")
                 self.tsv_lines.append(tsv_line.split('\t'))
-        GlobalSettings.logger.info(f"Loaded {len(self.tsv_lines)} TSV lines from {os.path.basename(tsv_filepath)}.")
+        GlobalSettings.logger.info(f"Preloaded {len(self.tsv_lines):,} TSV lines from {os.path.basename(tsv_filepath)}.")
+
 
     def fix_links(self, source_text):
         """
@@ -258,13 +271,14 @@ class Tsv2HtmlConverter(Converter):
 """
         self.load_tsv_file(tsv_filepath)
 
+        B = C = V = None # In case we get an error on the first line
         lastC = lastV = None
-        for tsv_line in self.tsv_lines[1:]:
+        for tsv_line in self.tsv_lines[1:]: # Skip the header line
             # GlobalSettings.logger.debug(f"Processing {tsv_line} …")
             try:
                 B, C, V, ID, SupportReference, OrigQuote, Occurrence, GLQuote, OccurrenceNote = tsv_line
             except ValueError:
-                self.log.warning(f"Unable to convert bad TSV line (wrong number of fields) near {B} {C}:{V} = {tsv_line}")
+                self.log.warning(f"Unable to convert bad TSV line (wrong number of fields) near {B} {C}:{V} = {self.get_truncated_string(tsv_line)}")
                 output_html += f'<p>BAD SOURCE LINE NOT CONVERTED: {tsv_line}</p>'
                 continue
             if C!=lastC: # New chapter
