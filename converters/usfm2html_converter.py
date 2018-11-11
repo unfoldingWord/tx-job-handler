@@ -64,18 +64,18 @@ class Usfm2HtmlConverter(Converter):
                     # from bs4.diagnose import diagnose
                     # diagnose(converted_html)
                     num_failed_books += 1
-                output_file = os.path.join(self.output_dir, html_filename)
+                output_filepath = os.path.join(self.output_dir, html_filename)
                 #print("template_soup type is", type(template_soup)) # <class 'bs4.BeautifulSoup'>
-                write_file(output_file, str(template_soup))
+                write_file(output_filepath, str(template_soup))
                 #print("Got converted x2 html:", str(template_soup)[:500])
                 self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
                 remove_tree(scratch_dir)
             else:
                 # Directly copy over files that are not USFM files
                 try:
-                    output_file = os.path.join(self.output_dir, os.path.basename(filename))
-                    if not os.path.exists(output_file):
-                        copyfile(filename, output_file)
+                    output_filepath = os.path.join(self.output_dir, os.path.basename(filename))
+                    if not os.path.exists(output_filepath):
+                        copyfile(filename, output_filepath)
                 except:
                     pass
         if num_failed_books and not num_successful_books:

@@ -182,10 +182,10 @@ class PageMetrics:
         lang_code_pattern = re.compile("^[a-z]{2,3}(-[a-z0-9]{2,4})?$")  # e.g. ab, abc, pt-br, es-419, sr-latn
         valid_lang_code = lang_code_pattern.match(language_code)
         if not valid_lang_code:
-            extended_lang_code_pattern = re.compile(r'^[a-z]{2,3}(-x-[\w\d]+)?$', re.UNICODE)  # e.g. abc-x-abcdefg
+            extended_lang_code_pattern = re.compile(r'^[a-z]{2,3}(-x-[\w\d]+)?$')  # e.g. abc-x-abcdefg
             valid_lang_code = extended_lang_code_pattern.match(language_code)
             if not valid_lang_code:
-                extended_lang_code_pattern2 = re.compile(r'^(-x-[\w\d]+)$', re.UNICODE)  # e.g. -x-abcdefg
+                extended_lang_code_pattern2 = re.compile(r'^(-x-[\w\d]+)$')  # e.g. -x-abcdefg
                 valid_lang_code = extended_lang_code_pattern2.match(language_code)
                 if not valid_lang_code:
                     language_code = None

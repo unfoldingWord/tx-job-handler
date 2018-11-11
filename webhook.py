@@ -25,7 +25,7 @@ from global_settings.global_settings import GlobalSettings
 
 from linters.obs_linter import ObsLinter
 from linters.ta_linter import TaLinter
-from linters.tn_linter import TnLinter
+from linters.tn_linter import TnLinter, TnTsvLinter
 from linters.tq_linter import TqLinter
 from linters.tw_linter import TwLinter
 from linters.markdown_linter import MarkdownLinter
@@ -34,6 +34,7 @@ from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
 
 from converters.md2html_converter import Md2HtmlConverter
+from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
 # NOTE: The following two tables are scanned in order (so put 'other' entries lower)
@@ -41,6 +42,7 @@ from converters.usfm2html_converter import Usfm2HtmlConverter
 LINTER_TABLE = (
     ('obs',      ObsLinter,      ('md','markdown',),      ('obs',),                   ),
     ('ta',       TaLinter,       ('md','markdown',),      ('ta',),                    ),
+    ('tn-tsv',   TnTsvLinter,    ('tsv',),                ('tn',),                    ),
     ('tn',       TnLinter,       ('md','markdown',),      ('tn',),                    ),
     ('tq',       TqLinter,       ('md','markdown',),      ('tq',),                    ),
     ('tw',       TwLinter,       ('md','markdown',),      ('tw',),                    ),
@@ -53,11 +55,12 @@ LINTER_TABLE = (
 CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
                     ('obs', 'ta', 'tq', 'tw', 'tn', 'other',),              'html'),
+    ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
+                    ('tn', 'other',), 'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
                     ('bible', 'ult', 'ust', 'ulb', 'udb', 'reg', 'other',), 'html'),
     )
 
-#OUR_NAME = 'tX_job_handler'
 
 GlobalSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):

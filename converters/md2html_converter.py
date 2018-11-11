@@ -42,15 +42,15 @@ class Md2HtmlConverter(Converter):
                 base_name = os.path.splitext(os.path.basename(filename))[0]
                 found_chapters[base_name] = True
                 html_filename = base_name + '.html'
-                output_file = os.path.join(self.output_dir, html_filename)
-                write_file(output_file, html)
+                output_filepath = os.path.join(self.output_dir, html_filename)
+                write_file(output_filepath, html)
                 self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
             else:
                 # Directly copy over files that are not markdown files
                 try:
-                    output_file = os.path.join(self.output_dir, os.path.basename(filename))
-                    if not os.path.exists(output_file):
-                        copyfile(filename, output_file)
+                    output_filepath = os.path.join(self.output_dir, os.path.basename(filename))
+                    if not os.path.exists(output_filepath):
+                        copyfile(filename, output_filepath)
                 except:
                     pass
         self.log.info("Finished processing OBS Markdown files.")

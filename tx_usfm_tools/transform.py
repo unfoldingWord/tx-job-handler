@@ -226,7 +226,7 @@ class UsfmTransform():
             UsfmTransform.buildCSV(usfm_dir, build_dir, build_name)
         elif targets == 'usx':
             if by_book_flag:
-                build_name = u''
+                build_name = ''
             UsfmTransform.buildUSX(usfm_dir, build_dir, build_name, by_book_flag)
         else:
             UsfmTransform.usage()
