@@ -193,10 +193,12 @@ class Tsv2HtmlConverter(Converter):
             # GlobalSettings.logger.debug(f"fix_links found link_contents = '{link_contents}'")
             if link_contents.startswith('rc://en/ta/man/'):
                 link_contents = link_contents[15:] # Remove unwanted prefix
-                adjusted_link = f'<a href="https://git.door43.org/Door43/en_ta/src/master/{link_contents}/01.md">Door43/en_ta/src/master/{link_contents}/01.md</a>'
+                #adjusted_link = f'<a href="https://git.door43.org/Door43/en_ta/src/master/{link_contents}/01.md">Door43/en_ta/src/master/{link_contents}/01.md</a>'
+                adjusted_link = f'<a href="https://git.door43.org/Door43/en_ta/src/master/{link_contents}/01.md">translationAcademy:{link_contents}</a>'
             elif link_contents.startswith('rc://en/tw/dict/'):
                 link_contents = link_contents[16:] # Remove unwanted prefix
-                adjusted_link = f'<a href="https://git.door43.org/Door43/en_tw/src/master/{link_contents}.md">Door43/en_tw/src/master/{link_contents}.md</a>'
+                #adjusted_link = f'<a href="https://git.door43.org/Door43/en_tw/src/master/{link_contents}.md">Door43/en_tw/src/master/{link_contents}.md</a>'
+                adjusted_link = f'<a href="https://git.door43.org/Door43/en_tw/src/master/{link_contents}.md">translationWords:{link_contents}</a>'
             else:
                 self.log.error(f"Cannot convert link: '{link_contents.replace('QQQQ','[[').replace('ZZZZ',']]')}'")
                 adjusted_link = link_contents
@@ -207,6 +209,7 @@ class Tsv2HtmlConverter(Converter):
             adjusted_text = adjusted_text.replace('QQQQ','[[').replace('ZZZZ',']]')
             self.log.error(f"Have a problem with link(s) in '{adjusted_text}' from '{source_text}'")
         return adjusted_text
+
 
     def buildSingleHtml(self, tsv_filepath):
         """
@@ -284,7 +287,8 @@ class Tsv2HtmlConverter(Converter):
             if C!=lastC: # New chapter
                 output_html += f'<h2 class="section-header" id="tn-chapter-{self.current_book_code}-{C.zfill(3)}">{self.current_book_name} {C}</h2>\n'
             if V!=lastV: # Onto a new verse
-                output_html += f'<h3 class="section-header" id="tn-chunk-{self.current_book_code}-{C.zfill(3)}-{V.zfill(3)}">{self.current_book_name} {C}:{V}</h3>\n'
+                if V != 'intro': # suppress these
+                    output_html += f'<h3 class="section-header" id="tn-chunk-{self.current_book_code}-{C.zfill(3)}-{V.zfill(3)}">{self.current_book_name} {C}:{V}</h3>\n'
             if OrigQuote:
                 output_html += f'<p>{OrigQuote}</p>\n'
             if OccurrenceNote:
