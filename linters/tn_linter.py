@@ -57,7 +57,7 @@ class TnLinter(MarkdownLinter):
                     break
 
             if not found_files:
-                msg = f"missing book: '{dir}'"
+                msg = f"Missing book: '{dir}'"
                 self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
 
@@ -152,6 +152,7 @@ class TnTsvLinter(Linter):
                         started = True
                     elif tab_count != TnTsvLinter.expected_tab_count:
                         self.log.warnings.append(f"Bad {expectedB} line near {C}:{V} with {tab_count} tabs (expected {TnTsvLinter.expected_tab_count})")
+                        B = C = V = ID = SupportReference = OrigQuote = Occurrence = GLQuote = OccurrenceNote = None
                     else:
                         B, C, V, ID, SupportReference, OrigQuote, Occurrence, GLQuote, OccurrenceNote = tsv_line.split('\t')
                         if B != expectedB:
@@ -183,11 +184,41 @@ class TnTsvLinter(Linter):
                             left_count, right_count = OccurrenceNote.count('['), OccurrenceNote.count(']')
                             if left_count != right_count:
                                 self.log.warnings.append(f"Unmatched square brackets at {B} {C}:{V} in '{OccurrenceNote}'")
+                            self.check_markdown(OccurrenceNote, f"{B} {C}:{V}")
                         lastC, lastV = C, V
                         if lastC == 'front': lastC = '0'
                         elif lastC == 'back': lastC = '999'
 
         return True
+
+
+    def check_markdown(self, markdown_string, reference):
+        """
+        Checks the header progressions in the markdown string
+        """
+        header_level = 0
+        for bit in markdown_string.split('<br>'):
+            if bit.startswith('# '):
+                header_level = 1
+            elif bit.startswith('## '):
+                if header_level < 1:
+                    self.log.warnings.append(f"Markdown header jumped directly to level 2 at {reference}")
+                header_level = 2
+            elif bit.startswith('### '):
+                if header_level < 2:
+                    self.log.warnings.append(f"Markdown header jumped directly to level 3 at {reference}")
+                header_level = 3
+            elif bit.startswith('#### '):
+                if header_level < 3:
+                    self.log.warnings.append(f"Markdown header jumped directly to level 4 at {reference}")
+                header_level = 4
+            elif bit.startswith('##### '):
+                if header_level < 4:
+                    self.log.warnings.append(f"Markdown header jumped directly to level 5 at {reference}")
+                header_level = 5
+            elif bit.startswith('#'):
+                self.log.warning(f"Badly formatted markdown header at {reference}")
+
 
     def find_invalid_links(self, folder, f, contents):
         # GlobalSettings.logger.debug(f"TnTsvLinter.find_invalid_links( {folder}, {f}, {contents} ) …")
