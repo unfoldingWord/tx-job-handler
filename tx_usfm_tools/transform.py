@@ -8,7 +8,7 @@ from tx_usfm_tools.support import loutRenderer, contextRenderer, htmlRenderer, s
     readerise, mdRenderer, asciiRenderer, usxRenderer, mediawikiPrinter
 
 
-class UsfmTransform():
+class UsfmTransform:
 
     savedCWD = ''
     __logger = logging.getLogger('usfm_tools')
