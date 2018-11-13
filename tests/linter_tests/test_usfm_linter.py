@@ -70,7 +70,10 @@ class TestUsfmLinter(LinterTestCase):
         shutil.copy(os.path.join(out_dir, self.php_file_name), os.path.join(out_dir, 'PHP.usfm'))
         expected_warnings = True
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], "File '."+os.path.sep+"PHP.usfm' has same code 'PHP' as previous file")
+        # Exact result depends on which order the two files were found in the folder
+        expected_result_1 = "File '."+os.path.sep+"PHP.usfm' has same code 'PHP' as previous file"
+        expected_result_2 = "File '."+os.path.sep+"51-PHP.usfm' has same code 'PHP' as previous file"
+        self.assertTrue(linter.log.warnings[0] in (expected_result_1,expected_result_2))
         self.verify_results(expected_warnings, linter)
 
     def test_PhpMissingID(self):
