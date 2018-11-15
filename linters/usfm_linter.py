@@ -24,20 +24,20 @@ class UsfmLinter(Linter):
         lang_code = self.rc.resource.language.identifier
         valid_lang_code = PageMetrics().validate_language_code(lang_code)
         if not valid_lang_code:
-            self.log.warning("Invalid language code: " + lang_code)
+            self.log.warning(f"Invalid language code: {lang_code}")
 
         for root, dirs, files in os.walk(self.source_dir):
-            for f in files:
-                if os.path.splitext(f)[1].lower() != '.usfm':  # only usfm files
+            for filename in files:
+                if os.path.splitext(filename)[1].lower() != '.usfm':  # only usfm files
                     continue
 
-                if self.single_file and (f != self.single_file):
+                if self.single_file and (filename != self.single_file):
                     continue
 
-                GlobalSettings.logger.debug("linting: " + f)
-                file_path = os.path.join(root, f)
+                GlobalSettings.logger.debug(f"Linting {filename} …")
+                file_path = os.path.join(root, filename)
                 sub_path = '.' + file_path[len(self.source_dir):]
-                self.parse_file(file_path, sub_path, f)
+                self.parse_file(file_path, sub_path, filename)
 
         if not len(self.found_books):
             self.log.warning("No translations found")

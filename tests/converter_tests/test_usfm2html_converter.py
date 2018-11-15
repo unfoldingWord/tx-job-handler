@@ -204,7 +204,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
             self.assertTrue(len(usfm) > 10, 'Bible usfm file contents missing: {0}'.format(file_to_verify))
 
     def make_duplicate_zip_that_can_be_deleted(self, zip_file):
-        in_zip_file = tempfile.mktemp(prefix="test_data", suffix=".zip", dir=self.temp_dir)
+        in_zip_file = tempfile.mktemp(prefix="tX_JH_USFM_test_data", suffix=".zip", dir=self.temp_dir)
         shutil.copy(zip_file, in_zip_file)
         zip_file = in_zip_file
         return zip_file

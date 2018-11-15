@@ -347,7 +347,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         return content
 
     def make_duplicate_zip_that_can_be_deleted(self, zip_file):
-        in_zip_file = tempfile.mktemp(prefix="test_data", suffix=".zip")
+        in_zip_file = tempfile.mktemp(prefix="tX_JH_MD_test_data", suffix=".zip")
         shutil.copy(zip_file, in_zip_file)
         zip_file = in_zip_file
         return zip_file
