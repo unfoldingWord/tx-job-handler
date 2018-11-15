@@ -371,9 +371,9 @@ def job(queued_json_payload):
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('job.duration', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
-        GlobalSettings.logger.info(f"tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
+        GlobalSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
-        GlobalSettings.logger.info(f"tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
+        GlobalSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
     stats_client.incr('jobs.completed')
 # end of job function

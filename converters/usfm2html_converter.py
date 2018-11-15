@@ -68,7 +68,7 @@ class Usfm2HtmlConverter(Converter):
                 #print("template_soup type is", type(template_soup)) # <class 'bs4.BeautifulSoup'>
                 write_file(output_filepath, str(template_soup))
                 #print("Got converted x2 html:", str(template_soup)[:500])
-                self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
+                # self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
                 remove_tree(scratch_dir)
             else:
                 # Directly copy over files that are not USFM files
@@ -80,5 +80,5 @@ class Usfm2HtmlConverter(Converter):
                     pass
         if num_failed_books and not num_successful_books:
             self.log.error(f"Conversion of all books failed!")
-        self.log.info("Finished processing Bible USFM files.")
+        self.log.info(f"Finished processing {num_successful_books} Bible USFM files.")
         return True
