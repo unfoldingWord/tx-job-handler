@@ -148,7 +148,7 @@ class TestConverter(unittest.TestCase):
         self.assertEquals(results, converter.callback_results)
 
     def make_duplicate_zip_that_can_be_deleted(self, zip_file):
-        in_zip_file = tempfile.mktemp(prefix="tX_JH_test_data", suffix=".zip", dir=self.temp_dir)
+        in_zip_file = tempfile.mktemp(prefix='tX_JH_test_data_', suffix='.zip', dir=self.temp_dir)
         shutil.copy(zip_file, in_zip_file)
         zip_file = in_zip_file
         return zip_file

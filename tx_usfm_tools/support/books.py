@@ -365,7 +365,7 @@ def bookName(usfm):
 def loadBooks(path):
     loaded_books = {}
     dirList = os.listdir(path)
-    __logger.info(f"Loading all USFM book files from {path} …")
+    __logger.debug(f"Loading all USFM book files from {path} …")
     for fname in dirList:
 
         full_file_name = os.path.join(path, fname)

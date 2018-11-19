@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #
+# verifyUSFM.py
 
 # Script for verifying proper USFM.
 # Uses parseUsfm module.
@@ -244,6 +245,8 @@ class State:
         chaps = State.verseCounts[id]['verses']
         n = chaps[chap-1]
         return n
+    # end of State class
+
 
 def report_error(msg):
     if error_log is None:  # if error logging is enabled then don't print
@@ -383,11 +386,17 @@ def get_chapter_number(text, start):
     return -1, has_white_space
 
 def get_number(text, start):
+    """
+    Called by get_verse_range() and get_chapter_number()
+    """
     digits = ''
     end = start
     c = ''
     for pos in range(start, len(text)):
         c = text[pos]
+        if c=='0' and not digits:
+            state = State()
+            report_error(f"{state.reference} has leading zero in following chapter/verse number")
         if (c >= '0') and (c <= '9'):
             digits += c
             continue
@@ -683,6 +692,9 @@ def take(token):
 #     print("FINISHED CHECKING.\n")
 
 def verify_contents_quiet(unicodestring, filename, book_code, lang_code):
+    """
+    This is called by the USFM linter.
+    """
     global error_log
     error_log = []  # enable error logging
     state = State()

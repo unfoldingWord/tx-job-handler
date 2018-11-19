@@ -4,8 +4,9 @@ import os
 import logging
 from subprocess import Popen, PIPE
 
-from tx_usfm_tools.support import loutRenderer, contextRenderer, htmlRenderer, singlehtmlRenderer, csvRenderer, \
-    readerise, mdRenderer, asciiRenderer, usxRenderer, mediawikiPrinter
+from tx_usfm_tools.support import loutRenderer, contextRenderer, \
+        htmlRenderer, singlehtmlRenderer, csvRenderer, readerise, \
+        mdRenderer, asciiRenderer, usxRenderer, mediawikiPrinter
 
 
 class UsfmTransform:
@@ -101,7 +102,7 @@ class UsfmTransform:
     def buildSingleHtml(usfmDir, builtDir, buildName):
         # UsfmTransform.__logger.debug("transform.buildSingleHtml( … ) …")
         # Convert to HTML
-        UsfmTransform.__logger.info("transform: building Single Page HTML…")
+        UsfmTransform.__logger.debug("transform: building Single Page HTML…")
         UsfmTransform.ensureOutputDir(builtDir)
         c = singlehtmlRenderer.SingleHTMLRenderer(usfmDir, builtDir + '/' + buildName + '.html')
         c.render()

@@ -1,10 +1,17 @@
+"""
+This version of parseUsfm.py (in support/) appears to be used by abstractRenderer.py
+        and also mediawikiPrinter.py and readerise.py and singlehtmlRenderer.py
+    i.e., used by the USFM converters.
+"""
 import sys
-
-from pyparsing import Word, OneOrMore, nums, Literal, White, Group, Suppress, NoMatch, Optional, \
-    CharsNotIn, MatchFirst
 import logging
 
+from pyparsing import Word, OneOrMore, nums, Literal, White, Group, \
+        Suppress, NoMatch, Optional, CharsNotIn, MatchFirst
+
+
 __logger = logging.getLogger('usfm_tools')
+
 
 def usfmToken(key):
     return Group(Suppress(backslash) + Literal(key) + Suppress(White()))

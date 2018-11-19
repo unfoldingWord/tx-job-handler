@@ -1,4 +1,4 @@
-# import logging
+import logging
 
 from tx_usfm_tools.support.books import loadBooks, silNames
 from tx_usfm_tools.support.parseUsfm import parseString
@@ -36,7 +36,7 @@ class AbstractRenderer:
                     tokens = parseString(self.booksUsfm[bookName])
                     for t in tokens: t.renderOn(self)
         if self.unknowns:
-            print(f"Skipped unknown tokens: {', '.join(set(self.unknowns))}")
+            logging.error(f"Skipped unknown USFM tokens: {', '.join(set(self.unknowns))}")
 
     def renderID(self, token):      pass
     def renderIDE(self, token):     pass
@@ -139,4 +139,6 @@ class AbstractRenderer:
     def renderBDITE(self, token):   pass
 
     # Add unknown tokens to list
-    def renderUnknown(self, token):  self.unknowns.append(token.value)
+    def renderUnknown(self, token):
+        # logging.debug(f"renderUnkown({token.value})")
+        self.unknowns.append(token.value)

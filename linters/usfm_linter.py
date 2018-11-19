@@ -27,7 +27,7 @@ class UsfmLinter(Linter):
             self.log.warning(f"Invalid language code: {lang_code}")
 
         for root, dirs, files in os.walk(self.source_dir):
-            for filename in files:
+            for filename in sorted(files):
                 if os.path.splitext(filename)[1].lower() != '.usfm':  # only usfm files
                     continue
 
@@ -70,10 +70,10 @@ class UsfmLinter(Linter):
     def parse_usfm_text(self, sub_path, file_name, book_text, book_full_name, book_code):
         try:
             lang_code = self.rc.resource.language.identifier
-            errors, found_book_code = verifyUSFM.verify_contents_quiet(book_text, book_full_name, book_code, lang_code)
+            errors, book_code = verifyUSFM.verify_contents_quiet(book_text, book_full_name, book_code, lang_code)
 
-            if found_book_code:
-                book_code = found_book_code
+            # if found_book_code:
+            #     book_code = found_book_code
 
             if book_code:
                 if book_code in self.found_books:
