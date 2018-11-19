@@ -1,4 +1,5 @@
 import os
+# import traceback
 from linters.linter import Linter
 from door43_tools.page_metrics import PageMetrics
 from tx_usfm_tools import verifyUSFM
@@ -55,7 +56,7 @@ class UsfmLinter(Linter):
             self.parse_usfm_text(sub_path, file_name, book_text, book_full_name, book_code)
 
         except Exception as e:
-            self.log.warning(f"Failed to open book '{file_name}', exception: {e}")
+            self.log.warning(f"Failed to open USFM book '{file_name}', exception: {e}")
 
     @staticmethod
     def get_book_ids(file_name):
@@ -84,6 +85,6 @@ class UsfmLinter(Linter):
                 for error in errors:
                     self.log.warning(error)
 
-        except Exception as e:
-            # for debugging
+        except Exception as e: # for debugging
             self.log.warning(f"Failed to verify book '{file_name}', exception: {e}")
+            # self.log.warning(f"Failed to verify USFM book '{file_name}', exception: {e}: {traceback.format_exc()}")

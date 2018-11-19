@@ -370,7 +370,7 @@ class TestUsfmLinter(LinterTestCase):
 
     def test_PhpEmptyC1(self):
         out_dir = self.copy_resource(self.php_repo_path)
-        self.replace_chapter(out_dir, self.php_file_name, start_ch=1, end_ch=2, replace='\\c 01\n')  # replace c1
+        self.replace_chapter(out_dir, self.php_file_name, start_ch=1, end_ch=2, replace='\\c 1\n')  # replace c1
         expected_warnings = True
         linter = self.run_linter(out_dir)
         self.assertEqual(linter.log.warnings[0], 'PHP 1 - Should have 30 verses')
@@ -541,7 +541,7 @@ class TestUsfmLinter(LinterTestCase):
     def replace_tag(self, out_dir, file_name, tag, replace):
         book_path = os.path.join(out_dir, file_name)
         book_text = read_file(book_path)
-        start_marker = '\\{0}'.format(tag)
+        start_marker = f'\\{tag}'
         end_marker = '\\'
         c_start_pos = book_text.find(start_marker)
         c_end_pos = book_text.find(end_marker, c_start_pos + 1)
@@ -553,8 +553,8 @@ class TestUsfmLinter(LinterTestCase):
     def replace_chapter(self, out_dir, file_name, start_ch, end_ch, replace):
         book_path = os.path.join(out_dir, file_name)
         book_text = read_file(book_path)
-        start_chapter_marker = '\\c {0:02d}'.format(start_ch)
-        end_chapter_marker = '\\c {0:02d}'.format(end_ch)
+        start_chapter_marker = f'\\c {start_ch}'
+        end_chapter_marker = f'\\c {end_ch}'
         c_start_pos = book_text.find(start_chapter_marker)
         c_end_pos = book_text.find(end_chapter_marker)
         previous_section = book_text[:c_start_pos]
@@ -565,12 +565,12 @@ class TestUsfmLinter(LinterTestCase):
     def replace_verse(self, out_dir, file_name, chapter, start_vs, end_vs, replace):
         book_path = os.path.join(out_dir, file_name)
         book_text = read_file(book_path)
-        chapter_marker = '\\c {0:02d}'.format(chapter)
+        chapter_marker = f'\\c {chapter}'
         c_pos = book_text.find(chapter_marker)
         previous_section = book_text[:c_pos]
         next_section = book_text[c_pos:]
-        start_pos = next_section.find('\\v {0} '.format(start_vs))
-        end_pos = next_section.find('\\v {0} '.format(end_vs))
+        start_pos = next_section.find(f'\\v {start_vs} ')
+        end_pos = next_section.find(f'\\v {end_vs} ')
         end_text = ''
         if end_pos >= 0:
             end_text = next_section[end_pos:]
@@ -581,11 +581,11 @@ class TestUsfmLinter(LinterTestCase):
     def replace_verse_to_end(self, out_dir, file_name, chapter, start_vs, replace):
         book_path = os.path.join(out_dir, file_name)
         book_text = read_file(book_path)
-        chapter_marker = '\\c {0:02d}'.format(chapter)
+        chapter_marker = f'\\c {chapter}'
         c_pos = book_text.find(chapter_marker)
         previous_section = book_text[:c_pos]
         next_section = book_text[c_pos:]
-        start_pos = next_section.find('\\v {0} '.format(start_vs))
+        start_pos = next_section.find(f'\\v {start_vs} ')
         start_text = next_section[:start_pos]
         new_text = previous_section + start_text + replace
         write_file(book_path, new_text)
@@ -609,6 +609,7 @@ class TestUsfmLinter(LinterTestCase):
                 GlobalSettings.logger.debug("\nReported Warnings:")
                 for warning in warnings:
                     GlobalSettings.logger.debug(warning)
+        # print("usfm warnings", warnings)
         self.assertEqual(len(warnings), expected_warnings)
 
     def verify_results(self, expected_warnings, linter):
