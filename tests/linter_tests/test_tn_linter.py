@@ -180,7 +180,7 @@ class TestTnTsvLinter(LinterTestCase):
 
     def test_lint(self):
         # given
-        expected_warnings = 527
+        expected_warnings = 218 # 527 for entire Bible 66 books
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.tsv.zip')
         linter = TnTsvLinter(source_file=zip_file, commit_data=self.commit_data, single_file='en_tn_01-GEN.tsv')
         linter.download_archive = self.mock_download_archive
@@ -192,7 +192,7 @@ class TestTnTsvLinter(LinterTestCase):
         self.verify_results_warnings_count(expected_warnings, linter)
 
     def test_lint_broken_links(self):
-        expected_warnings = 527 #64 + 1  # 64 missing books + 1 markdown warning
+        expected_warnings = 218 #64 + 1  # 64 missing books + 1 markdown warning
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.tsv.zip')
         out_dir = self.unzip_resource(zip_file)
 

@@ -87,15 +87,15 @@ class Converter(metaclass=ABCMeta):
                 add_contents_to_zip(self.output_zip_file, self.output_dir)
                 remove_tree(self.output_dir)
                 # upload the output archive either to cdn_bucket or to a file (no cdn_bucket)
-                GlobalSettings.logger.debug(f"Converter uploading output archive to {self.cdn_file}")
+                GlobalSettings.logger.debug(f"Converter uploading output archive to {self.cdn_file} …")
                 self.upload_archive()
                 remove(self.output_zip_file)
-                GlobalSettings.logger.debug("Uploaded")
+                GlobalSettings.logger.debug("Uploaded.")
                 success = True
             else:
                 self.log.error(f"Resource {self.resource} currently not supported.")
         except Exception as e:
-            self.log.error(f'Conversion process ended abnormally: {e}')
+            self.log.error(f"Conversion process ended abnormally: {e}")
             GlobalSettings.logger.error(f"{e}: {traceback.format_exc()}")
 
         results = {
@@ -141,7 +141,7 @@ class Converter(metaclass=ABCMeta):
             response = requests.post(url, json=payload, headers=headers)
             self.callback_status = response.status_code
             if (self.callback_status >= 200) and (self.callback_status < 299):
-                GlobalSettings.logger.debug("finished.")
+                GlobalSettings.logger.debug("Callback finished.")
             else:
                 GlobalSettings.logger.error(f"Error calling callback code {self.callback_status}: {response.reason}")
         else:

@@ -365,7 +365,7 @@ def bookName(usfm):
 def loadBooks(path):
     loaded_books = {}
     dirList = os.listdir(path)
-    __logger.info(f"Loading all USFM book files from {path} …")
+    __logger.debug(f"Loading all USFM book files from {path} …")
     for fname in dirList:
 
         full_file_name = os.path.join(path, fname)
@@ -386,8 +386,8 @@ def loadBooks(path):
             else:
                 __logger.info('Ignored ' + fname)
         except:
-            __logger.warning("loadBooks couldn't open " + fname)
-    __logger.info(f"Finished loading {len(loaded_books)} USFM book(s).")
+            __logger.warning(f"loadBooks couldn't open '{fname}'")
+    # __logger.debug(f"Finished loading {len(loaded_books)} USFM book(s).")
     return loaded_books
 
 

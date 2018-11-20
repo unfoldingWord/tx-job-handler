@@ -12,7 +12,7 @@ class ConvertLogger:
     def log(self, log_type, msg):
         if log_type in self.logs:
             self.logs[log_type].append(msg)
-            GlobalSettings.logger.debug(f"CONVERTER {log_type.upper()}: {msg}")
+            GlobalSettings.logger.info(f"CONVERTER {log_type.upper()}: {msg}")
 
     def warning(self, msg):
         self.log('warning', msg)

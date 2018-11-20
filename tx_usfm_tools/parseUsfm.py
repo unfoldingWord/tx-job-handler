@@ -1,6 +1,11 @@
+"""
+This version of parseUsfm.py appears to be used by verifyUSFM.py
+    i.e., used by the USFM linter.
+"""
 import sys
-from pyparsing import Word, OneOrMore, nums, Literal, White, Group, Suppress, NoMatch, Optional, \
-    CharsNotIn, MatchFirst
+
+from pyparsing import Word, OneOrMore, nums, Literal, White, Group, \
+        Suppress, NoMatch, Optional, CharsNotIn, MatchFirst
 
 
 def usfmToken(key):

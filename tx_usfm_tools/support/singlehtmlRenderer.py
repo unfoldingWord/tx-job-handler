@@ -20,6 +20,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.cb = ''    # Current Book
         self.cc = '001'    # Current Chapter
         self.cv = '001'    # Current Verse
+        self.inParagraph = False
         self.indentFlag = False
         self.bookName = ''
         self.chapterLabel = 'Chapter'
@@ -31,19 +32,16 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.footnote_num = 1
         self.footnote_text = ''
 
+
     def render(self):
         # logging.debug("SingleHTMLRenderer.render() …")
         self.loadUSFM(self.inputDir) # Result is in self.booksUsfm
         #print(f"About to render USFM ({len(self.booksUsfm)} books): {str(self.booksUsfm)[:300]} …")
-        self.f = open(self.outputFilename, 'wt', encoding='utf-8')
-        self.run()
-        self.writeFootnotes()
-        h = """
-    </body>
-</html>
-"""
-        self.f.write(h)
-        self.f.close()
+        with open(self.outputFilename, 'wt', encoding='utf-8') as self.f:
+            self.run()
+            self.writeFootnotes()
+            self.f.write('\n    </body>\n</html>\n')
+
 
     def writeHeader(self):
         h = """
@@ -100,48 +98,51 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.f.write(h)
 
     def startLI(self, level=1):
+        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} startLI({level})…")
         if self.listItemLevel:
             self.stopLI()
-        ret = ''
-        self.listItemLevel = 0
+        assert self.listItemLevel == 0
+        # self.listItemLevel = 0 # Should be superfluous I think
         while self.listItemLevel < level:
-            ret += '<ul>'
+            self.f.write('<ul>')
             self.listItemLevel += 1
-        return ret
 
     def stopLI(self):
-        ret = ''
+        # if 'NUM' in self.bookName and '00' in self.cc and self.listItemLevel: logging.debug(f"@{self.cc}:{self.cv} stopLI() from level {self.listItemLevel}…")
         while self.listItemLevel > 0:
-            ret += '</ul>'
+            self.f.write('</ul>')
             self.listItemLevel -= 1
-        return ret
+        assert self.listItemLevel == 0
 
     def escape(self, s):
         return s.replace('~', '&nbsp;')
 
     def write(self, unicodeString):
-        self.f.write(unicodeString.replace('~', ' '))
+        self.f.write(unicodeString.replace('~', '&nbsp;'))
 
     def writeIndent(self, level):
-        if self.indentFlag:
-            self.write(self.stopIndent())  # always close the last indent before starting a new one
-        if level > 0:
-            self.indentFlag = True
-            self.write('\n<p class="indent-' + str(level) + '">\n')
-            self.write('&nbsp;' * (level * 4))  # spaces for PDF since we can't style margin with css
+        assert level > 0
+        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} writeIndent({level})…")
+        # if self.indentFlag:
+        self.closeParagraph()  # always close the last indent before starting a new one
+        self.indentFlag = True
+        self.write('\n<p class="indent-' + str(level) + '">\n')
+        self.write('&nbsp;' * (level * 4))  # spaces for PDF since we can't style margin with css
 
-    def stopIndent(self):
+    def closeParagraph(self):
+        # if 'NUM' in self.bookName and '00' in self.cc and self.indentFlag: logging.debug(f"@{self.cc}:{self.cv} closeParagraph() from {self.indentFlag}…")
+        if self.inParagraph:
+            self.inParagraph = False
+            self.f.write('</p>\n')
         if self.indentFlag:
             self.indentFlag = False
-            return '\n</p>\n'
-        else:
-            return ''
+            self.f.write('</p>\n')
 
     def renderID(self, token):
         self.writeFootnotes()
         self.cb = bookKeyForIdValue(token.value)
         self.chapterLabel = 'Chapter'
-        self.write(self.stopIndent())
+        self.closeParagraph()
         #self.write('\n\n<span id="' + self.cb + '"></span>\n')
 
     def renderH(self, token):
@@ -169,104 +170,144 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('\n\n<h4>' + token.value + '</h4>')
 
     def renderP(self, token):
-        self.write(self.stopIndent())
-        self.write(self.stopLI())
+        assert not token.value
+        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderP({token.value})…")
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<p>')
+        self.inParagraph = True
 
     def renderPI(self, token):
-        self.write(self.stopIndent())
-        self.write(self.stopLI())
+        assert not token.value
+        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderPI({token.value})…")
+        self.stopLI()
+        self.closeParagraph()
         self.writeIndent(2)
 
     def renderM(self, token):
-        self.write(self.stopIndent())
-        self.write(self.stopLI())
+        assert not token.value
+        # TODO: This should NOT be identical to renderP
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<p>')
 
     def renderS1(self, token):
-        self.write(self.stopIndent())
-        self.write(self.stopLI())
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
 
     def renderS2(self, token):
-        self.write(self.stopIndent())
-        self.write(self.stopLI())
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<h5 style="text-align:center">' + token.getValue() + '</h5>')
 
     def renderS3(self, token):
-        self.write(self.stopIndent())
-        self.write(self.stopLI())
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<h5">' + token.getValue() + '</h5>')
 
+    def renderS5(self, token):
+        if token.value:
+            logger = logging.warning if token.value==' ' else logging.error
+            logger(f"pseudo-USFM 's5' marker will lose following text: '{token.value}'")
+        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderS5({token.value})…")
+        self.write('\n<span class="chunk-break"></span>\n')
+
     def renderC(self, token):
+        self.closeFootnote()
         if not self.bookName: # i.e., there was no \h or \toc2 field in the USFM
             # NOTE: The next line is not tested on New Testament -- may be out by one book
             self.bookName = bookNames[int(self.cb)-1]
             logging.info(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
             self.writeHeader()
-        self.write(self.stopIndent())
-        self.closeFootnote()
+        self.stopLI()
+        self.closeParagraph()
         self.writeFootnotes()
         self.footnote_num = 1
         self.cc = token.value.zfill(3)
-        self.write(self.stopLI())
         self.write('\n\n<h2 id="{0}-ch-{1}" class="c-num">{2} {3}</h2>'
                    .format(self.cb, self.cc, self.chapterLabel, token.value))
 
     def renderV(self, token):
+        self.stopLI()
         self.closeFootnote()
         self.cv = token.value.zfill(3)
-        self.write(self.stopLI())
         self.write(' <span id="{0}-ch-{1}-v-{2}" class="v-num"><sup><b>{3}</b></sup></span>'.
                    format(self.cb, self.cc, self.cv, token.value))
 
     def renderWJS(self, token):
+        assert not token.value
         self.write('<span class="woc">')
 
     def renderWJE(self, token):
+        assert not token.value
         self.write('</span>')
 
     def renderTEXT(self, token):
+        """
+        This is where unattached chunks of USFM text (e.g., contents of paragraphs)
+            are written out.
+        """
         self.write(' ' + self.escape(token.value) + ' ')
 
-    def renderQ(self, token):
-        self.writeIndent(1)
+
+    def renderQ(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
+        assert not token.value
+        self.renderQ1(token)
 
     def renderQ1(self, token):
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
         self.writeIndent(1)
 
     def renderQ2(self, token):
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
         self.writeIndent(2)
 
     def renderQ3(self, token):
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
         self.writeIndent(3)
 
     def renderNB(self, token):
-        self.write(self.stopIndent())
+        assert not token.value
+        self.closeParagraph()
 
     def renderB(self, token):
-        self.write(self.stopLI())
+        assert not token.value
+        self.stopLI()
         self.write('\n\n<p class="indent-0">&nbsp;</p>')
 
     def renderIS(self, token):
+        assert not token.value
         self.write('<i>')
 
     def renderIE(self, token):
+        assert not token.value
         self.write('</i>')
 
     def renderNDS(self, token):
+        assert not token.value
         self.write('<span class="tetragrammaton">')
 
     def renderNDE(self, token):
+        assert not token.value
         self.write('</span>')
 
     def renderPBR(self, token):
+        assert not token.value
         self.write('<br></br>')
 
     def renderSCS(self, token):
+        assert not token.value
         self.write('<b>')
 
     def renderSCE(self, token):
+        assert not token.value
         self.write('</b>')
 
     def renderFS(self, token):
@@ -285,25 +326,31 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.footnote_text += token.value
 
     def renderFE(self, token):
+        assert not token.value
         self.closeFootnote()
 
     def renderFP(self, token):
+        assert not token.value
         self.write('<br />')
 
     def renderQSS(self, token):
+        assert not token.value
         self.write('<i class="quote selah" style="float:right;">')
 
     def renderQSE(self, token):
+        assert not token.value
         self.write('</i>')
 
     def renderEMS(self, token):
+        assert not token.value
         self.write('<i class="emphasis">')
 
     def renderEME(self, token):
+        assert not token.value
         self.write('</i>')
 
     def renderE(self, token):
-        self.write(self.stopIndent())
+        self.closeParagraph()
         self.write('\n\n<p>' + token.value + '</p>')
 
     def renderPB(self, token):
@@ -312,23 +359,25 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderPERIPH(self, token):
         pass
 
-    def renderLI(self, token):
+    def renderLI(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
+        assert not token.value
+        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderLI({token.value})…")
         self.renderLI1(token)
 
     def renderLI1(self, token):
-        self.f.write(self.startLI(1))
+        assert not token.value
+        self.startLI(1)
 
     def renderLI2(self, token):
-        self.f.write(self.startLI(2))
+        assert not token.value
+        self.startLI(2)
 
     def renderLI3(self, token):
-        self.f.write(self.startLI(3))
-
-    def renderS5(self, token):
-        self.write('\n<span class="chunk-break"></span>\n')
+        assert not token.value
+        self.startLI(3)
 
     def renderD(self, token): # Added by RJH
-        # logging.debug(f"singlehtmlRenderer.renderD( '{token}' at {self.cb} {self.cc}:{self.cv}")
+        # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.cb} {self.cc}:{self.cv}")
         self.write('<span class="d">' + token.value + '</span>')
 
     def render_imt1(self, token):
@@ -387,8 +436,10 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('<p class="quote acrostic heading" style="text-align:center;text-style:italic;">'+token.value+'</p>')
 
     def renderQAC(self, token):
+        assert not token.value
         self.write('<i class="quote acrostic character">')
 
     def renderQACE(self,token):
+        assert not token.value
         self.write('</i>')
 

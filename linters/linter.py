@@ -96,7 +96,7 @@ class Linter(metaclass=ABCMeta):
                 #GlobalSettings.logger.debug(f"Got RC = {self.rc}")
                 GlobalSettings.logger.debug(f"Linting '{self.source_dir}' files…")
                 success = self.lint()
-                GlobalSettings.logger.debug("…finished.")
+                GlobalSettings.logger.debug("Linting finished.")
         except Exception as e:
             message = f"Linting process ended abnormally: {e}"
             GlobalSettings.logger.error(message)
@@ -150,7 +150,7 @@ class Linter(metaclass=ABCMeta):
             response = requests.post(url, json=payload, headers=headers)
             self.callback_status = response.status_code
             if (self.callback_status >= 200) and (self.callback_status < 299):
-                GlobalSettings.logger.debug('finished.')
+                GlobalSettings.logger.debug('Callback finished.')
             else:
                 GlobalSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
         else:

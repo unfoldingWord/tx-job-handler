@@ -27,7 +27,7 @@ class FileUtilsTests(unittest.TestCase):
         shutil.rmtree(self.tmp_dir2, ignore_errors=True)
 
     def test_unzip(self):
-        self.tmp_dir = tempfile.mkdtemp()
+        self.tmp_dir = tempfile.mkdtemp(prefix='test_file_utils_')
         zip_file = os.path.join(self.tmp_dir, 'foo.zip')
 
         _, self.tmp_file = tempfile.mkstemp()
@@ -42,10 +42,10 @@ class FileUtilsTests(unittest.TestCase):
             self.assertEqual(outf.read(), "hello world")
 
     def test_add_contents_to_zip(self):
-        self.tmp_dir1 = tempfile.mkdtemp()
+        self.tmp_dir1 = tempfile.mkdtemp(prefix='test_file_utils_')
         zip_file = os.path.join(self.tmp_dir1, 'foo.zip')
 
-        self.tmp_dir2 = tempfile.mkdtemp()
+        self.tmp_dir2 = tempfile.mkdtemp(prefix='test_file_utils_')
         tmp_file = os.path.join(self.tmp_dir2, 'foo.txt')
         with open(tmp_file, "w") as tmpf:
             tmpf.write("hello world")
@@ -59,7 +59,7 @@ class FileUtilsTests(unittest.TestCase):
                 self.assertEqual(f.read().decode("ascii"), "hello world")
 
     def test_add_file_to_zip(self):
-        self.tmp_dir1 = tempfile.mkdtemp()
+        self.tmp_dir1 = tempfile.mkdtemp(prefix='test_file_utils_')
         zip_file = os.path.join(self.tmp_dir1, 'foo.zip')
 
         _, self.tmp_file = tempfile.mkstemp()
@@ -75,7 +75,7 @@ class FileUtilsTests(unittest.TestCase):
                 self.assertEqual(f.read().decode("ascii"), "hello world")
 
     def test_make_dir(self):
-        self.tmp_dir = tempfile.mkdtemp()
+        self.tmp_dir = tempfile.mkdtemp(prefix='test_file_utils_')
         sub_dir = os.path.join(self.tmp_dir, 'subdirectory')
         file_utils.make_dir(sub_dir)
         self.assertTrue(os.path.isdir(sub_dir))
@@ -117,19 +117,19 @@ class FileUtilsTests(unittest.TestCase):
             self.assertEqual(json.load(f), d)
 
     def test_get_mime_type(self):
-        self.tmp_dir = tempfile.mkdtemp()
+        self.tmp_dir = tempfile.mkdtemp(prefix='test_file_utils_')
         tmp_file = os.path.join(self.tmp_dir, 'hello.txt')
         with open(tmp_file, "w") as f:
             f.write("hello world")
         self.assertEqual(file_utils.get_mime_type(tmp_file), "text/plain")
 
     def test_get_files(self):
-        self.tmp_dir = tempfile.mkdtemp()
+        self.tmp_dir = tempfile.mkdtemp(prefix='test_file_utils_')
         _, tmp_file1 = tempfile.mkstemp(dir=self.tmp_dir)
         _, tmp_file2 = tempfile.mkstemp(dir=self.tmp_dir)
         tmp_subdir = os.path.join(self.tmp_dir, 'subdir')
         os.mkdir(tmp_subdir)
-        _, tmp_file3 = tempfile.mkstemp(dir=tmp_subdir, suffix=".md")
+        _, tmp_file3 = tempfile.mkstemp(dir=tmp_subdir, suffix='.md')
 
         files = file_utils.get_files(self.tmp_dir, relative_paths=False, include_directories=True)
         self.assertEqual(len(files), 4)
@@ -153,7 +153,7 @@ class FileUtilsTests(unittest.TestCase):
                             for d in files))
 
     def test_get_subdirs(self):
-        self.tmp_dir = tempfile.mkdtemp()
+        self.tmp_dir = tempfile.mkdtemp(prefix='test_file_utils_')
         _, tmp_file1 = tempfile.mkstemp(dir=self.tmp_dir)
         _, tmp_file2 = tempfile.mkstemp(dir=self.tmp_dir)
         tmp_subdir = os.path.join(self.tmp_dir, 'subdir')
@@ -168,8 +168,8 @@ class FileUtilsTests(unittest.TestCase):
 
         subdirs = file_utils.get_subdirs(self.tmp_dir, relative_paths=True)
         self.assertEqual(len(subdirs), 2)
-        self.assertTrue(any(self.paths_equal("subdir", d) for d in subdirs))
-        self.assertTrue(any(self.paths_equal("subdir/subdir/", d) for d in subdirs))
+        self.assertTrue(any(self.paths_equal('subdir', d) for d in subdirs))
+        self.assertTrue(any(self.paths_equal('subdir/subdir/', d) for d in subdirs))
 
     @staticmethod
     def paths_equal(path1, path2):
