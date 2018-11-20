@@ -54,11 +54,11 @@ deploy:
     script: bash ./deploy.sh develop
     on:
       branch: develop
-      condition: $TRAVIS_PYTHON_VERSION == '3.6'
+      condition: $TRAVIS_PYTHON_VERSION == '3.7-dev'
   - provider: script
     skip_cleanup: true
     script: bash ./deploy.sh master
     on:
       branch: master
-      condition: $TRAVIS_PYTHON_VERSION == '3.6'
+      condition: $TRAVIS_PYTHON_VERSION == '3.7-dev'
 
