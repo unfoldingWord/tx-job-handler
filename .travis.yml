@@ -24,8 +24,9 @@ services:
   #- scripts/travis_install_apex.sh
 
 install:
+  - pip3 install --upgrade pip
   - pip3 install google-compute-engine
-  # Not totally sure why the above is required on Travis -- see https://github.com/GoogleCloudPlatform/compute-image-packages/issues/262
+  # Not totally sure why the above line is required on Travis -- see https://github.com/GoogleCloudPlatform/compute-image-packages/issues/262
   - pip3 install --requirement test_requirements.txt
   - pip3 install coveralls
 

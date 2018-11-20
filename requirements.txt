@@ -1,4 +1,4 @@
-# redis is specified here before rq to prevent rq downloading a later, faulty version (3.0.1)
+# redis is specified here before rq to prevent rq downloading a later, incompatible version (3.0.1)
 redis==2.10.6
 # rq and statsd/Graphite and requests are used by the job handler
 rq==0.12.0
