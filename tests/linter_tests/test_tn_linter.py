@@ -131,7 +131,7 @@ class TestTnLinter(LinterTestCase):
         self.assertEqual(len(linter.log.warnings), expected_warnings)
 
     def create_new_zip(self, out_dir):
-        new_zip = tempfile.mktemp(prefix="linter", suffix='.zip', dir=self.temp_dir)
+        new_zip = tempfile.NamedTemporaryFile(prefix='linter', suffix='.zip', dir=self.temp_dir, delete=False).name
         add_contents_to_zip(new_zip, out_dir)
         return new_zip
 
@@ -262,7 +262,7 @@ class TestTnTsvLinter(LinterTestCase):
         self.assertEqual(len(linter.log.warnings), expected_warnings)
 
     def create_new_zip(self, out_dir):
-        new_zip = tempfile.mktemp(prefix="linter", suffix='.zip', dir=self.temp_dir)
+        new_zip = tempfile.NamedTemporaryFile(prefix='linter', suffix='.zip', dir=self.temp_dir, delete=False).name
         add_contents_to_zip(new_zip, out_dir)
         return new_zip
 

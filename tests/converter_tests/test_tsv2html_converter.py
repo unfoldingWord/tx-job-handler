@@ -62,7 +62,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
         # test with the English tN
         zip_file = os.path.join(self.resources_dir, 'en_tn.tsv.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp(prefix='en_tn_tsv_', suffix='.zip')
+        out_zip_file = tempfile.NamedTemporaryFile(prefix='en_tn_tsv_', suffix='.zip', delete=False).name
         with closing(Tsv2HtmlConverter('', 'tn', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
             tx.run()
@@ -154,7 +154,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
     # def doTransformTn(self, file_name, part=None):
     #     zip_file_path = os.path.join(self.resources_dir, file_name)
     #     zip_file_path = self.make_duplicate_zip_that_can_be_deleted(zip_file_path)
-    #     self.out_zip_file = tempfile.mktemp(prefix="en_tq", suffix='.zip')
+    #     self.out_zip_file = tempfile.NamedTemporaryFile(prefix='en_tq', suffix='.zip', delete=False).name
     #     self.return_val = None
     #     source = '' if not part else f'https://door43.org/dummy?convert_only={part}'
 
@@ -228,7 +228,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
     #     return content
 
     def make_duplicate_zip_that_can_be_deleted(self, zip_file):
-        in_zip_file = tempfile.mktemp(prefix='tX_JH_TSV_test_data_', suffix='.zip')
+        in_zip_file = tempfile.NamedTemporaryFile(prefix='tX_JH_TSV_test_data_', suffix='.zip', delete=False).name
         shutil.copy(zip_file, in_zip_file)
         zip_file = in_zip_file
         return zip_file

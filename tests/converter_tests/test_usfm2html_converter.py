@@ -57,7 +57,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'eight_bible_books.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp('.zip', dir=self.temp_dir)
+        out_zip_file = tempfile.NamedTemporaryFile(suffix='.zip', dir=self.temp_dir, delete=False).name
         with closing(Usfm2HtmlConverter('', 'udb', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
             results = tx.run()
@@ -77,7 +77,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'eight_bible_books.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp('.zip', dir=self.temp_dir)
+        out_zip_file = tempfile.NamedTemporaryFile(suffix='.zip', dir=self.temp_dir, delete=False).name
         source_url = 'http://test.com/preconvert/22f3d09f7a.zip?convert_only=60-JAS.usfm'
         with closing(Usfm2HtmlConverter(source_url, 'udb', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
@@ -103,7 +103,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'eight_bible_books.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp('.zip', dir=self.temp_dir)
+        out_zip_file = tempfile.NamedTemporaryFile(suffix='.zip', dir=self.temp_dir, delete=False).name
         source_url = 'http://test.com/preconvert/22f3d09f7a.zip?convert_only=60-JAS.usfm,66-JUD.usfm'
         with closing(Usfm2HtmlConverter(source_url, 'udb', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
@@ -131,7 +131,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, '51-PHP.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp('.zip', dir=self.temp_dir)
+        out_zip_file = tempfile.NamedTemporaryFile(suffix='.zip', dir=self.temp_dir, delete=False).name
         with closing(Usfm2HtmlConverter('', 'udb', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
             results = tx.run()
@@ -150,7 +150,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, '51-PHP.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp('.zip', dir=self.temp_dir)
+        out_zip_file = tempfile.NamedTemporaryFile(suffix='.zip', dir=self.temp_dir, delete=False).name
         with closing(Usfm2HtmlConverter(' ', 'udb', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
             results = tx.run()
@@ -168,7 +168,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
         """
         zip_file = os.path.join(self.resources_dir, 'kpb_mat_text_udb.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp('.zip', dir=self.temp_dir)
+        out_zip_file = tempfile.NamedTemporaryFile(suffix='.zip', dir=self.temp_dir, delete=False).name
         with closing(Usfm2HtmlConverter('', 'udb', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
             results = tx.run()
@@ -204,7 +204,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
             self.assertTrue(len(usfm) > 10, 'Bible usfm file contents missing: {0}'.format(file_to_verify))
 
     def make_duplicate_zip_that_can_be_deleted(self, zip_file):
-        in_zip_file = tempfile.mktemp(prefix='tX_JH_USFM_test_data_', suffix='.zip', dir=self.temp_dir)
+        in_zip_file = tempfile.NamedTemporaryFile(prefix='tX_JH_USFM_test_data_', suffix='.zip', dir=self.temp_dir, delete=False).name
         shutil.copy(zip_file, in_zip_file)
         zip_file = in_zip_file
         return zip_file

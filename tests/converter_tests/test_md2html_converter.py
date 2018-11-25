@@ -61,7 +61,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'en-obs.zip')
         zip_file = self.make_duplicate_zip_that_can_be_deleted(zip_file)
-        out_zip_file = tempfile.mktemp(prefix="en-obs", suffix=".zip")
+        out_zip_file = tempfile.NamedTemporaryFile(prefix='en-obs', suffix='.zip', delete=False).name
         with closing(Md2HtmlConverter('', 'obs', out_zip_file)) as tx:
             tx.input_zip_file = zip_file
             tx.run()
@@ -233,7 +233,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
     def doTransformObs(self, file_name):
         zip_file_path = os.path.join(self.resources_dir, file_name)
         zip_file_path = self.make_duplicate_zip_that_can_be_deleted(zip_file_path)
-        self.out_zip_file = tempfile.mktemp(prefix="en-obs-", suffix=".zip")
+        self.out_zip_file = tempfile.NamedTemporaryFile(prefix='en-obs-', suffix='.zip', delete=False).name
         self.return_val = None
         with closing(Md2HtmlConverter('', 'obs', self.out_zip_file)) as tx:
             tx.input_zip_file = zip_file_path
@@ -243,7 +243,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
     def doTransformTa(self, file_name):
         zip_file_path = os.path.join(self.resources_dir, file_name)
         zip_file_path = self.make_duplicate_zip_that_can_be_deleted(zip_file_path)
-        self.out_zip_file = tempfile.mktemp(prefix="en_ta", suffix=".zip")
+        self.out_zip_file = tempfile.NamedTemporaryFile(prefix='en_ta', suffix='.zip', delete=False).name
         self.return_val = None
         with closing(Md2HtmlConverter('', 'ta', self.out_zip_file)) as tx:
             tx.input_zip_file = zip_file_path
@@ -253,7 +253,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
     def doTransformTq(self, file_name):
         zip_file_path = os.path.join(self.resources_dir, file_name)
         zip_file_path = self.make_duplicate_zip_that_can_be_deleted(zip_file_path)
-        self.out_zip_file = tempfile.mktemp(prefix="en_tq", suffix=".zip")
+        self.out_zip_file = tempfile.NamedTemporaryFile(prefix='en_tq', suffix='.zip', delete=False).name
         self.return_val = None
         with closing(Md2HtmlConverter('', 'tq', self.out_zip_file)) as tx:
             tx.input_zip_file = zip_file_path
@@ -263,7 +263,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
     def doTransformTw(self, file_name):
         zip_file_path = os.path.join(self.resources_dir, file_name)
         zip_file_path = self.make_duplicate_zip_that_can_be_deleted(zip_file_path)
-        self.out_zip_file = tempfile.mktemp(prefix="en_tw", suffix=".zip")
+        self.out_zip_file = tempfile.NamedTemporaryFile(prefix='en_tw', suffix='.zip', delete=False).name
         self.return_val = None
         with closing(Md2HtmlConverter('', 'tw', self.out_zip_file)) as tx:
             tx.input_zip_file = zip_file_path
@@ -273,7 +273,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
     def doTransformTn(self, file_name, part=None):
         zip_file_path = os.path.join(self.resources_dir, file_name)
         zip_file_path = self.make_duplicate_zip_that_can_be_deleted(zip_file_path)
-        self.out_zip_file = tempfile.mktemp(prefix="en_tq", suffix=".zip")
+        self.out_zip_file = tempfile.NamedTemporaryFile(prefix='en_tq', suffix='.zip', delete=False).name
         self.return_val = None
         source = '' if not part else 'https://door43.org/dummy?convert_only={0}'.format(part)
 
@@ -347,7 +347,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         return content
 
     def make_duplicate_zip_that_can_be_deleted(self, zip_file):
-        in_zip_file = tempfile.mktemp(prefix='tX_JH_MD_test_data_', suffix='.zip')
+        in_zip_file = tempfile.NamedTemporaryFile(prefix='tX_JH_MD_test_data_', suffix='.zip', delete=False).name
         shutil.copy(zip_file, in_zip_file)
         zip_file = in_zip_file
         return zip_file

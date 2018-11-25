@@ -38,7 +38,7 @@ class Converter(metaclass=ABCMeta):
         self.files_dir = tempfile.mkdtemp(prefix='files_')
         self.input_zip_file = None  # If set, won't download the repo archive. Used for testing
         self.output_dir = tempfile.mkdtemp(prefix='output_')
-        self.output_zip_file = tempfile.mktemp(prefix="{0}_".format(resource), suffix='.zip')
+        self.output_zip_file = tempfile.NamedTemporaryFile(prefix="{0}_".format(resource), suffix='.zip', delete=False).name
         self.callback = convert_callback
         self.callback_status = 0
         self.callback_results = None
