@@ -34,11 +34,11 @@ class Converter(metaclass=ABCMeta):
         self.options = {} if not options else options
 
         self.log = ConvertLogger()
-        self.download_dir = tempfile.mkdtemp(prefix='download_')
-        self.files_dir = tempfile.mkdtemp(prefix='files_')
+        self.download_dir = tempfile.mkdtemp(prefix='tx_JH_download_')
+        self.files_dir = tempfile.mkdtemp(prefix='tX_JH_files_')
         self.input_zip_file = None  # If set, won't download the repo archive. Used for testing
-        self.output_dir = tempfile.mkdtemp(prefix='output_')
-        self.output_zip_file = tempfile.NamedTemporaryFile(prefix="{0}_".format(resource), suffix='.zip', delete=False).name
+        self.output_dir = tempfile.mkdtemp(prefix='tX_JH_output_')
+        self.output_zip_file = tempfile.NamedTemporaryFile(prefix='{0}_'.format(resource), suffix='.zip', delete=False).name
         self.callback = convert_callback
         self.callback_status = 0
         self.callback_results = None

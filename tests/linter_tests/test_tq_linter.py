@@ -15,7 +15,7 @@ class TestTqLinter(LinterTestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='temp_tq_')
+        self.temp_dir = tempfile.mkdtemp(prefix='tX_JH_test_tq_')
         self.commit_data = {
             'repository': {
                 'name': 'en_tq',
@@ -46,19 +46,19 @@ class TestTqLinter(LinterTestCase):
     @mock.patch('linters.markdown_linter.MarkdownLinter.invoke_markdown_linter')
     def test_lint_broken_links(self, mock_invoke_markdown_linter):
         # given
-        mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tw linting
+        mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tq linting
         expected_warnings = 66-2  # we only leave 2 books
         zip_file = os.path.join(self.resources_dir, 'tq_linter', 'en_tq.zip')
         out_dir = self.unzip_resource(zip_file)
 
-        # remove everything past genesis
+        # Remove everything past Exodus
         for book in BOOK_NUMBERS:
             book_path = os.path.join(out_dir, 'en_tq', book)
             if os.path.exists(book_path):
-                if BOOK_NUMBERS[book] > "02":
+                if BOOK_NUMBERS[book] > '02':
                     file_utils.remove_tree(book_path)
 
-        # put a verse in exo so that we can test that there is some content there
+        # Put a verse in Exo so that we can test that there is some content there
         file_path = os.path.join(out_dir, 'en_tq/exo/01/05.md')
         file_utils.write_file(file_path, 'dummy')
 
@@ -90,7 +90,7 @@ class TestTqLinter(LinterTestCase):
         write_file(file_path, new_text)
 
     def create_new_zip(self, out_dir):
-        new_zip = tempfile.NamedTemporaryFile(prefix='linter', suffix='.zip', dir=self.temp_dir, delete=False).name
+        new_zip = tempfile.NamedTemporaryFile(prefix='linter_test_', suffix='.zip', dir=self.temp_dir, delete=False).name
         add_contents_to_zip(new_zip, out_dir)
         return new_zip
 
