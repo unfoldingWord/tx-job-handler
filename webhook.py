@@ -249,7 +249,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     dirList = os.listdir(base_temp_dir_name)
     GlobalSettings.logger.debug(f"Discovering source folder from"
                                 f" '{base_temp_dir_name}' with {dirList} …")
-    if len(dirList)==1:
+    if len(dirList) == 1:
         tryFolder = os.path.join(base_temp_dir_name, dirList[0])
         if os.path.isdir(tryFolder):
             GlobalSettings.logger.debug(f"Switching source folder to {tryFolder}")
@@ -309,7 +309,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.info(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} …")
         # Copy the build log but convert times to strings
         callback_payload = build_log_dict
-        for key,value in callback_payload.items():
+        for key, value in callback_payload.items():
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
