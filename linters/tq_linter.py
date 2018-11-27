@@ -20,15 +20,20 @@ class TqLinter(MarkdownLinter):
         for book in BOOK_NUMBERS:
             found_files = False
             link = self.get_link_for_book(f'{BOOK_NUMBERS[book]}-{book.upper()}')
-            GlobalSettings.logger.debug(f"Link is '{link}'")
-            file_path = os.path.join(self.source_dir, link)
-            GlobalSettings.logger.debug(f"file_path is '{file_path}'")
+            # GlobalSettings.logger.debug(f"Link is '{link}'")
+            # TODO: Why did this folder change from what was in tX-Manager?
+            # file_path = os.path.join(self.source_dir, link)
+            # GlobalSettings.logger.debug(f"file_path is '{file_path}'")
+            file_path = self.source_dir
             for root, dirs, files in os.walk(file_path):
-                if root == file_path:
-                    continue  # skip book folder
+                # print(root, dirs, files)
+                # if root == file_path:
+                #     continue  # skip book folder
 
                 for this_file in files:
+                    # GlobalSettings.logger.debug(f"this_file is '{this_file}'")
                     parts = os.path.splitext(this_file)
+                    # GlobalSettings.logger.debug(f"parts is '{parts}'")
                     if (len(parts) > 1) and (parts[1] == '.md'):
                         found_files = True
                         break
@@ -37,7 +42,7 @@ class TqLinter(MarkdownLinter):
                     break
 
             if not found_files:
-                msg = f"missing tQ book: '{link}'"
+                msg = f"Missing tQ book: '{link}'"
                 self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
 
