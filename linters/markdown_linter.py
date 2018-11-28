@@ -27,7 +27,20 @@ class MarkdownLinter(Linter):
         """
         GlobalSettings.logger.debug("MarkdownLinter.lint()")
 
-        if 0: # new code using PyMarkdownLinter
+        md_data = self.get_strings() # Used for AWS Lambda call
+        # Determine approximate length of the payload data
+        payloadString = json.dumps(md_data) # (it doesn't include 'config' yet)
+        if not isinstance(payloadString,str): # then it must be Python3 bytes
+            payloadString = payloadString.decode()
+        estimated_payload_length = len(payloadString) + 335 # Allow for 'config' strings (included later)
+        GlobalSettings.logger.debug(f"Approx length of Markdown Linter payload = {estimated_payload_length:,} characters.")
+        payload_oversize_flag = estimated_payload_length > 6_291_456 # 6 MB -- AWS Lambda call will fail
+        if payload_oversize_flag:
+            GlobalSettings.logger.warning(f"Oversize Markdown Linter payload = {estimated_payload_length:,} characters.")
+
+        test_pyLinter = False # True: always use new Python linter; False: mostly use AWS Lambda call
+        if test_pyLinter or payload_oversize_flag:
+            # New code using unfinished PyMarkdownLinter
             GlobalSettings.logger.info("Invoking (unfinished) PyMarkdownLinter…")
             lint_config = LintConfig()
             for rule_id in ('MD009', 'MD010', 'MD013'): # Ignore
@@ -43,7 +56,6 @@ class MarkdownLinter(Linter):
 
         else: # old (tx-Manager) code using AWS Lambda node.js call
             GlobalSettings.logger.info("Invoking Node.js linter via AWS Lambda call…")
-            md_data = self.get_strings()
             # print(len(md_data), md_data)
             # GlobalSettings.logger.debug(f"Size of markdown data = {len(md_data)}") # Useless -- always shows 1
             lint_data = self.invoke_markdown_linter(self.get_invoke_payload(md_data))

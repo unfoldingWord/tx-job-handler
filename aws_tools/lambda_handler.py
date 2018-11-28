@@ -28,7 +28,7 @@ class LambdaHandler:
         #print("PAYLOAD3", repr(payloadString))
         payload_length = len(payloadString)
         logging.info(f"LENGTH OF PAYLOAD TO BE SENT TO AWS LAMBDA: {payload_length:,} characters.")
-        if payload_length <= 6291456: # 6 MB
+        if payload_length <= 6_291_456: # 6 MB
             # This is the max allowed, see https://docs.aws.amazon.com/lambda/latest/dg/limits.html
             return self.client.invoke(
                 FunctionName=function_name,
