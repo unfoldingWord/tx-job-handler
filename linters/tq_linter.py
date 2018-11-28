@@ -19,20 +19,21 @@ class TqLinter(MarkdownLinter):
         # GlobalSettings.logger.setLevel(logging.DEBUG)
         GlobalSettings.logger.debug(f"TqLinter.lint() with '{self.source_dir}' containing {os.listdir(self.source_dir)}")
 
-        for book in BOOK_NUMBERS:
+        for book_abbreviation in BOOK_NUMBERS: # 3-characters, lowercase
             found_book_file = False
-            link = self.get_link_for_book(f'{BOOK_NUMBERS[book]}-{book.upper()}')
-            # GlobalSettings.logger.debug(f"Link is '{link}' for book '{book}''")
+            link = self.get_link_for_book(f'{BOOK_NUMBERS[book_abbreviation]}-{book_abbreviation.upper()}')
+            # GlobalSettings.logger.debug(f"Link is '{link}' for book '{book_abbreviation}''")
 
             # Look in the given source_dir first
+            search_book_string = f'-{book_abbreviation.upper()}'
             for root, dirs, files in os.walk(self.source_dir):
                 for this_filename in files:
                     # GlobalSettings.logger.debug(f"this_filename1 is '{this_filename}'")
                     parts = os.path.splitext(this_filename)
                     # GlobalSettings.logger.debug(f"parts1 is '{parts}'")
                     if (len(parts) > 1) and parts[1] == '.md' \
-                    and book in parts[0]:
-                        # GlobalSettings.logger.debug(f"Found1 '{book}' with '{this_filename}'")
+                    and search_book_string in parts[0]:
+                        # GlobalSettings.logger.debug(f"Found1 '{book_abbreviation}' with '{this_filename}'")
                         found_book_file = True
                         break
                 if found_book_file: break
@@ -50,7 +51,7 @@ class TqLinter(MarkdownLinter):
                     parts = os.path.splitext(this_filename)
                     # GlobalSettings.logger.debug(f"parts2 is '{parts}'")
                     if (len(parts) > 1) and (parts[1] == '.md'):
-                        # GlobalSettings.logger.debug(f"Found2 '{book}' with '{this_filename}'")
+                        # GlobalSettings.logger.debug(f"Found2 '{book_abbreviation}' with '{this_filename}'")
                         found_book_file = True
                         break
                 if found_book_file: break
