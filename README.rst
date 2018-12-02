@@ -28,7 +28,7 @@ This program accepts jobs from a rq/redis queue (placed there by the
 Setup
 -----
 
-Requires Python 3.6 (Python2 compatibility has been removed.)
+Requires Python 3.6 or later (Python2 compatibility has been removed.)
 
 Satisfy basic dependencies:
 

@@ -96,7 +96,7 @@ class Linter(metaclass=ABCMeta):
                 #GlobalSettings.logger.debug(f"Got RC = {self.rc}")
                 GlobalSettings.logger.debug(f"Linting '{self.source_dir}' files…")
                 success = self.lint()
-                GlobalSettings.logger.debug("Linting finished.")
+                # GlobalSettings.logger.debug("Linting finished.")
         except Exception as e:
             message = f"Linting process ended abnormally: {e}"
             GlobalSettings.logger.error(message)
