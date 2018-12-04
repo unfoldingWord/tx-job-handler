@@ -105,14 +105,19 @@ class GlobalSettings:
 
     # Logger
     logger = logging.getLogger(name)
+    log_group_name = f"{name}{'_TEST' if debug_mode_flag else ''}" \
+                    f"{'_TravisCI' if os.getenv('TRAVIS_BRANCH', '') else ''}"
     boto3_session = Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
                         aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
                         region_name='us-west-2')
+    # NOTE: We have this code here coz we need to keep a reference to watchtower_log_handler
+    #           (for closing it later)
     watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
-                    # use_queues=False, # Because this forked process is quite transient
-                    log_group=f"{name}{'_TEST' if debug_mode_flag else ''}")
+                                                # use_queues=False, # Because this forked process is quite transient
+                                                log_group=log_group_name)
     setup_logger(logger, watchtower_log_handler,
                             logging.DEBUG if debug_mode_flag else logging.INFO)
+    logger.info(f"Logging to AWS CloudWatch group '{log_group_name}'.")
 
 
     def __init__(self, **kwargs):
