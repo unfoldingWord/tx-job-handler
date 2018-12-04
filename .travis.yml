@@ -2,7 +2,6 @@
 #
 # Requires the following environment variables to be set:
 #   QUEUE_PREFIX
-#   TX_DATABASE_PW
 #   AWS_ACCESS_KEY_ID
 #   ASW_SECRET_ACCESS_KEY
 ##   DOCKER_USERNAME

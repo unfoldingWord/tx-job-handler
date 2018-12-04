@@ -4,6 +4,7 @@ import tempfile
 import traceback
 import requests
 
+from rq_settings import prefix, debug_mode_flag
 from general_tools.url_utils import download_file
 from general_tools.file_utils import unzip, remove_tree
 from linters.lint_logger import LintLogger
@@ -60,10 +61,15 @@ class Linter(metaclass=ABCMeta):
 
     def close(self):
         """delete temp files"""
-        remove_tree(self.temp_dir)
+        # print("Linter close() was called!")
+        if prefix and debug_mode_flag:
+            GlobalSettings.logger.debug(f"Linter temp folder '{self.temp_dir}' has been left on disk for debugging!")
+        else:
+            remove_tree(self.temp_dir)
 
-    def __del__(self):
-        self.close()
+    # def __del__(self):
+    #     print("Linter __del__() was called!")
+    #     self.close()
 
     @abstractmethod
     def lint(self):

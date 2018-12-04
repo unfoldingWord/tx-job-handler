@@ -272,7 +272,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     GlobalSettings.logger.debug(f"Got converter = {converter_name}")
 
 
-    # Run the linter then the converter
+    # Run the linter first
     if linter:
         build_log_dict['lint_module'] = linter_name
         #extra_payload = {'s3_results_key': s3_commit_key}
@@ -287,6 +287,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         build_log_dict['linter_success'] = 'false'
         build_log_dict['linter_warnings'] = [warning_message]
 
+    # Now run the converter
     if converter:
         build_log_dict['convert_module'] = converter_name
         #extra_payload = {'s3_results_key': s3_commit_key}
@@ -337,7 +338,10 @@ def process_tx_job(pj_prefix, queued_json_payload):
     else:
         GlobalSettings.logger.info("No callback requested.")
 
-    remove_tree(base_temp_dir_name)  # cleanup
+    if prefix and debug_mode_flag:
+        GlobalSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
+    else:
+        remove_tree(base_temp_dir_name)  # cleanup
     GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {build_log_dict}")
     return job_descriptive_name
 #end of process_tx_job function
@@ -376,6 +380,7 @@ def job(queued_json_payload):
         GlobalSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
     stats_client.incr('jobs.completed')
+    GlobalSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
 # end of webhook.py

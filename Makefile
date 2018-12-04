@@ -20,14 +20,9 @@ dependenciesTest:
 	pip3 install --requirement test_requirements.txt
 
 # NOTE: The following environment variables are expected to be set for testing:
-#	TX_DATABASE_PW
 #	AWS_ACCESS_KEY_ID
 #	AWS_SECRET_ACCESS_KEY
 checkEnvVariables:
-	@ if [ -z "${TX_DATABASE_PW}" ]; then \
-		echo "Need to set TX_DATABASE_PW"; \
-		exit 1; \
-	fi
 	@ if [ -z "${AWS_ACCESS_KEY_ID}" ]; then \
 		echo "Need to set AWS_ACCESS_KEY_ID"; \
 		exit 1; \
@@ -54,6 +49,11 @@ info:
 runDev: checkEnvVariables
 	# This runs the rq job handler
 	#   which removes and then processes jobs from the local redis dev- queue
+	QUEUE_PREFIX="dev-" rq worker --config rq_settings --name tX_Dev_JobHandler
+
+runDevDebug: checkEnvVariables
+	# This runs the rq job handler
+	#   which removes and then processes jobs from the local redis dev- queue
 	QUEUE_PREFIX="dev-" DEBUG_MODE="true" rq worker --config rq_settings --name tX_Dev_JobHandler
 
 run:
@@ -77,8 +77,8 @@ pushMasterImage:
 	docker push unfoldingword/tx_job_handler:master
 
 # NOTE: To test the container (assuming that the confidential environment variables are already set in the current environment) use:
-# 	docker run --env TX_DATABASE_PW --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --rm tx_job_handler
+# 	docker run --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --rm tx_job_handler
 
 
 # NOTE: To run the container in production use with the desired values:
-#     	docker run --env TX_DATABASE_PW=<tx_db_pw> --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --rm tx_job_handler
+#     	docker run --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --rm tx_job_handler
