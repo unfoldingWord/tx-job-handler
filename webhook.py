@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, date
 from time import time
 import sys
 sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
+import traceback
 
 # Library (PyPi) imports
 import requests
@@ -307,7 +308,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Do the callback (if requested) to advise the caller of our results
     if 'callback' in queued_json_payload:
-        GlobalSettings.logger.info(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} …")
+        GlobalSettings.logger.info(f"tX JobHandler about to do callback to {queued_json_payload['callback']} …")
         # Copy the build log but convert times to strings
         callback_payload = build_log_dict
         for key, value in callback_payload.items():
@@ -355,7 +356,7 @@ def job(queued_json_payload):
         but if the job throws an exception or times out (timeout specified in enqueue process)
             then the job gets added to the 'failed' queue.
     """
-    GlobalSettings.logger.info("tX-Job-Handler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
+    GlobalSettings.logger.info("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
     stats_client.incr('jobs.attempted')
 
@@ -370,7 +371,33 @@ def job(queued_json_payload):
     #print(f"\nGot job {current_job.id} from {current_job.origin} queue")
     #queue_prefix = 'dev-' if current_job.origin.startswith('dev-') else ''
     #assert queue_prefix == prefix
-    job_descriptive_name = process_tx_job(prefix, queued_json_payload)
+    try:
+        job_descriptive_name = process_tx_job(prefix, queued_json_payload)
+    except Exception as e:
+        # Catch most exceptions here so we can log them to CloudWatch
+        name = f"{prefix}tX_JobHandler"
+        GlobalSettings.logger.critical(f"{name} threw an exception while processing: {queued_json_payload}")
+        GlobalSettings.logger.critical(f"{e}: {traceback.format_exc()}")
+        GlobalSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
+        # Now attempt to log it to an additional, separate FAILED log
+        import logging
+        from boto3 import Session
+        from watchtower import CloudWatchLogHandler
+        logger2 = logging.getLogger(name)
+        log_group_name = f"FAILED_{name}{'_TEST' if debug_mode_flag else ''}" \
+                        f"{'_TravisCI' if os.getenv('TRAVIS_BRANCH', '') else ''}"
+        boto3_session = Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+                            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+                            region_name='us-west-2')
+        watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
+                                                    use_queues=False,
+                                                    log_group=log_group_name)
+        logger2.addHandler(watchtower_log_handler)
+        logger2.setLevel(logging.DEBUG)
+        logger2.info(f"Logging to AWS CloudWatch group '{log_group_name}'.")
+        logger2.critical(f"{name} threw an exception while processing: {queued_json_payload}")
+        logger2.critical(f"{e}: {traceback.format_exc()}")
+        raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('job.duration', elapsed_milliseconds)
