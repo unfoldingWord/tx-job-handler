@@ -403,6 +403,7 @@ def job(queued_json_payload):
         logger2.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{aws_access_key_id[-2:]}'.")
         logger2.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
         logger2.critical(f"{e}: {traceback.format_exc()}")
+        watchtower_log_handler.close()
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
