@@ -131,10 +131,11 @@ class GlobalSettings:
             cls.__prefix_vars(kwargs['prefix'])
         cls.set_vars(**kwargs)
         test_mode_flag = os.getenv('TEST_MODE', '')
-        log_group_name = f"{'' if test_mode_flag else cls.prefix}tX" \
+        travis_flag = os.getenv('TRAVIS_BRANCH', '')
+        log_group_name = f"{'' if test_mode_flag or travis_flag else cls.prefix}tX" \
                          f"{'_DEBUG' if debug_mode_flag else ''}" \
                          f"{'_TEST' if test_mode_flag else ''}" \
-                         f"{'_TravisCI' if os.getenv('TRAVIS_BRANCH', '') else ''}"
+                         f"{'_TravisCI' if travis_flag else ''}"
         boto3_session = Session(aws_access_key_id=cls.aws_access_key_id,
                             aws_secret_access_key=cls.aws_secret_access_key,
                             region_name=cls.aws_region_name)

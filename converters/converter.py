@@ -36,7 +36,7 @@ class Converter(metaclass=ABCMeta):
         self.options = {} if not options else options
 
         self.log = ConvertLogger()
-        self.converter_dir = tempfile.mkdtemp(prefix='txJH_converter_' \
+        self.converter_dir = tempfile.mkdtemp(prefix='tX_JH_converter_' \
                                 + datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S") + '_')
         self.download_dir = os.path.join(self.converter_dir, 'Download/')
         os.mkdir(self.download_dir)
