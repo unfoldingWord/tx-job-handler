@@ -40,7 +40,7 @@ checkEnvVariables:
 
 test:
 	# You should have already installed the testDependencies before this
-	python3 -m unittest discover -s tests/
+	TEST_MODE="TEST" python3 -m unittest discover -s tests/
 
 info:
 	# Runs the rq info display with a one-second refresh

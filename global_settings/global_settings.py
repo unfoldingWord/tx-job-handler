@@ -63,7 +63,7 @@ class GlobalSettings:
     For all things used for by this app, from DB connection to global handlers
     """
     _resetable_cache_ = {}
-    name = 'tx-job-handler' # Only used for logging and for testing GlobalSettings resets
+    name = 'tX-Job-Handler' # Only used for logging and for testing GlobalSettings resets
     dirty = False
 
     # Stage Variables, defaults
@@ -80,7 +80,7 @@ class GlobalSettings:
     # All variables that we change based on production, development and testing environments.
     # prefixable_vars = ['api_url', 'pre_convert_bucket_name', 'cdn_bucket_name', 'door43_bucket_name', 'language_stats_table_name',
     #                    'linter_messaging_name', 'db_name', 'db_user']
-    prefixable_vars = ['cdn_bucket_name', 'linter_messaging_name',]
+    prefixable_vars = ['name', 'cdn_bucket_name', 'linter_messaging_name',]
 
     # DB related
     Base = declarative_base()  # To be used in all model classes as the parent class: GlobalSettings.ModelBase
@@ -105,19 +105,6 @@ class GlobalSettings:
 
     # Logger
     logger = logging.getLogger(name)
-    log_group_name = f"{name}{'_TEST' if debug_mode_flag else ''}" \
-                    f"{'_TravisCI' if os.getenv('TRAVIS_BRANCH', '') else ''}"
-    boto3_session = Session(aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-                        aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-                        region_name='us-west-2')
-    # NOTE: We have this code here coz we need to keep a reference to watchtower_log_handler
-    #           (for closing it later)
-    watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
-                                                # use_queues=False, # Because this forked process is quite transient
-                                                log_group=log_group_name)
-    setup_logger(logger, watchtower_log_handler,
-                            logging.DEBUG if debug_mode_flag else logging.INFO)
-    logger.info(f"Logging to AWS CloudWatch group '{log_group_name}'.")
 
 
     def __init__(self, **kwargs):
@@ -127,6 +114,7 @@ class GlobalSettings:
         """
         #print("GlobalSettings.__init__({})".format(kwargs))
         self.init(**kwargs)
+
 
     @classmethod
     def init(cls, reset=True, **kwargs):
@@ -142,6 +130,22 @@ class GlobalSettings:
         if 'prefix' in kwargs and kwargs['prefix'] != cls.prefix:
             cls.__prefix_vars(kwargs['prefix'])
         cls.set_vars(**kwargs)
+        test_mode_flag = os.getenv('TEST_MODE', '')
+        log_group_name = f"{'' if test_mode_flag else cls.prefix}tX" \
+                         f"{'_DEBUG' if debug_mode_flag else ''}" \
+                         f"{'_TEST' if test_mode_flag else ''}" \
+                         f"{'_TravisCI' if os.getenv('TRAVIS_BRANCH', '') else ''}"
+        boto3_session = Session(aws_access_key_id=cls.aws_access_key_id,
+                            aws_secret_access_key=cls.aws_secret_access_key,
+                            region_name=cls.aws_region_name)
+        cls.watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
+                                                    # use_queues=False, # Because this forked process is quite transient
+                                                    log_group=log_group_name,
+                                                    stream_name=cls.name)
+        setup_logger(cls.logger, cls.watchtower_log_handler,
+                                logging.DEBUG if debug_mode_flag else logging.INFO)
+        cls.logger.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{cls.aws_access_key_id[-2:]}'.")
+
 
     @classmethod
     def __prefix_vars(cls, prefix):
@@ -149,8 +153,6 @@ class GlobalSettings:
         Prefixes any variables in GlobalSettings.prefixable_variables. This includes URLs
         :return:
         """
-        if prefix:
-            setup_logger(cls.logger, cls.watchtower_log_handler, logging.DEBUG)
         cls.logger.debug(f"GlobalSettings.prefix_vars with '{prefix}'")
         url_re = re.compile(r'^(https*://)')  # Current prefix in URLs
         for var in cls.prefixable_vars:
