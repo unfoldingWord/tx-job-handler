@@ -1,9 +1,7 @@
-# redis is specified here before rq to prevent rq downloading a later, incompatible version (3.0.1)
-redis==2.10.6
 # rq and statsd/Graphite and requests are used by the job handler
-rq==0.12.0
+rq==0.13.0
 statsd==3.3.0
-requests==2.20.1
+requests==2.21.0
 watchtower==0.5.4
 
 # yaml is used by file_utils used by ResourceContainer
@@ -13,22 +11,19 @@ pyyaml==3.13
 py-dateutil==2.2.0
 
 # sqlalchemy is used by manifest
-sqlalchemy==1.2.14
+sqlalchemy==1.2.15
 pymysql==0.8.1
 # NOTE: pymysql 0.9.2 wouldn't work in docker build
 
 # boto3 is used by aws_tools
-boto3==1.9.50
-
-#gogs_client is used by gogs_tools
-#gogs_client==1.0.6
+boto3==1.9.66
 
 # pyparsing is used by usfm_tools/parseUsfm.py
-pyparsing==2.2.2
+pyparsing==2.3.0
 
 # markdown is used by converters/md2html_converter.py
 markdown==3.0.1
-markdown2==2.3.6
+markdown2==2.3.7
 
 # usfm-tools (transform) is used by converters/usfm2html_converter.py
 # We copied in the files and updated to Python3
