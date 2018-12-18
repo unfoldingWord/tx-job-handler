@@ -2,69 +2,107 @@ import os
 import re
 from datetime import datetime
 from glob import glob
+from json.decoder import JSONDecodeError
+from yaml.parser import ParserError
 
 from door43_tools.td_language import TdLanguage
 from door43_tools.bible_books import BOOK_NAMES
 from general_tools.file_utils import load_json_object, load_yaml_object, read_file
+from global_settings.global_settings import GlobalSettings
 
 
-resource_map = {
-    'udb': {
-        'title': 'Unlocked Dynamic Bible',
-        'type': 'book',
-        'format': 'text/usfm'
-    },
-    'ulb': {
-        'title': 'Unlocked Literal Bible',
-        'type': 'book',
-        'format': 'text/usfm'
-    },
-    'reg': {
-        'title': 'Regular',
-        'type': 'book',
-        'format': 'text/usfm'
-    },
-    'bible': {
-        'title': 'Unlocked Bible',
-        'type': 'book',
-        'format': 'text/usfm'
-    },
-    'obs': {
-        'title': 'Open Bible Stories',
-        'type': 'book',
-        'format': 'text/markdown'
-    },
-    'obs-tn': {
-        'title': 'OBS translationNotes',
-        'type': 'help',
-        'format': 'text/markdown'
-    },
-    'obs-tq': {
-        'title': 'OBS translationQuestions',
-        'type': 'help',
-        'format': 'text/markdown'
-    },
-    'tn': {
-        'title': 'translationNotes',
-        'type': 'help',
-        'format': 'text/markdown'
-    },
-    'tw': {
-        'title': 'translationWords',
-        'type': 'dict',
-        'format': 'text/markdown'
-    },
-    'tq': {
-        'title': 'translationQuestions',
-        'type': 'help',
-        'format': 'text/markdown'
-    },
-    'ta': {
-        'title': 'translationAcademy',
-        'type': 'man',
-        'format': 'text/markdown'
-    }
-}
+# TODO: Sometimes this is searched in a case sensitive way, but mostly it's case sensitive "in"
+# resource_map = { # see https://git.door43.org/unfoldingWord/registry#Resources
+    # 'ult': {
+    #     'title': 'unfoldingWord Literal Text',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+    # 'ust': {
+    #     'title': 'unfoldingWord Simplified Text',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+
+    # # TODO: Should these be UPPERCASE UGNT UHB??? (Or should the search be case insensitive?)
+    # 'ugnt': {
+    #     'title': 'unfoldingWord Greek New Testament',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+    # 'uhb': {
+    #     'title': 'unfoldingWord Hebrew Bible',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+
+    # # TODO: What about ugl ugg ugc uhg uag uhal ubn ubc ubm ???
+
+    # 'udb': {
+    #     'title': 'Unlocked Dynamic Bible',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+    # 'ueb': {
+    #     'title': 'Unlocked English Bible',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+    # 'ulb': {
+    #     'title': 'Unlocked Literal Bible',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+
+    # 'obs': {
+    #     'title': 'Open Bible Stories',
+    #     'type': 'book',
+    #     'format': 'text/markdown'
+    # },
+    # 'obs-tn': {
+    #     'title': 'OBS translationNotes',
+    #     'type': 'help',
+    #     'format': 'text/markdown'
+    # },
+    # 'obs-tq': {
+    #     'title': 'OBS translationQuestions',
+    #     'type': 'help',
+    #     'format': 'text/markdown'
+    # },
+
+    # 'tn': {
+    #     'title': 'translationNotes',
+    #     'type': 'help',
+    #     'format': 'text/markdown'
+    # },
+    # 'tw': {
+    #     'title': 'translationWords',
+    #     'type': 'dict',
+    #     'format': 'text/markdown'
+    # },
+    # 'tq': {
+    #     'title': 'translationQuestions',
+    #     'type': 'help',
+    #     'format': 'text/markdown'
+    # },
+    # 'ta': {
+    #     'title': 'translationAcademy',
+    #     'type': 'man',
+    #     'format': 'text/markdown'
+    # },
+
+    # # TODO: I don't see these in the spec -- can/should they be removed?
+    # 'reg': {
+    #     'title': 'Regular',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+    # 'bible': {
+    #     'title': 'Unlocked Bible',
+    #     'type': 'book',
+    #     'format': 'text/usfm'
+    # },
+# }
 
 
 class RC:
@@ -77,6 +115,7 @@ class RC:
         :param dict manifest:
         """
         self._dir = directory
+        if directory is not None: assert os.path.isdir(directory)
         self._manifest = manifest
         self._repo_name = repo_name
         self._resource = None
@@ -89,21 +128,37 @@ class RC:
         return self._manifest
 
     def get_manifest_from_dir(self):
+        manifest = None
         if not self.path or not os.path.isdir(self.path):
             return get_manifest_from_repo_name(self.repo_name)
-        manifest = load_yaml_object(os.path.join(self.path, 'manifest.yaml'))
+        try:
+            manifest = load_yaml_object(os.path.join(self.path, 'manifest.yaml'))
+        except ParserError as e:
+            GlobalSettings.logger.error(f"Badly formed 'manifest.yaml' in {self.repo_name}: {e}")
         if manifest:
             return manifest
-        manifest = load_json_object(os.path.join(self.path, 'manifest.json'))
+        try:
+            manifest = load_json_object(os.path.join(self.path, 'manifest.json'))
+        except JSONDecodeError as e:
+                GlobalSettings.logger.error(f"Badly formed 'manifest.json' in {self.repo_name}: {e}")
         if manifest:
             return manifest
-        manifest = load_json_object(os.path.join(self.path, 'package.json'))
+        try:
+            manifest = load_json_object(os.path.join(self.path, 'package.json'))
+        except JSONDecodeError as e:
+                GlobalSettings.logger.error(f"Badly formed 'package.json' in {self.repo_name}: {e}")
         if manifest:
             return manifest
-        manifest = load_json_object(os.path.join(self.path, 'project.json'))
+        try:
+            manifest = load_json_object(os.path.join(self.path, 'project.json'))
+        except JSONDecodeError as e:
+                GlobalSettings.logger.error(f"Badly formed 'project.json' in {self.repo_name}: {e}")
         if manifest:
             return manifest
-        manifest = load_json_object(os.path.join(self.path, 'meta.json'))
+        try:
+            manifest = load_json_object(os.path.join(self.path, 'meta.json'))
+        except JSONDecodeError as e:
+                GlobalSettings.logger.error(f"Badly formed 'meta.json' in {self.repo_name}: {e}")
         if manifest:
             return manifest
         return get_manifest_from_repo_name(self.repo_name)
@@ -295,7 +350,10 @@ class RC:
             return None
         if not p.config_yaml:
             file_path = os.path.join(self.path, p.path, 'config.yaml')
-            p.config_yaml = load_yaml_object(file_path)
+            try:
+                p.config_yaml = load_yaml_object(file_path)
+            except ParserError as e:
+                GlobalSettings.logger.error(f"Badly formed 'config.yaml' in {self.repo_name}: {e}")
         return p.config_yaml
 
     def toc(self, project_identifier=None):
@@ -304,7 +362,10 @@ class RC:
             return None
         if not p.toc_yaml:
             file_path = os.path.join(self.path, p.path, 'toc.yaml')
-            p.toc_yaml = load_yaml_object(file_path)
+            try:
+                p.toc_yaml = load_yaml_object(file_path)
+            except ParserError as e:
+                GlobalSettings.logger.error(f"Badly formed 'toc.yaml' in {self.repo_name}: {e}")
         return p.toc_yaml
 
 
@@ -320,21 +381,35 @@ class Resource:
             raise Exception('Missing dict parameter: resource')
         self._language = None
 
+
     @property
     def conformsto(self):
         return self.resource.get('conformsto', 'pre-rc')
 
+
     @property
     def format(self):
+        GlobalSettings.logger.debug("Resource.format()…")
         if 'format' in self.resource and self.resource['format']:
             old_format = self.resource['format']
             if '/' not in old_format:
-                return 'text/{0}'.format(old_format.lower())
+                return f'text/{old_format.lower()}'
             return old_format
         elif 'content_mime_type' in self.resource and self.resource['content_mime_type']:
             return self.resource['content_mime_type']
-        elif self.identifier in resource_map:
-            return resource_map[self.identifier]['format']
+        # RJH added the next few lines Dec 2018
+        elif 'content_mime_type' in self.rc.manifest and self.rc.manifest['content_mime_type']:
+            return self.rc.manifest['content_mime_type']
+        elif self.rc.usfm_files(): # e.g., a plain USFM bundle (with no manifest, etc.)
+            return 'text/usfm'
+        if self.identifier:
+            GlobalSettings.logger.critical(f"Returning format=None for {self.identifier}.")
+        # else:
+        #     GlobalSettings.logger.critical(f"Checking for {self.identifier} format in resource_map…")
+        #     if self.identifier in resource_map:
+        #         GlobalSettings.logger.critical(f"Found {self.identifier} format = '{resource_map[self.identifier]['format']}' in resource_map.")
+        #         return resource_map[self.identifier]['format']
+
 
     @property
     def file_ext(self):
@@ -342,25 +417,36 @@ class Resource:
         File extension of this type of resource, such as md or usfm
         :return string:
         """
-        return {
-            'text/usx': 'usx',
-            'text/usfm': 'usfm',
-            'text/usfm3': 'usfm',
-            'text/markdown': 'md'
-        }.get(self.format, 'txt')
+        GlobalSettings.logger.debug("RC.file_ext()…")
+        result = {
+                'text/usx': 'usx',
+                'text/usfm': 'usfm',
+                'text/usfm3': 'usfm',
+                'text/markdown': 'md',
+                'text/tsv': 'tsv',
+            }.get(self.format, 'txt')
+        GlobalSettings.logger.debug(f"RC.file_ext() returning '{result}'.")
+        return result
+
 
     @property
     def type(self):
-        if 'type' in self.resource and isinstance(self.resource['type'], (str,bytes)):
+        GlobalSettings.logger.debug("Resource.type()…")
+        # GlobalSettings.logger.critical(f"Type is in RC: {'type' in self.resource}")
+        # if 'type' in self.resource: GlobalSettings.logger.critical(f"RC type is: {self.resource['type']}")
+        # NOTE: Seems that type can also be a dict, e.g., {'id': 'text', 'name': 'Text'} for OBS manifest.json
+        if 'type' in self.resource and isinstance(self.resource['type'], str):
             return self.resource['type'].lower()
         elif self.file_ext == 'usfm':
-            if len(self.rc.usfm_files()):
+            if self.rc.usfm_files():
                 return 'bundle'
             else:
                 return 'book'
-        elif self.identifier in resource_map:
-            return resource_map[self.identifier]['type']
+        # elif self.identifier in resource_map:
+        #     GlobalSettings.logger.critical(f"Found Resource.type() = '{resource_map[self.identifier]['type']}' in resource_map.")
+        #     return resource_map[self.identifier]['type']
         else:
+            # GlobalSettings.logger.critical("Searched unsuccessfully for Resource.type() in resource_map. (Returning 'book'.)")
             return 'book'
 
     @property
@@ -372,37 +458,40 @@ class Resource:
         elif 'type' in self.resource and 'id' in self.resource['type'] and self.resource['type']['id']:
             return self.resource['type']['id']
         elif 'slug' in self.resource and self.resource['slug']:
-            slug = self.resource['slug'].lower()
-            if 'ulb' in slug:
-                return 'ulb'
-            elif 'udb' in slug:
-                return 'udb'
-            elif 'obs' in slug:
-                return 'obs'
-            else:
-                return slug
-        elif 'ulb' in self.rc.repo_name.lower():
-            return 'ulb'
-        elif 'udb' in self.rc.repo_name.lower():
-            return 'udb'
-        elif 'obs' in self.rc.repo_name.lower():
-            return 'obs'
+            return self.resource['slug'].lower()
+        #     if 'ulb' in slug:
+        #         return 'ulb'
+        #     elif 'udb' in slug:
+        #         return 'udb'
+        #     elif 'obs' in slug:
+        #         return 'obs'
+        #     else:
+        #         return slug
+        # elif 'ulb' in self.rc.repo_name.lower():
+        #     return 'ulb'
+        # elif 'udb' in self.rc.repo_name.lower():
+        #     return 'udb'
+        # elif 'obs' in self.rc.repo_name.lower():
+        #     return 'obs'
         else:
             return None
 
     @property
     def title(self):
+        GlobalSettings.logger.debug("Resource.title()…")
         if 'title' in self.resource and self.resource['title']:
             #print(f"RESOURCE.title returning1 resource title {self.resource['title']!r}")
             return self.resource['title']
         elif 'name' in self.resource and self.resource['name']:
             #print(f"RESOURCE.title returning2 resource name {self.resource['name']!r}")
             return self.resource['name']
-        elif self.identifier in resource_map:
-            #print(f"RESOURCE.title returning3 resource_map title {resource_map[self.identifier]['title']!r}")
-            return resource_map[self.identifier]['title']
+        # elif self.identifier in resource_map:
+        #     #print(f"RESOURCE.title returning3 resource_map title {resource_map[self.identifier]['title']!r}")
+        #     GlobalSettings.logger.critical(f"Found Resource.title() = '{resource_map[self.identifier]['title']}' in resource_map.")
+        #     return resource_map[self.identifier]['title']
         else:
             #print(f"RESOURCE.title (final ELSE) returning4 resource identifier {self.identifier!r}")
+            # GlobalSettings.logger.critical(f"Searched unsuccessfully for Resource.title() in resource_map. (Returning '{self.identifier}'.)")
             return self.identifier
 
     @property
@@ -641,6 +730,7 @@ class Project:
 
 
 def get_manifest_from_repo_name(repo_name):
+    GlobalSettings.logger.debug(f"get_manifest_from_repo_name({repo_name})…")
     manifest = {
         'dublin_core': {},
     }
@@ -651,7 +741,7 @@ def get_manifest_from_repo_name(repo_name):
     parts = re.findall(r'[A-Za-z0-9]+', repo_name)
 
     language_set = False
-    for i, part in enumerate(parts):
+    for part in parts:
         if not language_set:
             if part == 'en':
                 # Speeds things up for English repos
@@ -672,11 +762,13 @@ def get_manifest_from_repo_name(repo_name):
                     }
                     continue
 
-        if part.lower() in resource_map:
-            manifest['dublin_core']['identifier'] = part
-            if 'projects' not in manifest:
-                manifest['projects'] = [{'identifier': part}]
-            continue
+        # GlobalSettings.logger.critical(f"Checking for {part}/{part.lower()} in resource_map…")
+        # if part.lower() in resource_map:
+        #     GlobalSettings.logger.critical(f"Found {part.lower()} in resource_map…")
+        #     manifest['dublin_core']['identifier'] = part
+        #     if 'projects' not in manifest:
+        #         manifest['projects'] = [{'identifier': part}]
+        #     continue
 
         if part.lower() in BOOK_NAMES:
             project = {

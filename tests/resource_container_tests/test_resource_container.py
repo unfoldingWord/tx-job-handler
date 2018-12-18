@@ -92,7 +92,7 @@ class TestResourceContainer(unittest.TestCase):
         repo_dir = os.path.join(self.out_dir, 'en_ulb')
         rc = RC(directory=repo_dir)
         rc.as_dict()
-        self.assertEqual(rc.resource.identifier, 'ulb')
+        self.assertEqual(rc.resource.identifier, 'en_ulb') # RJH: was 'ulb'
         self.assertEqual(rc.resource.type, 'bundle')
         self.assertEqual(rc.resource.format, 'text/usfm')
         self.assertEqual(rc.resource.file_ext, 'usfm')

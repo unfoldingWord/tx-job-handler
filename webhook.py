@@ -30,8 +30,8 @@ from linters.tn_linter import TnLinter, TnTsvLinter
 from linters.tq_linter import TqLinter
 from linters.tw_linter import TwLinter
 from linters.markdown_linter import MarkdownLinter
-from linters.udb_linter import UdbLinter
-from linters.ulb_linter import UlbLinter
+# from linters.udb_linter import UdbLinter
+# from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
 
 from converters.md2html_converter import Md2HtmlConverter
@@ -48,8 +48,8 @@ LINTER_TABLE = (
     ('tq',       TqLinter,       ('md','markdown',),      ('tq',),                    ),
     ('tw',       TwLinter,       ('md','markdown',),      ('tw',),                    ),
     ('markdown', MarkdownLinter, ('md','markdown','txt'), ('other',),                 ),
-    ('udb',      UdbLinter,      ('usfm',),               ('udb',),                   ),
-    ('ulb',      UlbLinter,      ('usfm',),               ('ulb',),                   ),
+    # ('udb',      UdbLinter,      ('usfm',),               ('udb',),                   ),
+    # ('ulb',      UlbLinter,      ('usfm',),               ('ulb',),                   ),
     ('usfm',     UsfmLinter,     ('usfm',),               ('bible', 'reg', 'other',), ),
     )
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
@@ -59,7 +59,7 @@ CONVERTER_TABLE = (
     ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
                     ('tn', 'other',), 'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
-                    ('bible', 'ult', 'ust', 'ulb', 'udb', 'reg', 'other',), 'html'),
+                    ('bible', 'reg', 'other',), 'html'),
     )
 
 

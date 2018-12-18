@@ -101,12 +101,12 @@ class TestLinter(LinterTestCase):
     #
 
     def validate_response(self, results, linter, expected_response_code, valid_identifier=True):
-        self.assertEquals(linter.callback_status, expected_response_code)
+        self.assertEqual(linter.callback_status, expected_response_code)
         self.assertIsNotNone(linter.callback_results)
         self.assertTrue('identifier' in linter.callback_results)
         if valid_identifier:
             self.assertIsNotNone(linter.callback_results['identifier'])
-        self.assertEquals(results, linter.callback_results)
+        self.assertEqual(results, linter.callback_results)
 
     def set_mock_response(self, mock_request_post, expected_response_code, response_string):
         mock_response = Response()
