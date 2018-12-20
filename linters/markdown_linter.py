@@ -62,7 +62,7 @@ class MarkdownLinter(Linter):
             lint_data = self.invoke_markdown_linter(self.get_invoke_payload(md_data))
             if not lint_data:
                 return False
-            # What is this code doing? Why are warnings expressed as HTML segments here???
+            # RJH: What is this code doing? Why are warnings expressed as HTML segments here???
             for f in lint_data.keys():
                 file_url = f'https://git.door43.org/{self.repo_owner}/{self.rc.repo_name}/src/master/{f}'
                 for item in lint_data[f]:

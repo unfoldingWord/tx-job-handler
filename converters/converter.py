@@ -109,7 +109,7 @@ class Converter(metaclass=ABCMeta):
                 self.log.error(f"Resource {self.resource} currently not supported.")
         except Exception as e:
             self.log.error(f"Conversion process ended abnormally: {e}")
-            GlobalSettings.logger.error(f"{e}: {traceback.format_exc()}")
+            GlobalSettings.logger.debug(f"Converter failure: {traceback.format_exc()}")
 
         results = {
             'identifier': self.identifier,

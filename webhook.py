@@ -57,9 +57,9 @@ CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
                     ('obs', 'ta', 'tq', 'tw', 'tn', 'other',),              'html'),
     ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
-                    ('tn', 'other',), 'html'),
+                    ('tn', 'other',),                                       'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
-                    ('bible', 'reg', 'other',), 'html'),
+                    ('bible', 'reg', 'other',),                             'html'),
     )
 
 
@@ -202,6 +202,22 @@ def download_source_file(source_url, destination_folder):
 
 def process_tx_job(pj_prefix, queued_json_payload):
     """
+    pj_prefix is normally 'dev-' or ''
+
+    queued_json_payload MUST have the following fields:
+        job_id (string)
+        source (url string)
+        resource_type (e.g., obs, ta, tn, tq, tw, bible)
+        input_format (e.g., md, usfm, tsv)
+        output_format (currently only 'html' is recognised)
+    The following OPTIONAL fields are used if present:
+        identifier (string)
+        options (dict)
+        callback (url string)
+    The following fields are included by the Door43 Job Handler but ignored here:
+        user_token
+        door43_webhook_received_at
+
     Conversion and linting are now initiated by sending a request to each.
 
     This code is "successful" once the conversion/linting jobs are all completed.
@@ -276,8 +292,6 @@ def process_tx_job(pj_prefix, queued_json_payload):
     # Run the linter first
     if linter:
         build_log_dict['lint_module'] = linter_name
-        #extra_payload = {'s3_results_key': s3_commit_key}
-        #send_request_to_linter(pj_job, linter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
         do_linting(build_log_dict, source_folder_path, linter_name, linter)
     else:
@@ -291,8 +305,6 @@ def process_tx_job(pj_prefix, queued_json_payload):
     # Now run the converter
     if converter:
         build_log_dict['convert_module'] = converter_name
-        #extra_payload = {'s3_results_key': s3_commit_key}
-        #send_request_to_converter(pj_job, converter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
         do_converting(build_log_dict, source_folder_path, converter_name, converter)
     else:

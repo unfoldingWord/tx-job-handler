@@ -11,100 +11,6 @@ from general_tools.file_utils import load_json_object, load_yaml_object, read_fi
 from global_settings.global_settings import GlobalSettings
 
 
-# TODO: Sometimes this is searched in a case sensitive way, but mostly it's case sensitive "in"
-# resource_map = { # see https://git.door43.org/unfoldingWord/registry#Resources
-    # 'ult': {
-    #     'title': 'unfoldingWord Literal Text',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-    # 'ust': {
-    #     'title': 'unfoldingWord Simplified Text',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-
-    # # TODO: Should these be UPPERCASE UGNT UHB??? (Or should the search be case insensitive?)
-    # 'ugnt': {
-    #     'title': 'unfoldingWord Greek New Testament',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-    # 'uhb': {
-    #     'title': 'unfoldingWord Hebrew Bible',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-
-    # # TODO: What about ugl ugg ugc uhg uag uhal ubn ubc ubm ???
-
-    # 'udb': {
-    #     'title': 'Unlocked Dynamic Bible',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-    # 'ueb': {
-    #     'title': 'Unlocked English Bible',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-    # 'ulb': {
-    #     'title': 'Unlocked Literal Bible',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-
-    # 'obs': {
-    #     'title': 'Open Bible Stories',
-    #     'type': 'book',
-    #     'format': 'text/markdown'
-    # },
-    # 'obs-tn': {
-    #     'title': 'OBS translationNotes',
-    #     'type': 'help',
-    #     'format': 'text/markdown'
-    # },
-    # 'obs-tq': {
-    #     'title': 'OBS translationQuestions',
-    #     'type': 'help',
-    #     'format': 'text/markdown'
-    # },
-
-    # 'tn': {
-    #     'title': 'translationNotes',
-    #     'type': 'help',
-    #     'format': 'text/markdown'
-    # },
-    # 'tw': {
-    #     'title': 'translationWords',
-    #     'type': 'dict',
-    #     'format': 'text/markdown'
-    # },
-    # 'tq': {
-    #     'title': 'translationQuestions',
-    #     'type': 'help',
-    #     'format': 'text/markdown'
-    # },
-    # 'ta': {
-    #     'title': 'translationAcademy',
-    #     'type': 'man',
-    #     'format': 'text/markdown'
-    # },
-
-    # # TODO: I don't see these in the spec -- can/should they be removed?
-    # 'reg': {
-    #     'title': 'Regular',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-    # 'bible': {
-    #     'title': 'Unlocked Bible',
-    #     'type': 'book',
-    #     'format': 'text/usfm'
-    # },
-# }
-
-
 class RC:
     current_version = '0.2'
 
@@ -459,22 +365,7 @@ class Resource:
             return self.resource['type']['id']
         elif 'slug' in self.resource and self.resource['slug']:
             return self.resource['slug'].lower()
-        #     if 'ulb' in slug:
-        #         return 'ulb'
-        #     elif 'udb' in slug:
-        #         return 'udb'
-        #     elif 'obs' in slug:
-        #         return 'obs'
-        #     else:
-        #         return slug
-        # elif 'ulb' in self.rc.repo_name.lower():
-        #     return 'ulb'
-        # elif 'udb' in self.rc.repo_name.lower():
-        #     return 'udb'
-        # elif 'obs' in self.rc.repo_name.lower():
-        #     return 'obs'
-        else:
-            return None
+        GlobalSettings.logger.critical(f"Returning Resource identifier=None.")
 
     @property
     def title(self):
