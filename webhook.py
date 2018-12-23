@@ -39,27 +39,35 @@ from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
 # NOTE: The following two tables are scanned in order (so put 'other' entries lower)
+#   All searching of the tables is case-sensitive
 # Columns are: 1/ linter name 2/ linter 3/ input formats 4/ resource types
 LINTER_TABLE = (
-    ('obs',      ObsLinter,      ('md','markdown',),      ('obs',),                   ),
-    ('ta',       TaLinter,       ('md','markdown',),      ('ta',),                    ),
-    ('tn-tsv',   TnTsvLinter,    ('tsv',),                ('tn',),                    ),
-    ('tn',       TnLinter,       ('md','markdown',),      ('tn',),                    ),
-    ('tq',       TqLinter,       ('md','markdown',),      ('tq',),                    ),
-    ('tw',       TwLinter,       ('md','markdown',),      ('tw',),                    ),
-    ('markdown', MarkdownLinter, ('md','markdown','txt'), ('other',),                 ),
-    # ('udb',      UdbLinter,      ('usfm',),               ('udb',),                   ),
-    # ('ulb',      UlbLinter,      ('usfm',),               ('ulb',),                   ),
-    ('usfm',     UsfmLinter,     ('usfm',),               ('bible', 'reg', 'other',), ),
+    ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs',),           ),
+    ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta',),           ),
+    ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('Translation_Notes','tn',),             ),
+    ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes','tn',),         ),
+    ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
+                                                'OBS_Translation_Questions','tq',),     ),
+    ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw',),             ),
+    ('markdown', MarkdownLinter, ('md','txt'), ('other',),                              ),
+    # ('udb',      UdbLinter,      ('usfm',),  ('udb',),                                ),
+    # ('ulb',      UlbLinter,      ('usfm',),  ('ulb',),                                ),
+    ('usfm',     UsfmLinter,     ('usfm',),    ('Bible','Aligned_Bible',
+                                                'Greek_New_Testament','Hebrew_Old_Testament',
+                                                'bible', 'reg', 'other',),              ),
     )
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
-                    ('obs', 'ta', 'tq', 'tw', 'tn', 'other',),              'html'),
+                    ('Open_Bible_Stories','OBS_Translation_Notes','OBS_Translation_Questions','obs',
+                    'Translation_Academy','ta', 'Translation_Questions','tq', 'Translation_Words',
+                    'Translation_Words','tw', 'Translation_Notes','tn', 'other',),     'html'),
     ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
-                    ('tn', 'other',),                                       'html'),
+                    ('Translation_Notes','tn', 'other',),                              'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
-                    ('bible', 'reg', 'other',),                             'html'),
+                    ('Bible','Aligned_Bible',
+                    'Greek_New_Testament','Hebrew_Old_Testament',
+                    'bible', 'reg', 'other',),                                         'html'),
     )
 
 
@@ -81,9 +89,12 @@ def get_linter_module(glm_job):
     :return linter name and linter class:
     """
     for linter_name, linter_class, input_formats, resource_types in LINTER_TABLE:
-        if glm_job['input_format'] in input_formats \
-        and (glm_job['resource_type'] in resource_types or 'other' in resource_types):
-            return linter_name, linter_class
+        if glm_job['input_format'] in input_formats:
+            if glm_job['resource_type'] in resource_types:
+                return linter_name, linter_class
+            if 'other' in resource_types:
+                GlobalSettings.logger.warning(f"Got linter from 'other' for input_format='{glm_job['input_format']}' and resource_type='{glm_job['resource_type']}'")
+                return linter_name, linter_class
     #linters = TxModule.query().filter(TxModule.type == 'linter') \
         #.filter(TxModule.input_format.contains(glm_job['input_format']))
     #linter = linters.filter(TxModule.resource_types.contains(glm_job['resource_type'])).first()
@@ -98,7 +109,7 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     :param dict param_dict: Will be updated!
     :param str linter_name:
     """
-    GlobalSettings.logger.debug(f'do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )')
+    GlobalSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
     param_dict['status'] = 'linting'
 
     # TODO: Why does the linter download the (zip) file again???
@@ -110,7 +121,7 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     param_dict['linter_success'] = lint_result['success']
     param_dict['linter_warnings'] = lint_result['warnings']
     param_dict['status'] = 'linted'
-    GlobalSettings.logger.debug(f'do_linting is returning with {param_dict}')
+    # GlobalSettings.logger.debug(f"do_linting is returning with {param_dict}")
     #return param_dict
 # end of do_linting function
 
@@ -121,10 +132,12 @@ def get_converter_module(gcm_job):
     :return TxModule:
     """
     for converter_name, converter_class, input_formats, resource_types, output_format in CONVERTER_TABLE:
-        if gcm_job['input_format'] in input_formats \
-        and output_format == gcm_job['output_format'] \
-        and (gcm_job['resource_type'] in resource_types or 'other' in resource_types):
-            return converter_name, converter_class
+        if gcm_job['input_format'] in input_formats and  output_format == gcm_job['output_format']:
+            if gcm_job['resource_type'] in resource_types:
+                return converter_name, converter_class
+            if 'other' in resource_types:
+                GlobalSettings.logger.warning(f"Got converter from 'other' for input_format='{gcm_job['input_format']}' and resource_type='{gcm_job['resource_type']}'")
+                return converter_name, converter_class
     #converters = TxModule.query().filter(TxModule.type == 'converter') \
         #.filter(TxModule.input_format.contains(gcm_job['input_format'])) \
         #.filter(TxModule.output_format.contains(gcm_job['output_format']))
@@ -140,7 +153,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     :param dict param_dict: Will be updated!
     :param str converter_name:
     """
-    GlobalSettings.logger.debug(f'do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )')
+    GlobalSettings.logger.debug(f"do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )")
     param_dict['status'] = 'converting'
     cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
 
@@ -155,7 +168,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     param_dict['converter_warnings'] = convert_result['warnings']
     param_dict['converter_errors'] = convert_result['errors']
     param_dict['status'] = 'converted'
-    # GlobalSettings.logger.debug(f'do_converting is returning with {param_dict}')
+    # GlobalSettings.logger.debug(f"do_converting is returning with {param_dict}")
     #return param_dict
 # end of do_converting function
 
@@ -282,12 +295,11 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Find the correct linter and converter
     GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
-                                f" {queued_json_payload['resource_type']}")
+                                f" '{queued_json_payload['resource_type']}'")
     linter_name, linter = get_linter_module(queued_json_payload)
     GlobalSettings.logger.debug(f"Got linter = {linter_name}")
     converter_name, converter = get_converter_module(queued_json_payload)
     GlobalSettings.logger.debug(f"Got converter = {converter_name}")
-
 
     # Run the linter first
     if linter:
