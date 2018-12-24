@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # verifyUSFM.py
 
 # Script for verifying proper USFM.
@@ -22,10 +20,7 @@ lastToken = None
 vv_re = re.compile(r'([0-9]+)-([0-9]+)')
 error_log = None
 
-# chapter marker
 chapter_marker_re = re.compile(r'\\c')
-
-# verse marker
 verse_marker_re = re.compile(r'\\v')
 
 WHITE_SPACE = [' ', '\u00A0', '\r', '\n', '\t']
@@ -206,7 +201,7 @@ class State:
         return success
 
     def getEnglishWords(self):
-        if len(State.englishWords) == 0:
+        if not State.englishWords:
             for book in usfm_verses.verses:
                 book_data = usfm_verses.verses[book]
                 english_name = book_data["en_name"].lower()
@@ -218,7 +213,7 @@ class State:
         return State.englishWords
 
     def loadVerseCounts(self):
-        if len(State.verseCounts) == 0:
+        if not State.verseCounts:
             State.verseCounts = usfm_verses.verses
 
             # jsonPath = 'verses.json'
@@ -381,7 +376,7 @@ def get_chapter_number(text, start):
     pos = start
     digits, c, end = get_number(text, pos)
     has_white_space = (c in WHITE_SPACE)
-    if len(digits) > 0:
+    if digits:
         return int(digits), has_white_space
     return -1, has_white_space
 
@@ -520,7 +515,7 @@ def takeID(id):
 def takeC(c):
     state = State()
     state.addChapter(c)
-    if len(state.IDs) == 0:
+    if not state.IDs:
         report_error(state.reference + " - Missing ID before chapter" + '\n')
     if state.chapter < state.lastChapter:
         report_error(state.reference + " - Chapter out of order" + '\n')
@@ -543,7 +538,7 @@ def takeV(v):
     state = State()
     state.addVerses(v)
     if state.lastVerse == 0:  # if first verse in chapter
-        if len(state.IDs) == 0 and state.chapter == 0:
+        if not state.IDs and state.chapter == 0:
             report_error(state.reference + " " + v + " - Missing ID before verse" + '\n')
         if state.chapter == 0:
             report_error(state.reference + " - Missing chapter tag" + '\n')

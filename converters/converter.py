@@ -6,7 +6,9 @@ import requests
 from shutil import copy
 from urllib.parse import urlparse, urlunparse, parse_qsl
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
 
+from rq_settings import prefix, debug_mode_flag
 from general_tools.url_utils import download_file
 from general_tools.file_utils import unzip, add_contents_to_zip, remove_tree, remove
 from global_settings.global_settings import GlobalSettings
@@ -34,10 +36,18 @@ class Converter(metaclass=ABCMeta):
         self.options = {} if not options else options
 
         self.log = ConvertLogger()
-        self.download_dir = tempfile.mkdtemp(prefix='tx_JH_download_')
-        self.files_dir = tempfile.mkdtemp(prefix='tX_JH_files_')
+        self.converter_dir = tempfile.mkdtemp(prefix='tX_JH_converter_' \
+                                + datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S") + '_')
+        self.download_dir = os.path.join(self.converter_dir, 'Download/')
+        os.mkdir(self.download_dir)
+        self.files_dir = os.path.join(self.converter_dir, 'UnZipped/')
+        os.mkdir(self.files_dir)
         self.input_zip_file = None  # If set, won't download the repo archive. Used for testing
-        self.output_dir = tempfile.mkdtemp(prefix='tX_JH_output_')
+        self.output_dir = os.path.join(self.converter_dir, 'Output/')
+        os.mkdir(self.output_dir)
+        if prefix and debug_mode_flag:
+            self.debug_dir = os.path.join(self.converter_dir, 'DebugOutput/')
+            os.mkdir(self.debug_dir)
         self.output_zip_file = tempfile.NamedTemporaryFile(prefix='{0}_'.format(resource), suffix='.zip', delete=False).name
         self.callback = convert_callback
         self.callback_status = 0
@@ -48,13 +58,16 @@ class Converter(metaclass=ABCMeta):
 
     def close(self):
         """delete temp files"""
-        remove_tree(self.download_dir)
-        remove_tree(self.files_dir)
-        remove_tree(self.output_dir)
+        # print("Converter close() was called!")
+        if prefix and debug_mode_flag:
+            GlobalSettings.logger.debug(f"Converter temp folder '{self.converter_dir}' has been left on disk for debugging!")
+        else:
+            remove_tree(self.converter_dir)
         remove(self.output_zip_file)
 
-    def __del__(self):
-        self.close()
+    # def __del__(self):
+    #     print("Converter __del__() was called!")
+    #     self.close()
 
     @abstractmethod
     def convert(self):
@@ -82,11 +95,11 @@ class Converter(metaclass=ABCMeta):
             GlobalSettings.logger.debug("Converting files…")
             if self.convert():
                 #GlobalSettings.logger.debug(f"Was able to convert {self.resource}")
-                # zip the output dir to the output archive
+                # Zip the output dir to the output archive
                 #GlobalSettings.logger.debug(f"Converter adding files in {self.output_dir} to {self.output_zip_file}")
                 add_contents_to_zip(self.output_zip_file, self.output_dir)
-                remove_tree(self.output_dir)
-                # upload the output archive either to cdn_bucket or to a file (no cdn_bucket)
+                # remove_tree(self.output_dir) # Done in converter.close()
+                # Upload the output archive either to cdn_bucket or to a file (no cdn_bucket)
                 GlobalSettings.logger.debug(f"Converter uploading output archive to {self.cdn_file} …")
                 self.upload_archive()
                 remove(self.output_zip_file)
@@ -96,7 +109,7 @@ class Converter(metaclass=ABCMeta):
                 self.log.error(f"Resource {self.resource} currently not supported.")
         except Exception as e:
             self.log.error(f"Conversion process ended abnormally: {e}")
-            GlobalSettings.logger.error(f"{e}: {traceback.format_exc()}")
+            GlobalSettings.logger.debug(f"Converter failure: {traceback.format_exc()}")
 
         results = {
             'identifier': self.identifier,
@@ -125,6 +138,9 @@ class Converter(metaclass=ABCMeta):
                     raise Exception("Failed to download {0}".format(archive_url))
 
     def upload_archive(self):
+        """
+        Uploads self.output_zip_file
+        """
         #GlobalSettings.logger.debug("converter.upload_archive()")
         if self.cdn_file and os.path.isdir(os.path.dirname(self.cdn_file)):
             #GlobalSettings.logger.debug("converter.upload_archive() doing copy")

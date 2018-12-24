@@ -80,13 +80,13 @@ To test the container (assuming that the confidential environment variables are 
 
 .. code-block:: bash
 
-    docker run --env TX_DATABASE_PW --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True --env REDIS_URL="redis://<redis_hostname>:6379" --net="host" --name dev-tx_job_handler --rm unfoldingword/tx_job_handler:develop
+    docker run --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True --env REDIS_URL="redis://<redis_hostname>:6379" --net="host" --name dev-tx_job_handler --rm unfoldingword/tx_job_handler:develop
 
 or if not (and adding optional GRAPHITE_HOSTNAME):
 
 .. code-block:: bash
 
-    docker run --env TX_DATABASE_PW=<tx_db_pw> --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL="redis://<redis_hostname>:6379" --env --net="host" --name dev-tx_job_handler --rm unfoldingword/tx_job_handler:develop
+    docker run --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL="redis://<redis_hostname>:6379" --env --net="host" --name dev-tx_job_handler --rm unfoldingword/tx_job_handler:develop
 
 NOTE: --rm automatically removes the container from the docker daemon when it exits
             (it doesn't delete the pulled image from disk)
@@ -95,7 +95,7 @@ To run the container in production use with the desired values:
 
 .. code-block:: bash
 
-    docker run --env TX_DATABASE_PW=<tx_db_pw> --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL="redis://<redis_hostname>:6379" --net="host" --name tx_job_handler --detach --rm unfoldingword/tx_job_handler:master
+    docker run --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL="redis://<redis_hostname>:6379" --net="host" --name tx_job_handler --detach --rm unfoldingword/tx_job_handler:master
 
 Running containers can be viewed with (or append --all to see all containers):
 

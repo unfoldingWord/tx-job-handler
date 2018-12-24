@@ -2,18 +2,17 @@
 #
 # Requires the following environment variables to be set:
 #   QUEUE_PREFIX
-#   TX_DATABASE_PW
 #   AWS_ACCESS_KEY_ID
 #   ASW_SECRET_ACCESS_KEY
 ##   DOCKER_USERNAME
 ##   DOCKER_PASSWORD
 
+dist: xenial
 language: python
 # See available versions at https://docs.travis-ci.com/user/languages/python/
 python:
-  - '3.6'
-  - '3.7-dev'
-  - 'nightly'
+  - '3.7'
+  - '3.8-dev'
 # NOTE: We only deploy on ONE of these tests being successful -- see condition below
 
 services:
@@ -55,11 +54,11 @@ deploy:
     script: bash ./deploy.sh develop
     on:
       branch: develop
-      condition: $TRAVIS_PYTHON_VERSION == '3.7-dev'
+      condition: $TRAVIS_PYTHON_VERSION == '3.7'
   - provider: script
     skip_cleanup: true
     script: bash ./deploy.sh master
     on:
       branch: master
-      condition: $TRAVIS_PYTHON_VERSION == '3.7-dev'
+      condition: $TRAVIS_PYTHON_VERSION == '3.7'
 

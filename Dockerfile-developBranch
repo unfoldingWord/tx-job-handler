@@ -24,8 +24,8 @@ CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_Dev_JobHandler" ]
 
 
 #       To test (assuming that the confidential environment variables are already set in the current environment) use:
-#           docker run --env TX_DATABASE_PW --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True --net="host" --name tx_job_handler --rm tx_job_handler:develop
+#           docker run --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY --env QUEUE_PREFIX=dev- --env DEBUG_MODE=True --net="host" --name tx_job_handler --rm tx_job_handler:develop
 
 
 #       To run in production use with the desired values:
-#           docker run --env TX_DATABASE_PW=<tx_db_pw> --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --detach --rm tx_job_handler:develop
+#           docker run --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --detach --rm tx_job_handler:develop

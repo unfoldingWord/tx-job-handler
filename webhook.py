@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, date
 from time import time
 import sys
 sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
+import traceback
 
 # Library (PyPi) imports
 import requests
@@ -29,8 +30,8 @@ from linters.tn_linter import TnLinter, TnTsvLinter
 from linters.tq_linter import TqLinter
 from linters.tw_linter import TwLinter
 from linters.markdown_linter import MarkdownLinter
-from linters.udb_linter import UdbLinter
-from linters.ulb_linter import UlbLinter
+# from linters.udb_linter import UdbLinter
+# from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
 
 from converters.md2html_converter import Md2HtmlConverter
@@ -38,27 +39,35 @@ from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
 # NOTE: The following two tables are scanned in order (so put 'other' entries lower)
+#   All searching of the tables is case-sensitive
 # Columns are: 1/ linter name 2/ linter 3/ input formats 4/ resource types
 LINTER_TABLE = (
-    ('obs',      ObsLinter,      ('md','markdown',),      ('obs',),                   ),
-    ('ta',       TaLinter,       ('md','markdown',),      ('ta',),                    ),
-    ('tn-tsv',   TnTsvLinter,    ('tsv',),                ('tn',),                    ),
-    ('tn',       TnLinter,       ('md','markdown',),      ('tn',),                    ),
-    ('tq',       TqLinter,       ('md','markdown',),      ('tq',),                    ),
-    ('tw',       TwLinter,       ('md','markdown',),      ('tw',),                    ),
-    ('markdown', MarkdownLinter, ('md','markdown','txt'), ('other',),                 ),
-    ('udb',      UdbLinter,      ('usfm',),               ('udb',),                   ),
-    ('ulb',      UlbLinter,      ('usfm',),               ('ulb',),                   ),
-    ('usfm',     UsfmLinter,     ('usfm',),               ('bible', 'reg', 'other',), ),
+    ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs',),           ),
+    ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta',),           ),
+    ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('Translation_Notes','tn',),             ),
+    ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes','tn',),         ),
+    ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
+                                                'OBS_Translation_Questions','tq',),     ),
+    ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw',),             ),
+    ('markdown', MarkdownLinter, ('md','txt'), ('other',),                              ),
+    # ('udb',      UdbLinter,      ('usfm',),  ('udb',),                                ),
+    # ('ulb',      UlbLinter,      ('usfm',),  ('ulb',),                                ),
+    ('usfm',     UsfmLinter,     ('usfm',),    ('Bible','Aligned_Bible',
+                                                'Greek_New_Testament','Hebrew_Old_Testament',
+                                                'bible', 'reg', 'other',),              ),
     )
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
-                    ('obs', 'ta', 'tq', 'tw', 'tn', 'other',),              'html'),
+                    ('Open_Bible_Stories','OBS_Translation_Notes','OBS_Translation_Questions','obs',
+                    'Translation_Academy','ta', 'Translation_Questions','tq', 'Translation_Words',
+                    'Translation_Words','tw', 'Translation_Notes','tn', 'other',),     'html'),
     ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
-                    ('tn', 'other',), 'html'),
+                    ('Translation_Notes','tn', 'other',),                              'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
-                    ('bible', 'ult', 'ust', 'ulb', 'udb', 'reg', 'other',), 'html'),
+                    ('Bible','Aligned_Bible',
+                    'Greek_New_Testament','Hebrew_Old_Testament',
+                    'bible', 'reg', 'other',),                                         'html'),
     )
 
 
@@ -80,9 +89,12 @@ def get_linter_module(glm_job):
     :return linter name and linter class:
     """
     for linter_name, linter_class, input_formats, resource_types in LINTER_TABLE:
-        if glm_job['input_format'] in input_formats \
-        and (glm_job['resource_type'] in resource_types or 'other' in resource_types):
-            return linter_name, linter_class
+        if glm_job['input_format'] in input_formats:
+            if glm_job['resource_type'] in resource_types:
+                return linter_name, linter_class
+            if 'other' in resource_types:
+                GlobalSettings.logger.warning(f"Got linter from 'other' for input_format='{glm_job['input_format']}' and resource_type='{glm_job['resource_type']}'")
+                return linter_name, linter_class
     #linters = TxModule.query().filter(TxModule.type == 'linter') \
         #.filter(TxModule.input_format.contains(glm_job['input_format']))
     #linter = linters.filter(TxModule.resource_types.contains(glm_job['resource_type'])).first()
@@ -97,7 +109,7 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     :param dict param_dict: Will be updated!
     :param str linter_name:
     """
-    GlobalSettings.logger.debug(f'do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )')
+    GlobalSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
     param_dict['status'] = 'linting'
 
     # TODO: Why does the linter download the (zip) file again???
@@ -109,7 +121,7 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     param_dict['linter_success'] = lint_result['success']
     param_dict['linter_warnings'] = lint_result['warnings']
     param_dict['status'] = 'linted'
-    GlobalSettings.logger.debug(f'do_linting is returning with {param_dict}')
+    # GlobalSettings.logger.debug(f"do_linting is returning with {param_dict}")
     #return param_dict
 # end of do_linting function
 
@@ -120,10 +132,12 @@ def get_converter_module(gcm_job):
     :return TxModule:
     """
     for converter_name, converter_class, input_formats, resource_types, output_format in CONVERTER_TABLE:
-        if gcm_job['input_format'] in input_formats \
-        and output_format == gcm_job['output_format'] \
-        and (gcm_job['resource_type'] in resource_types or 'other' in resource_types):
-            return converter_name, converter_class
+        if gcm_job['input_format'] in input_formats and  output_format == gcm_job['output_format']:
+            if gcm_job['resource_type'] in resource_types:
+                return converter_name, converter_class
+            if 'other' in resource_types:
+                GlobalSettings.logger.warning(f"Got converter from 'other' for input_format='{gcm_job['input_format']}' and resource_type='{gcm_job['resource_type']}'")
+                return converter_name, converter_class
     #converters = TxModule.query().filter(TxModule.type == 'converter') \
         #.filter(TxModule.input_format.contains(gcm_job['input_format'])) \
         #.filter(TxModule.output_format.contains(gcm_job['output_format']))
@@ -139,7 +153,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     :param dict param_dict: Will be updated!
     :param str converter_name:
     """
-    GlobalSettings.logger.debug(f'do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )')
+    GlobalSettings.logger.debug(f"do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )")
     param_dict['status'] = 'converting'
     cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
 
@@ -154,7 +168,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     param_dict['converter_warnings'] = convert_result['warnings']
     param_dict['converter_errors'] = convert_result['errors']
     param_dict['status'] = 'converted'
-    # GlobalSettings.logger.debug(f'do_converting is returning with {param_dict}')
+    # GlobalSettings.logger.debug(f"do_converting is returning with {param_dict}")
     #return param_dict
 # end of do_converting function
 
@@ -201,6 +215,22 @@ def download_source_file(source_url, destination_folder):
 
 def process_tx_job(pj_prefix, queued_json_payload):
     """
+    pj_prefix is normally 'dev-' or ''
+
+    queued_json_payload MUST have the following fields:
+        job_id (string)
+        source (url string)
+        resource_type (e.g., obs, ta, tn, tq, tw, bible)
+        input_format (e.g., md, usfm, tsv)
+        output_format (currently only 'html' is recognised)
+    The following OPTIONAL fields are used if present:
+        identifier (string)
+        options (dict)
+        callback (url string)
+    The following fields are included by the Door43 Job Handler but ignored here:
+        user_token
+        door43_webhook_received_at
+
     Conversion and linting are now initiated by sending a request to each.
 
     This code is "successful" once the conversion/linting jobs are all completed.
@@ -265,18 +295,15 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Find the correct linter and converter
     GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
-                                f" {queued_json_payload['resource_type']}")
+                                f" '{queued_json_payload['resource_type']}'")
     linter_name, linter = get_linter_module(queued_json_payload)
     GlobalSettings.logger.debug(f"Got linter = {linter_name}")
     converter_name, converter = get_converter_module(queued_json_payload)
     GlobalSettings.logger.debug(f"Got converter = {converter_name}")
 
-
-    # Run the linter then the converter
+    # Run the linter first
     if linter:
         build_log_dict['lint_module'] = linter_name
-        #extra_payload = {'s3_results_key': s3_commit_key}
-        #send_request_to_linter(pj_job, linter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
         do_linting(build_log_dict, source_folder_path, linter_name, linter)
     else:
@@ -287,10 +314,9 @@ def process_tx_job(pj_prefix, queued_json_payload):
         build_log_dict['linter_success'] = 'false'
         build_log_dict['linter_warnings'] = [warning_message]
 
+    # Now run the converter
     if converter:
         build_log_dict['convert_module'] = converter_name
-        #extra_payload = {'s3_results_key': s3_commit_key}
-        #send_request_to_converter(pj_job, converter, commit_url, queued_json_payload, extra_payload=extra_payload)
         # Log dict gets updated by the following line
         do_converting(build_log_dict, source_folder_path, converter_name, converter)
     else:
@@ -306,7 +332,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Do the callback (if requested) to advise the caller of our results
     if 'callback' in queued_json_payload:
-        GlobalSettings.logger.info(f"tX-Job-Handler about to do callback to {queued_json_payload['callback']} …")
+        GlobalSettings.logger.info(f"tX JobHandler about to do callback to {queued_json_payload['callback']} …")
         # Copy the build log but convert times to strings
         callback_payload = build_log_dict
         for key, value in callback_payload.items():
@@ -337,7 +363,10 @@ def process_tx_job(pj_prefix, queued_json_payload):
     else:
         GlobalSettings.logger.info("No callback requested.")
 
-    remove_tree(base_temp_dir_name)  # cleanup
+    if prefix and debug_mode_flag:
+        GlobalSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
+    else:
+        remove_tree(base_temp_dir_name)  # cleanup
     GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {build_log_dict}")
     return job_descriptive_name
 #end of process_tx_job function
@@ -351,7 +380,7 @@ def job(queued_json_payload):
         but if the job throws an exception or times out (timeout specified in enqueue process)
             then the job gets added to the 'failed' queue.
     """
-    GlobalSettings.logger.info("tX-Job-Handler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
+    GlobalSettings.logger.info("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
     stats_client.incr('jobs.attempted')
 
@@ -366,7 +395,40 @@ def job(queued_json_payload):
     #print(f"\nGot job {current_job.id} from {current_job.origin} queue")
     #queue_prefix = 'dev-' if current_job.origin.startswith('dev-') else ''
     #assert queue_prefix == prefix
-    job_descriptive_name = process_tx_job(prefix, queued_json_payload)
+    try:
+        job_descriptive_name = process_tx_job(prefix, queued_json_payload)
+    except Exception as e:
+        # Catch most exceptions here so we can log them to CloudWatch
+        prefixed_name = f"{prefix}tX_JobHandler"
+        GlobalSettings.logger.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
+        GlobalSettings.logger.critical(f"{e}: {traceback.format_exc()}")
+        GlobalSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
+        # Now attempt to log it to an additional, separate FAILED log
+        import logging
+        from boto3 import Session
+        from watchtower import CloudWatchLogHandler
+        logger2 = logging.getLogger(prefixed_name)
+        test_mode_flag = os.getenv('TEST_MODE', '')
+        travis_flag = os.getenv('TRAVIS_BRANCH', '')
+        log_group_name = f"FAILED_{'' if test_mode_flag or travis_flag else prefix}tX" \
+                         f"{'_DEBUG' if debug_mode_flag else ''}" \
+                         f"{'_TEST' if test_mode_flag else ''}" \
+                         f"{'_TravisCI' if travis_flag else ''}"
+        aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
+        boto3_session = Session(aws_access_key_id=aws_access_key_id,
+                            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+                            region_name='us-west-2')
+        watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
+                                                    use_queues=False,
+                                                    log_group=log_group_name,
+                                                    stream_name=prefixed_name)
+        logger2.addHandler(watchtower_log_handler)
+        logger2.setLevel(logging.DEBUG)
+        logger2.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{aws_access_key_id[-2:]}'.")
+        logger2.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
+        logger2.critical(f"{e}: {traceback.format_exc()}")
+        watchtower_log_handler.close()
+        raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('job.duration', elapsed_milliseconds)
@@ -376,6 +438,7 @@ def job(queued_json_payload):
         GlobalSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
     stats_client.incr('jobs.completed')
+    GlobalSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
 # end of webhook.py

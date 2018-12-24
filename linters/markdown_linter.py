@@ -2,6 +2,7 @@ import os
 import json
 from html.parser import HTMLParser
 
+from rq_settings import prefix, debug_mode_flag
 from linters.linter import Linter
 from aws_tools.lambda_handler import LambdaHandler
 from general_tools.file_utils import read_file, get_files
@@ -38,7 +39,7 @@ class MarkdownLinter(Linter):
         if payload_oversize_flag:
             GlobalSettings.logger.warning(f"Oversize Markdown Linter payload = {estimated_payload_length:,} characters.")
 
-        test_pyLinter = False # True: always use new Python linter; False: mostly use AWS Lambda call
+        test_pyLinter = prefix and debug_mode_flag # True: always use new Python linter; False: mostly use AWS Lambda call
         if test_pyLinter or payload_oversize_flag:
             # New code using unfinished PyMarkdownLinter
             GlobalSettings.logger.info("Invoking (unfinished) PyMarkdownLinter…")
@@ -61,7 +62,7 @@ class MarkdownLinter(Linter):
             lint_data = self.invoke_markdown_linter(self.get_invoke_payload(md_data))
             if not lint_data:
                 return False
-            # What is this code doing? Why are warnings expressed as HTML segments here???
+            # RJH: What is this code doing? Why are warnings expressed as HTML segments here???
             for f in lint_data.keys():
                 file_url = f'https://git.door43.org/{self.repo_owner}/{self.rc.repo_name}/src/master/{f}'
                 for item in lint_data[f]:

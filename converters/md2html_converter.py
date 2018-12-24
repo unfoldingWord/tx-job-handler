@@ -1,11 +1,13 @@
 import os
 import string
 from shutil import copyfile
+import logging
 
 import markdown
 import markdown2
 from bs4 import BeautifulSoup
 
+from rq_settings import prefix, debug_mode_flag
 from general_tools.file_utils import write_file, get_files
 from converters.converter import Converter
 
@@ -21,7 +23,7 @@ class Md2HtmlConverter(Converter):
             return True
 
     def convert_obs(self):
-        self.log.info("Processing OBS markdown files …")
+        self.log.info("Converting OBS markdown files…")
 
         # find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -32,7 +34,7 @@ class Md2HtmlConverter(Converter):
 
         found_chapters = {}
 
-        for filename in files:
+        for filename in sorted(files):
             if filename.endswith('.md'):
                 # Convert files that are markdown files
                 with open(filename, 'rt') as md_file:
@@ -56,32 +58,39 @@ class Md2HtmlConverter(Converter):
         self.log.info("Finished processing OBS Markdown files.")
 
     def convert_markdown(self):
-        self.log.info("Processing Markdown files …")
+        logging.info("Converting Markdown files…")
 
-        # find the first directory that has md files.
+        # Find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
         convert_only_list = self.check_for_exclusive_convert()
 
         current_dir = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
+            # Just a very simple template with $title and $content place-holders
             html_template = string.Template(template_file.read())
 
         found_chapters = {}
-
-        for filename in files:
-            if filename.endswith('.md'):
-                base_name = os.path.basename(filename)
-                if convert_only_list and (base_name not in convert_only_list):  # see if this is a file we are to convert
+        for filepath in sorted(files):
+            if filepath.endswith('.md'):
+                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
+                filename = base_name_part + '.md'
+                if convert_only_list and (filename not in convert_only_list):  # see if this is a file we are to convert
                     continue
+                html_filename = base_name_part + '.html'
+                logging.debug(f"Converting '{filename}' to '{html_filename}' …")
 
                 # Convert files that are markdown files
-                with open(filename, 'rt') as md_file:
+                with open(filepath, 'rt') as md_file:
                     md = md_file.read()
                 if self.resource in ['ta']:
                     html = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
+                    if prefix and debug_mode_flag:
+                        write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html)
                 else:
                     html = markdown.markdown(md)
                 html = html_template.safe_substitute(title=self.resource.upper(), content=html)
+                if prefix and debug_mode_flag:
+                    write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)
 
                 # Change headers like <h1><a id="verbs"/>Verbs</h1> to <h1 id="verbs">Verbs</h1>
                 soup = BeautifulSoup(html, 'html.parser')
@@ -92,18 +101,17 @@ class Md2HtmlConverter(Converter):
                         tag.extract()
                 html = str(soup)
 
-                base_name = os.path.splitext(os.path.basename(filename))[0]
-                found_chapters[base_name] = True
-                html_filename = base_name + ".html"
+                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
+                found_chapters[base_name_part] = True
                 output_file = os.path.join(self.output_dir, html_filename)
                 write_file(output_file, html)
-                self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
+                self.log.info(f"Converted {filename} to {html_filename}.")
             else:
                 # Directly copy over files that are not markdown files
                 try:
-                    output_file = os.path.join(self.output_dir, os.path.basename(filename))
+                    output_file = os.path.join(self.output_dir, os.path.basename(filepath))
                     if not os.path.exists(output_file):
-                        copyfile(filename, output_file)
+                        copyfile(filepath, output_file)
                 except:
                     pass
         self.log.info("Finished processing Markdown files.")

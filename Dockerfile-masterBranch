@@ -13,7 +13,6 @@ CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_JobHandler" ]
 
 # Define environment variables
 # NOTE: The following environment variables are expected to be set:
-#	TX_DATABASE_PW
 #	AWS_ACCESS_KEY_ID
 #	AWS_SECRET_ACCESS_KEY
 #	REDIS_URL (can be omitted for testing to use a local instance)
@@ -28,4 +27,4 @@ CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_JobHandler" ]
 
 
 #       To run in production use with the desired values:
-#           docker run --env TX_DATABASE_PW=<tx_db_pw> --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --detach --rm tx_job_handler:master
+#           docker run --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --detach --rm tx_job_handler:master

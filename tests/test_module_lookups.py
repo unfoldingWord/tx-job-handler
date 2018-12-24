@@ -15,8 +15,8 @@ class TestLookups(TestCase):
             ('md','tq','tq'),
             ('md','tw','tw'),
             ('md','something','markdown'), # Should trigger 'other'
-            ('usfm','udb','udb'),
-            ('usfm','ulb','ulb'),
+            ('usfm','udb','usfm'), # RJH: was 'udb'
+            ('usfm','ulb','usfm'), # RJH: was 'ulb'
             ('usfm','bible','usfm'),
             ('usfm','something','usfm'), # Should trigger 'other'
             )
