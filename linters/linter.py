@@ -3,6 +3,7 @@ import os
 import tempfile
 import traceback
 import requests
+from datetime import datetime
 
 from rq_settings import prefix, debug_mode_flag
 from general_tools.url_utils import download_file
@@ -11,6 +12,7 @@ from linters.lint_logger import LintLogger
 from resource_container.ResourceContainer import RC
 from global_settings.global_settings import GlobalSettings
 from abc import ABCMeta, abstractmethod
+
 
 
 class Linter(metaclass=ABCMeta):
@@ -40,7 +42,8 @@ class Linter(metaclass=ABCMeta):
 
         self.log = LintLogger()
 
-        self.temp_dir = tempfile.mkdtemp(prefix='tmp_lint_')
+        self.temp_dir = tempfile.mkdtemp(prefix='tX_JH_linter_' \
+                                + datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S_'))
 
         self.repo_owner = ''
         self.repo_name = ''

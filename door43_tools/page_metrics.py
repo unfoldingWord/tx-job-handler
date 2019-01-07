@@ -199,7 +199,7 @@ class PageMetrics:
     #     :return:
     #     """
     #     utcnow = datetime.utcnow()
-    #     lang_stats.last_updated = utcnow.strftime("%Y-%m-%dT%H:%M:%SZ")
+    #     lang_stats.last_updated = utcnow.strftime('%Y-%m-%dT%H:%M:%SZ')
     #     lang_stats.update()
 
     # def list_language_views(self, reverse_sort=True, max_count=0):

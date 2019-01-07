@@ -12,6 +12,7 @@ from general_tools.file_utils import write_file, get_files
 from converters.converter import Converter
 
 
+
 class Md2HtmlConverter(Converter):
 
     def convert(self):
@@ -22,10 +23,11 @@ class Md2HtmlConverter(Converter):
             self.convert_markdown()
             return True
 
+
     def convert_obs(self):
         self.log.info("Converting OBS markdown files…")
 
-        # find the first directory that has md files.
+        # Find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
 
         current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -56,6 +58,7 @@ class Md2HtmlConverter(Converter):
                 except:
                     pass
         self.log.info("Finished processing OBS Markdown files.")
+
 
     def convert_markdown(self):
         logging.info("Converting Markdown files…")

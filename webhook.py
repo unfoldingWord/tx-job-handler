@@ -45,7 +45,8 @@ LINTER_TABLE = (
     ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs',),           ),
     ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta',),           ),
     ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('Translation_Notes','tn',),             ),
-    ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes','tn',),         ),
+    ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes',
+                                                'Translation_Notes','tn',),               ),
     ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
                                                 'OBS_Translation_Questions','tq',),     ),
     ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw',),             ),
@@ -297,9 +298,9 @@ def process_tx_job(pj_prefix, queued_json_payload):
     GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
                                 f" '{queued_json_payload['resource_type']}'")
     linter_name, linter = get_linter_module(queued_json_payload)
-    GlobalSettings.logger.debug(f"Got linter = {linter_name}")
+    GlobalSettings.logger.info(f"Got linter = {linter_name}")
     converter_name, converter = get_converter_module(queued_json_payload)
-    GlobalSettings.logger.debug(f"Got converter = {converter_name}")
+    GlobalSettings.logger.info(f"Got converter = {converter_name}")
 
     # Run the linter first
     if linter:
