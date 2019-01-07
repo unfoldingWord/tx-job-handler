@@ -408,11 +408,11 @@ class Resource:
         elif 'pub_date' in self.resource.get('status', {}):
             return self.resource['status']['pub_date']
         else:
-            return datetime.utcnow().strftime("%Y-%m-%d")
+            return datetime.utcnow().strftime('%Y-%m-%d')
 
     @property
     def modified(self):
-        return self.resource.get('modified', datetime.utcnow().strftime("%Y-%m-%d"))
+        return self.resource.get('modified', datetime.utcnow().strftime('%Y-%m-%d'))
 
     @property
     def rights(self):

@@ -97,7 +97,7 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual(rc.resource.format, 'text/usfm')
         self.assertEqual(rc.resource.file_ext, 'usfm')
         self.assertEqual(rc.resource.conformsto, 'pre-rc')
-        self.assertEqual(rc.resource.modified, datetime.utcnow().strftime("%Y-%m-%d"))
+        self.assertEqual(rc.resource.modified, datetime.utcnow().strftime('%Y-%m-%d'))
         chapters = rc.project().chapters()
         self.assertEqual(len(chapters), 0)
         self.assertEqual(len(rc.project().usfm_files()), 8)
@@ -143,7 +143,7 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual(rc.resource.format, 'text/{0}'.format(json['format']))
         self.assertEqual(rc.resource.file_ext, json['format'])
         self.assertEqual(rc.resource.conformsto, 'pre-rc')
-        self.assertEqual(rc.resource.modified, datetime.utcnow().strftime("%Y-%m-%d"))
+        self.assertEqual(rc.resource.modified, datetime.utcnow().strftime('%Y-%m-%d'))
         chapters = rc.projects[0].chapters()
         self.assertEqual(len(chapters), 29)
         chunks = rc.projects[0].chunks('01')
@@ -164,7 +164,7 @@ class TestResourceContainer(unittest.TestCase):
         self.assertEqual(rc.resource.format, 'text/{0}'.format(json['format']))
         self.assertEqual(rc.resource.file_ext, json['format'])
         self.assertEqual(rc.resource.conformsto, 'pre-rc')
-        self.assertEqual(rc.resource.modified, datetime.utcnow().strftime("%Y-%m-%d"))
+        self.assertEqual(rc.resource.modified, datetime.utcnow().strftime('%Y-%m-%d'))
         chapters = rc.projects[0].chapters()
         idx = 1
 

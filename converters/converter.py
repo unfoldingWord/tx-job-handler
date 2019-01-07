@@ -20,6 +20,7 @@ class Converter(metaclass=ABCMeta):
     """
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
 
+
     def __init__(self, source, resource, cdn_file=None, options=None, convert_callback=None, identifier=None):
         """
         :param string source:
@@ -37,7 +38,7 @@ class Converter(metaclass=ABCMeta):
 
         self.log = ConvertLogger()
         self.converter_dir = tempfile.mkdtemp(prefix='tX_JH_converter_' \
-                                + datetime.utcnow().strftime("%Y-%m-%d_%H:%M:%S") + '_')
+                                + datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S_'))
         self.download_dir = os.path.join(self.converter_dir, 'Download/')
         os.mkdir(self.download_dir)
         self.files_dir = os.path.join(self.converter_dir, 'UnZipped/')
@@ -48,7 +49,7 @@ class Converter(metaclass=ABCMeta):
         if prefix and debug_mode_flag:
             self.debug_dir = os.path.join(self.converter_dir, 'DebugOutput/')
             os.mkdir(self.debug_dir)
-        self.output_zip_file = tempfile.NamedTemporaryFile(prefix='{0}_'.format(resource), suffix='.zip', delete=False).name
+        self.output_zip_file = tempfile.NamedTemporaryFile(prefix=f'{resource}_', suffix='.zip', delete=False).name
         self.callback = convert_callback
         self.callback_status = 0
         self.callback_results = None
@@ -56,8 +57,11 @@ class Converter(metaclass=ABCMeta):
         if self.callback and not identifier:
             GlobalSettings.logger.error("Identity not given for callback")
 
+
     def close(self):
-        """delete temp files"""
+        """
+        Delete temp files (except in debug mode)
+        """
         # print("Converter close() was called!")
         if prefix and debug_mode_flag:
             GlobalSettings.logger.debug(f"Converter temp folder '{self.converter_dir}' has been left on disk for debugging!")
@@ -69,6 +73,7 @@ class Converter(metaclass=ABCMeta):
     #     print("Converter __del__() was called!")
     #     self.close()
 
+
     @abstractmethod
     def convert(self):
         """
@@ -78,6 +83,7 @@ class Converter(metaclass=ABCMeta):
         :return bool:
         """
         raise NotImplementedError()
+
 
     def run(self):
         """
@@ -126,6 +132,7 @@ class Converter(metaclass=ABCMeta):
         GlobalSettings.logger.debug(results)
         return results
 
+
     def download_archive(self):
         archive_url = self.source
         filename = self.source.rpartition('/')[2]
@@ -135,7 +142,8 @@ class Converter(metaclass=ABCMeta):
                 download_file(archive_url, self.input_zip_file)
             finally:
                 if not os.path.isfile(self.input_zip_file):
-                    raise Exception("Failed to download {0}".format(archive_url))
+                    raise Exception(f"Failed to download {archive_url}")
+
 
     def upload_archive(self):
         """
@@ -148,6 +156,7 @@ class Converter(metaclass=ABCMeta):
         elif GlobalSettings.cdn_s3_handler():
             #GlobalSettings.logger.debug("converter.upload_archive() using S3 handler")
             GlobalSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file, cache_time=0)
+
 
     def do_callback(self, url, payload):
         if url.startswith('http'):
@@ -163,8 +172,16 @@ class Converter(metaclass=ABCMeta):
         else:
             GlobalSettings.logger.error(f"Invalid callback url: {url}")
 
+
     def check_for_exclusive_convert(self):
-        convert_only = []
+        """
+        Not sure what this is used for???
+
+        Returns either:
+            an empty list (normally), or
+            a list of the files which should be converted
+        """
+        convert_only_list = []
         if self.source and len(self.source) > 0:
             parsed = urlparse(self.source)
             params = parse_qsl(parsed.query)
@@ -172,8 +189,10 @@ class Converter(metaclass=ABCMeta):
                 for i in range(0, len(params)):
                     item = params[i]
                     if item[0] == 'convert_only':
-                        convert_only = item[1].split(',')
-                        GlobalSettings.logger.debug('Converting only: {0}'.format(convert_only))
+                        convert_only_list = item[1].split(',')
+                        GlobalSettings.logger.debug(f"Converting only: {convert_only_list}")
                         self.source = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
                         break
-        return convert_only
+        if convert_only_list:
+            GlobalSettings.logger.debug(f"converter:check_for_exclusive_convert() returned a list of {len(convert_only_list)} files: {convert_only_list}")
+        return convert_only_list
