@@ -1,7 +1,6 @@
 import os
 import tempfile
 import unittest
-import codecs
 import shutil
 from contextlib import closing
 
@@ -206,7 +205,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
 
     #     soup = None
 
-    #     with codecs.open(file_path, 'r', 'utf-8-sig') as f:
+    #     with open(file_path, 'r') as f:
     #         soup = BeautifulSoup(f, 'html.parser')
 
     #     if not soup:

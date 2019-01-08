@@ -1,7 +1,6 @@
 import os
 import tempfile
 import unittest
-import codecs
 import shutil
 from contextlib import closing
 from converters.md2html_converter import Md2HtmlConverter
@@ -325,7 +324,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
 
         soup = None
 
-        with codecs.open(file_path, 'r', 'utf-8-sig') as f:
+        with open(file_path, 'r') as f:
             soup = BeautifulSoup(f, 'html.parser')
 
         if not soup:

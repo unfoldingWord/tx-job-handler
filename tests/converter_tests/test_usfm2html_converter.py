@@ -1,4 +1,3 @@
-import codecs
 import os
 import tempfile
 import unittest
@@ -197,7 +196,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
             self.assertTrue(os.path.isfile(file_name), 'UDB HTML file not found: {0}'.format(file_name))
 
             usfm = None
-            with codecs.open(file_name, 'r', 'utf-8-sig') as usfm_file:
+            with open(file_name, 'r') as usfm_file:
                 usfm = usfm_file.read()
 
             self.assertIsNotNone(usfm)
