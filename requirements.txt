@@ -16,7 +16,7 @@ pymysql==0.8.1
 # NOTE: pymysql 0.9.2 wouldn't work in docker build
 
 # boto3 is used by aws_tools
-boto3==1.9.66
+boto3==1.9.75
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==2.3.0
@@ -30,4 +30,4 @@ markdown2==2.3.7
 #usfm-tools==0.0.22
 
 # BeautifulSoup is used by converters/md2html_converter.py
-beautifulsoup4==4.6.3
+beautifulsoup4==4.7.1

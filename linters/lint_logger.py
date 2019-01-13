@@ -7,4 +7,4 @@ class LintLogger:
 
     def warning(self, msg):
         self.warnings.append(msg)
-        GlobalSettings.logger.debug("LINT ISSUE: {}".format(msg))
+        GlobalSettings.logger.debug(f"LINT ISSUE: {msg}")

@@ -16,7 +16,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
     def setUp(self):
         """Runs before each test."""
         GlobalSettings(prefix='{0}-'.format(self._testMethodName))
-        self.temp_dir = tempfile.mkdtemp(prefix='TestUsfmHtmlConverter')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_UsfmHtmlConverter')
 
     def tearDown(self):
         """Runs after each test."""

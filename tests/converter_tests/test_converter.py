@@ -34,7 +34,7 @@ class TestConverter(unittest.TestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='TestConverter')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_Converter')
         self.zip_file = os.path.join(self.resources_dir, '51-PHP.zip')
         self.zip_file = self.make_duplicate_zip_that_can_be_deleted(self.zip_file)
 

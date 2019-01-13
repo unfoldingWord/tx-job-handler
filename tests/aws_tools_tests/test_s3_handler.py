@@ -17,7 +17,7 @@ class S3HandlerTests(TestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='s3HandlerTest_')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_s3Handler_')
         self.handler = S3Handler(bucket_name=self.MOCK_BUCKET_NAME)
         self.handler.create_bucket()
 

@@ -46,7 +46,7 @@ LINTER_TABLE = (
     ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta',),           ),
     ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('Translation_Notes','tn',),             ),
     ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes',
-                                                'Translation_Notes','tn',),               ),
+                                                'Translation_Notes','tn',),             ),
     ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
                                                 'OBS_Translation_Questions','tq',),     ),
     ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw',),             ),

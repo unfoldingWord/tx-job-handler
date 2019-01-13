@@ -15,7 +15,7 @@ class TestObsLinter(LinterTestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='tmp_obs_')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_obs_')
         unzip(self.obs_zip_file, self.temp_dir)
         self.repo_dir = os.path.join(self.temp_dir, 'es_obs')
 
