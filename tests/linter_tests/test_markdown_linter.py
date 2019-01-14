@@ -12,7 +12,7 @@ class TestMarkdownLinter(LinterTestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='temp_markdown_linter_')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_markdown_linter_')
 
     def tearDown(self):
         """Runs after each test."""

@@ -16,7 +16,7 @@ class TestTnLinter(LinterTestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='temp_tn_')
+        self.temp_dir = tempfile.mkdtemp(prefix='test__tn_')
         self.commit_data = {
             'repository': {
                 'name': 'en_tq',
@@ -164,7 +164,7 @@ class TestTnTsvLinter(LinterTestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='temp_tn_tsv_')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_tn_tsv_')
         self.commit_data = {
             'repository': {
                 'name': 'en_tn',

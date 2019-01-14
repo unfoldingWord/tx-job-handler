@@ -56,7 +56,7 @@ class LintConfig:
             parser.read(filename)
             LintConfig._parse_general_section(parser, config)
         except configparser.Error as e:
-            raise LintConfigError("Error during config file parsing: {0}".format(e.message))
+            raise LintConfigError(f"Error during config file parsing: {e}")
 
         return config
 

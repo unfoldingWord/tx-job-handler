@@ -50,7 +50,7 @@ class TestResourceContainer(unittest.TestCase):
         """ Populates the ResourceContainer object and verifies the output."""
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'en-obs-manifest-yaml.zip')
-        self.out_dir = tempfile.mkdtemp(prefix='repo_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_repo_')
         unzip(zip_file, self.out_dir)
         repo_dir = os.path.join(self.out_dir, 'en_obs')
         rc = RC(directory=repo_dir, repo_name='en_obs')
@@ -66,7 +66,7 @@ class TestResourceContainer(unittest.TestCase):
         """ Populates the ResourceContainer object and verifies the output."""
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'en-obs-package-json.zip')
-        self.out_dir = tempfile.mkdtemp(prefix='repo_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_repo_')
         unzip(zip_file, self.out_dir)
         repo_dir = os.path.join(self.out_dir, 'en-obs')
         rc = RC(directory=repo_dir)
@@ -87,7 +87,7 @@ class TestResourceContainer(unittest.TestCase):
         """ Populates the ResourceContainer object and verifies the output."""
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'bible-no-manifest.zip')
-        self.out_dir = tempfile.mkdtemp(prefix='repo_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_repo_')
         unzip(zip_file, self.out_dir)
         repo_dir = os.path.join(self.out_dir, 'en_ulb')
         rc = RC(directory=repo_dir)
@@ -106,7 +106,7 @@ class TestResourceContainer(unittest.TestCase):
         """ Populates the ResourceContainer object and verifies the output."""
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'en-ta-multiple-projects.zip')
-        self.out_dir = tempfile.mkdtemp(prefix='repo_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_repo_')
         unzip(zip_file, self.out_dir)
         repo_dir = os.path.join(self.out_dir, 'en_ta')
         rc = RC(directory=repo_dir)
@@ -132,7 +132,7 @@ class TestResourceContainer(unittest.TestCase):
         """ Populates the ResourceContainer object and verifies the output."""
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'id_mat_text_ulb-ts.zip')
-        self.out_dir = tempfile.mkdtemp(prefix='repo_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_repo_')
         unzip(zip_file, self.out_dir)
         repo_dir = os.path.join(self.out_dir, 'id_mat_text_ulb-ts')
         rc = RC(directory=repo_dir)
@@ -153,7 +153,7 @@ class TestResourceContainer(unittest.TestCase):
         """ Populates the ResourceContainer object and verifies the output."""
         # test with the English OBS
         zip_file = os.path.join(self.resources_dir, 'ceb_psa_text_ulb_L3.zip')
-        self.out_dir = tempfile.mkdtemp(prefix='repo_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_repo_')
         unzip(zip_file, self.out_dir)
         repo_dir = os.path.join(self.out_dir, 'ceb_psa_text_ulb_l3')
         rc = RC(directory=repo_dir)

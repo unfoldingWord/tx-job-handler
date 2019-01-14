@@ -34,7 +34,7 @@ class Usfm2HtmlConverter(Converter):
                 # Convert the USFM file
                 self.log.info(f"Converting Bible USFM file: {base_name} …") # Logger also issues DEBUG msg
                 # Copy just the single file to be converted into a single scratch folder
-                scratch_dir = tempfile.mkdtemp(prefix='usfm_convert_scratch_')
+                scratch_dir = tempfile.mkdtemp(prefix='tX_convert_usfm_scratch_')
                 delete_scratch_dir_flag = True
                 copyfile(filename, os.path.join(scratch_dir, os.path.basename(filename)))
                 filebase = os.path.splitext(os.path.basename(filename))[0]

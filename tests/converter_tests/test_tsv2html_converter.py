@@ -1,7 +1,6 @@
 import os
 import tempfile
 import unittest
-import codecs
 import shutil
 from contextlib import closing
 
@@ -69,7 +68,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
 
         # verify the output
         self.assertTrue(os.path.isfile(out_zip_file), "There was no output zip file produced.")
-        self.out_dir = tempfile.mkdtemp(prefix='tn_tsv_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_tn_tsv_')
         unzip(out_zip_file, self.out_dir)
         remove(out_zip_file)
         # print(f"Got in {self.out_dir}: {os.listdir(self.out_dir)}")
@@ -99,7 +98,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
     #     # then
     #     self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
     #     self.assertIsNotNone(self.return_val, "There was no return value.")
-    #     self.out_dir = tempfile.mkdtemp(prefix='tw_')
+    #     self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
     #     unzip(self.out_zip_file, self.out_dir)
     #     remove(self.out_zip_file)
 
@@ -129,7 +128,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
     #     # then
     #     self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
     #     self.assertIsNotNone(self.return_val, "There was no return value.")
-    #     self.out_dir = tempfile.mkdtemp(prefix='tw_')
+    #     self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
     #     unzip(self.out_zip_file, self.out_dir)
     #     remove(self.out_zip_file)
 
@@ -168,7 +167,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
     #         missing_chapters = []
     #     self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
     #     self.assertIsNotNone(self.return_val, "There was no return value.")
-    #     self.out_dir = tempfile.mkdtemp(prefix='tn_tsv_')
+    #     self.out_dir = tempfile.mkdtemp(prefix='test_tn_tsv_')
     #     unzip(self.out_zip_file, self.out_dir)
     #     remove(self.out_zip_file)
 
@@ -206,7 +205,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
 
     #     soup = None
 
-    #     with codecs.open(file_path, 'r', 'utf-8-sig') as f:
+    #     with open(file_path, 'r') as f:
     #         soup = BeautifulSoup(f, 'html.parser')
 
     #     if not soup:

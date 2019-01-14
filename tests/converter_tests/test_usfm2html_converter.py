@@ -1,4 +1,3 @@
-import codecs
 import os
 import tempfile
 import unittest
@@ -17,7 +16,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
     def setUp(self):
         """Runs before each test."""
         GlobalSettings(prefix='{0}-'.format(self._testMethodName))
-        self.temp_dir = tempfile.mkdtemp(prefix='TestUsfmHtmlConverter')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_UsfmHtmlConverter')
 
     def tearDown(self):
         """Runs after each test."""
@@ -197,7 +196,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
             self.assertTrue(os.path.isfile(file_name), 'UDB HTML file not found: {0}'.format(file_name))
 
             usfm = None
-            with codecs.open(file_name, 'r', 'utf-8-sig') as usfm_file:
+            with open(file_name, 'r') as usfm_file:
                 usfm = usfm_file.read()
 
             self.assertIsNotNone(usfm)

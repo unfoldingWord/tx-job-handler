@@ -1,7 +1,6 @@
 import os
 import tempfile
 import unittest
-import codecs
 import shutil
 from contextlib import closing
 from converters.md2html_converter import Md2HtmlConverter
@@ -68,7 +67,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
 
         # verify the output
         self.assertTrue(os.path.isfile(out_zip_file), "There was no output zip file produced.")
-        self.out_dir = tempfile.mkdtemp(prefix='obs_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_obs_')
         unzip(out_zip_file, self.out_dir)
         remove(out_zip_file)
         files_to_verify = []
@@ -103,7 +102,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         self.doTransformTa(file_name)
         self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         self.assertIsNotNone(self.return_val, "There was no return value.")
-        self.out_dir = tempfile.mkdtemp(prefix='ta_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_ta_')
         unzip(self.out_zip_file, self.out_dir)
         remove(self.out_zip_file)
         files_to_verify = ['checking.html', 'checking-toc.yaml', 'intro.html', 'intro-toc.yaml',
@@ -127,7 +126,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         self.assertIsNotNone(self.return_val, "There was no return value.")
-        self.out_dir = tempfile.mkdtemp(prefix='tw_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
         unzip(self.out_zip_file, self.out_dir)
         remove(self.out_zip_file)
 
@@ -154,7 +153,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         self.assertIsNotNone(self.return_val, "There was no return value.")
-        self.out_dir = tempfile.mkdtemp(prefix='tw_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
         unzip(self.out_zip_file, self.out_dir)
         remove(self.out_zip_file)
 
@@ -178,7 +177,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         self.assertIsNotNone(self.return_val, "There was no return value.")
-        self.out_dir = tempfile.mkdtemp(prefix='tw_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
         unzip(self.out_zip_file, self.out_dir)
         remove(self.out_zip_file)
 
@@ -208,7 +207,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         self.assertIsNotNone(self.return_val, "There was no return value.")
-        self.out_dir = tempfile.mkdtemp(prefix='tw_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
         unzip(self.out_zip_file, self.out_dir)
         remove(self.out_zip_file)
 
@@ -287,7 +286,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
             missing_chapters = []
         self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         self.assertIsNotNone(self.return_val, "There was no return value.")
-        self.out_dir = tempfile.mkdtemp(prefix='obs_')
+        self.out_dir = tempfile.mkdtemp(prefix='test_obs_')
         unzip(self.out_zip_file, self.out_dir)
         remove(self.out_zip_file)
 
@@ -325,7 +324,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
 
         soup = None
 
-        with codecs.open(file_path, 'r', 'utf-8-sig') as f:
+        with open(file_path, 'r') as f:
             soup = BeautifulSoup(f, 'html.parser')
 
         if not soup:

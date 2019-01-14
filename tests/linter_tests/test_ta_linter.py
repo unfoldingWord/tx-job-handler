@@ -12,7 +12,7 @@ class TestTaLinter(LinterTestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='temp_ta_')
+        self.temp_dir = tempfile.mkdtemp(prefix='test_ta_')
 
     def tearDown(self):
         """Runs after each test."""
