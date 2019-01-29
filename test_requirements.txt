@@ -11,15 +11,14 @@ pyyaml==3.13
 py-dateutil==2.2.0
 
 # sqlalchemy is used by manifest
-sqlalchemy==1.2.15
-pymysql==0.8.1
-# NOTE: pymysql 0.9.2 wouldn't work in docker build
+sqlalchemy==1.2.16
+pymysql==0.9.3
 
 # boto3 is used by aws_tools
-boto3==1.9.75
+boto3==1.9.82
 
 # pyparsing is used by usfm_tools/parseUsfm.py
-pyparsing==2.3.0
+pyparsing==2.3.1
 
 # markdown is used by converters/md2html_converter.py
 markdown==3.0.1
