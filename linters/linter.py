@@ -20,7 +20,7 @@ class Linter(metaclass=ABCMeta):
     """
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
 
-    def __init__(self, source_url=None, source_file=None, source_dir=None, commit_data=None,
+    def __init__(self, repo_subject=None, source_url=None, source_file=None, source_dir=None, commit_data=None,
                  lint_callback=None, identifier=None, s3_results_key=None, **kwargs):
         """
         :param string source_url: The main way to give Linter the files
@@ -32,9 +32,11 @@ class Linter(metaclass=ABCMeta):
         :param string s3_results_key:
         :params dict kwargs: Seem to be ignored
         """
-        GlobalSettings.logger.debug(f"Linter.__init__(url={source_url}, file={source_file},"
+        GlobalSettings.logger.debug(f"Linter.__init__(subj={repo_subject}, url={source_url}, file={source_file},"
                                     f" dir={source_dir}, cd={commit_data}, callback={lint_callback},"
                                     f" id={identifier}, s3k={s3_results_key})")
+        self.repo_subject = repo_subject
+        assert self.repo_subject # Make this compulsory
         self.source_zip_url = source_url
         self.source_zip_file = source_file
         self.source_dir = source_dir

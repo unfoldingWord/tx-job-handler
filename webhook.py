@@ -107,7 +107,7 @@ def get_linter_module(glm_job):
 
 def do_linting(param_dict, source_dir, linter_name, linter_class):
     """
-    :param dict param_dict: Will be updated!
+    :param dict param_dict: Will be updated for build log!
     :param str linter_name:
     """
     GlobalSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
@@ -116,7 +116,7 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     # TODO: Why does the linter download the (zip) file again???
     #linter = linter_class(source_url=param_dict['source'])
     # TODO: Why does the linter not find books if we give it the preprocessed files???
-    linter = linter_class(source_dir=source_dir)
+    linter = linter_class(repo_subject=param_dict['resource_type'], source_dir=source_dir)
     lint_result = linter.run()
     linter.close()  # do cleanup after run
     param_dict['linter_success'] = lint_result['success']
@@ -151,7 +151,7 @@ def get_converter_module(gcm_job):
 
 def do_converting(param_dict, source_dir, converter_name, converter_class):
     """
-    :param dict param_dict: Will be updated!
+    :param dict param_dict: Will be updated for build log!
     :param str converter_name:
     """
     GlobalSettings.logger.debug(f"do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )")

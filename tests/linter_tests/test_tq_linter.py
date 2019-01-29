@@ -35,7 +35,7 @@ class TestTqLinter(LinterTestCase):
         mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tq linting
         expected_warnings = 0
         zip_file = os.path.join(self.resources_dir, 'tq_linter', 'en_tq.zip')
-        linter = TqLinter(source_file=zip_file, commit_data=self.commit_data)
+        linter = TqLinter(repo_subject='Translation_Questions', source_file=zip_file, commit_data=self.commit_data)
 
         # when
         linter.run()
@@ -67,7 +67,7 @@ class TestTqLinter(LinterTestCase):
         file_utils.write_file(file_path, 'dummy')
 
         new_zip = self.create_new_zip(out_dir)
-        linter = TqLinter(source_file=new_zip, commit_data=self.commit_data)
+        linter = TqLinter(repo_subject='Translation_Questions', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         linter.run()

@@ -56,8 +56,8 @@ class TnLinter(MarkdownLinter):
                     found_files = True
                     break
 
-            if not found_files:
-                msg = f"Missing book: '{dir}'"
+            if not found_files and 'OBS' not in self.repo_subject:
+                msg = f"Missing tN book: '{dir}'"
                 self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
 
@@ -129,7 +129,7 @@ class TnTsvLinter(Linter):
                     found_file = True
                     break
             if not found_file:
-                msg = f"Missing book: '{dir}'"
+                msg = f"Missing tN tsv book: '{dir}'"
                 self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
 

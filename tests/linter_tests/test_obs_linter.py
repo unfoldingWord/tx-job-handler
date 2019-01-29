@@ -38,7 +38,7 @@ class TestObsLinter(LinterTestCase):
         source_dir = os.path.join(self.temp_dir, 'en-obs')
         mock_invoke.return_value = {}
         expected_warnings = True
-        linter = ObsLinter(source_dir=source_dir)
+        linter = ObsLinter(repo_subject='Open_Bible_Stories', source_dir=source_dir)
         linter.run()
         self.verify_results(expected_warnings, linter)
 
@@ -121,7 +121,7 @@ class TestObsLinter(LinterTestCase):
         self.verify_results(expected_warnings, linter)
 
     def run_linter(self):
-        linter = ObsLinter(source_dir=self.repo_dir)
+        linter = ObsLinter(repo_subject='Open_Bible_Stories', source_dir=self.repo_dir)
         linter.run()
         return linter
 
