@@ -12,7 +12,7 @@ from general_tools.file_utils import remove_tree
 
 class MyConverter(Converter):
     def __init__(self, source, resource, cdn_file=None, options=None, convert_callback=None, identifier=None):
-        super(MyConverter, self).__init__(source, resource, cdn_file=cdn_file, options=options,
+        super(MyConverter, self).__init__(source, resource, cdn_file_key=cdn_file, options=options,
                                           convert_callback=convert_callback, identifier=identifier)
         self.convert_return = None
         self.download_return = None
@@ -51,84 +51,84 @@ class TestConverter(unittest.TestCase):
         # delete temp files
         remove_tree(self.temp_dir)
 
-    @mock.patch('requests.post')
-    def test_convert_callback_success(self, mock_request_post):
-        # given
-        params = self.params
-        params['convert_callback'] = 'http://dummy.org'
-        converter = self.get_converter(params)
-        expected_response_code = 200
-        response_string = 'OK'
-        self.get_mock_response(mock_request_post, expected_response_code, response_string)
+    # @mock.patch('requests.post')
+    # def test_convert_callback_success(self, mock_request_post):
+    #     # given
+    #     params = self.params
+    #     params['convert_callback'] = 'http://dummy.org'
+    #     converter = self.get_converter(params)
+    #     expected_response_code = 200
+    #     response_string = 'OK'
+    #     self.get_mock_response(mock_request_post, expected_response_code, response_string)
 
-        # when
-        with closing(converter) as tx:
-            tx.input_zip_file = self.zip_file
-            results = tx.run()
+    #     # when
+    #     with closing(converter) as tx:
+    #         tx.input_zip_file = self.zip_file
+    #         results = tx.run()
 
-        # then
-        self.validate_response(results, tx, expected_response_code)
+    #     # then
+    #     self.validate_response(results, tx, expected_response_code)
 
-    @mock.patch('requests.post')
-    def test_convert_callback_failure(self, mock_request_post):
-        # given
-        params = self.params
-        params['convert_callback'] = 'http://dummy.org'
-        converter = self.get_converter(params)
-        expected_response_code = 504
-        response_string = 'Timed out'
-        self.get_mock_response(mock_request_post, expected_response_code, response_string)
-        params = self.params
-        params['convert_callback'] = 'http://dummy.org'
+    # @mock.patch('requests.post')
+    # def test_convert_callback_failure(self, mock_request_post):
+    #     # given
+    #     params = self.params
+    #     params['convert_callback'] = 'http://dummy.org'
+    #     converter = self.get_converter(params)
+    #     expected_response_code = 504
+    #     response_string = 'Timed out'
+    #     self.get_mock_response(mock_request_post, expected_response_code, response_string)
+    #     params = self.params
+    #     params['convert_callback'] = 'http://dummy.org'
 
-        # when
-        with closing(converter) as tx:
-            tx.input_zip_file = self.zip_file
-            results = tx.run()
+    #     # when
+    #     with closing(converter) as tx:
+    #         tx.input_zip_file = self.zip_file
+    #         results = tx.run()
 
-        # then
-        self.validate_response(results, tx, expected_response_code)
+    #     # then
+    #     self.validate_response(results, tx, expected_response_code)
 
-    @mock.patch('requests.post')
-    def test_convert_callback_invalid_url(self, mock_request_post):
-        # given
-        params = self.params
-        params['convert_callback'] = 'http://dummy.org'
-        converter = self.get_converter(params)
-        expected_response_code = 0
-        response_string = 'Timed out'
-        self.get_mock_response(mock_request_post, expected_response_code, response_string)
-        params = self.params
-        params['convert_callback'] = 'dummy.org'
+    # @mock.patch('requests.post')
+    # def test_convert_callback_invalid_url(self, mock_request_post):
+    #     # given
+    #     params = self.params
+    #     params['convert_callback'] = 'http://dummy.org'
+    #     converter = self.get_converter(params)
+    #     expected_response_code = 0
+    #     response_string = 'Timed out'
+    #     self.get_mock_response(mock_request_post, expected_response_code, response_string)
+    #     params = self.params
+    #     params['convert_callback'] = 'dummy.org'
 
-        # when
-        with closing(converter) as tx:
-            tx.input_zip_file = self.zip_file
-            results = tx.run()
+    #     # when
+    #     with closing(converter) as tx:
+    #         tx.input_zip_file = self.zip_file
+    #         results = tx.run()
 
-        # then
-        self.validate_response(results, tx, expected_response_code)
+    #     # then
+    #     self.validate_response(results, tx, expected_response_code)
 
-    @mock.patch('requests.post')
-    def test_convert_callback_missing_identifier(self, mock_request_post):
-        # given
-        params = self.params
-        params['convert_callback'] = 'http://dummy.org'
-        converter = self.get_converter(params)
-        expected_response_code = 200
-        response_string = 'OK'
-        self.get_mock_response(mock_request_post, expected_response_code, response_string)
-        params = self.params
-        params['convert_callback'] = 'http://dummy.org'
-        del params['identifier']
+    # @mock.patch('requests.post')
+    # def test_convert_callback_missing_identifier(self, mock_request_post):
+    #     # given
+    #     params = self.params
+    #     params['convert_callback'] = 'http://dummy.org'
+    #     converter = self.get_converter(params)
+    #     expected_response_code = 200
+    #     response_string = 'OK'
+    #     self.get_mock_response(mock_request_post, expected_response_code, response_string)
+    #     params = self.params
+    #     params['convert_callback'] = 'http://dummy.org'
+    #     del params['identifier']
 
-        # when
-        with closing(converter) as tx:
-            tx.input_zip_file = self.zip_file
-            results = tx.run()
+    #     # when
+    #     with closing(converter) as tx:
+    #         tx.input_zip_file = self.zip_file
+    #         results = tx.run()
 
-        # then
-        self.validate_response(results, tx, expected_response_code, valid_identifier=False)
+    #     # then
+    #     self.validate_response(results, tx, expected_response_code, valid_identifier=False)
 
     #
     # helpers
@@ -159,9 +159,9 @@ class TestConverter(unittest.TestCase):
         cdn_file = params['cdn_file']
         options = params['options']
         identifier = None if 'identifier' not in params else params['identifier']
-        convert_callback = None if 'convert_callback' not in params else params['convert_callback']
-        converter = Usfm2HtmlConverter(source, resource, cdn_file=cdn_file, options=options,
-                                       convert_callback=convert_callback, identifier=identifier)
+        # convert_callback = None if 'convert_callback' not in params else params['convert_callback']
+        converter = Usfm2HtmlConverter(source, resource, cdn_file_key=cdn_file, options=options,
+                                       identifier=identifier)
         converter.download_return = True
         converter.upload_return = True
         converter.convert_return = True

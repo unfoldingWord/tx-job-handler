@@ -154,20 +154,19 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     :param dict param_dict: Will be updated for build log!
     :param str converter_name:
     """
-    GlobalSettings.logger.debug(f"do_converting( {len(param_dict)}, {source_dir}, {converter_name}, {converter_class} )")
+    GlobalSettings.logger.debug(f"do_converting( {len(param_dict)} fields, {source_dir}, {converter_name}, {converter_class} )")
     param_dict['status'] = 'converting'
-    cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
 
-    # TODO: Why does the converter download the (zip) file again???
-    converter = converter_class(param_dict['source'],
-                                                param_dict['resource_type'],
-                                                cdn_file=cdn_file_key)
-    convert_result = converter.run()
-    converter.close()  # do cleanup after run
-    param_dict['converter_success'] = convert_result['success']
-    param_dict['converter_info'] = convert_result['info']
-    param_dict['converter_warnings'] = convert_result['warnings']
-    param_dict['converter_errors'] = convert_result['errors']
+    cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
+    converter = converter_class( param_dict['resource_type'],
+                                 source_dir=source_dir,
+                                 cdn_file_key=cdn_file_key) # Key for uploading
+    convert_result_dict = converter.run()
+    converter.close() # do cleanup after run
+    param_dict['converter_success'] = convert_result_dict['success']
+    param_dict['converter_info'] = convert_result_dict['info']
+    param_dict['converter_warnings'] = convert_result_dict['warnings']
+    param_dict['converter_errors'] = convert_result_dict['errors']
     param_dict['status'] = 'converted'
     # GlobalSettings.logger.debug(f"do_converting is returning with {param_dict}")
     #return param_dict

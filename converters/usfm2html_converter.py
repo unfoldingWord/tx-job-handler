@@ -16,7 +16,8 @@ class Usfm2HtmlConverter(Converter):
 
         # Find the first directory that has usfm files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
-        convert_only_list = self.check_for_exclusive_convert()
+        # convert_only_list = self.check_for_exclusive_convert()
+        convert_only_list = [] # Not totally sure what the above line did
 
         current_dir = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
@@ -52,7 +53,7 @@ class Usfm2HtmlConverter(Converter):
                     GlobalSettings.logger.debug(f"Usfm2HtmlConverter got multiple consecutive paragraph closures in converted {html_filename}")
                 # Now what are we doing with the converted html ???
                 template_soup = BeautifulSoup(template_html, 'html.parser')
-                template_soup.head.title.string = self.resource.upper()
+                template_soup.head.title.string = self.repo_subject
                 converted_soup = BeautifulSoup(converted_html, 'html.parser')
                 content_div = template_soup.find('div', id='content')
                 content_div.clear()

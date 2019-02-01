@@ -15,7 +15,7 @@ class ConTeXtRenderer(abstractRenderer.AbstractRenderer):
         self.outputFilename = outputFilename
         self.inputDir = inputDir
         # Flags
-        self.printerState = {u'li': False, 'd': False}
+        self.printerState = {'li': False, 'd': False}
         self.smallCapSections = True  # Sometimes we don't want to do this, like for Psalms
         self.justDidLORD = False
         self.justDidNB = False
@@ -89,8 +89,8 @@ class ConTeXtRenderer(abstractRenderer.AbstractRenderer):
          return '{\sc ' + s + '}'
 
     def startLI(self):
-        if self.printerState[u'li'] == False:
-            self.printerState[u'li'] = True
+        if self.printerState['li'] == False:
+            self.printerState['li'] = True
             #return '\startitemize \item '
             return r'\startexdent '
         else:
@@ -98,27 +98,27 @@ class ConTeXtRenderer(abstractRenderer.AbstractRenderer):
             return r'\par '
 
     def stopLI(self):
-        if self.printerState[u'li'] == False:
+        if self.printerState['li'] == False:
             return ''
-        #elif self.printerState[u'li2'] == False:
+        #elif self.printerState['li2'] == False:
             #return ''
-        #elif self.printerState[u'li3'] == False:
+        #elif self.printerState['li3'] == False:
             #return ''
         else:
-            self.printerState[u'li'] = False
+            self.printerState['li'] = False
             #return '\stopitemize'
             return r'\stopexdent '
 
     def startD(self):
-        if self.printerState[u'd'] == False:
-            self.printerState[u'd'] = True
+        if self.printerState['d'] == False:
+            self.printerState['d'] = True
         return '\par {\startalignment[center] \em '
 
     def stopD(self):
-        if self.printerState[u'd'] == False:
+        if self.printerState['d'] == False:
             return ''
         else:
-            self.printerState[u'd'] = False
+            self.printerState['d'] = False
             return '\stopalignment }'
 
     def newLine(self):
