@@ -42,7 +42,9 @@ class Md2HtmlConverter(Converter):
                 with open(filename, 'rt') as md_file:
                     md = md_file.read()
                 html = markdown.markdown(md)
-                html = html_template.safe_substitute(title=self.repo_subject, content=html)
+                html = html_template.safe_substitute(
+                                            title=self.repo_subject.replace('_',' '),
+                                            content=html)
                 base_name = os.path.splitext(os.path.basename(filename))[0]
                 found_chapters[base_name] = True
                 html_filename = base_name + '.html'
@@ -92,7 +94,9 @@ class Md2HtmlConverter(Converter):
                         write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html)
                 else:
                     html = markdown.markdown(md)
-                html = html_template.safe_substitute(title=self.repo_subject, content=html)
+                html = html_template.safe_substitute(
+                                        title=self.repo_subject.replace('_',' '),
+                                        content=html)
                 if prefix and debug_mode_flag:
                     write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)
 
