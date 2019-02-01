@@ -452,7 +452,7 @@ class TestUsfmLinter(LinterTestCase):
         sub_path = self.php_file_name
         file_name = "PHP.usfm"
         expected_warnings = 1
-        linter = UsfmLinter(source_dir=out_dir)
+        linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir)
         linter.parse_file(file_path, sub_path, file_name)
         self.verify_results_counts(expected_warnings, linter)
 
@@ -463,7 +463,7 @@ class TestUsfmLinter(LinterTestCase):
         book_code = "PHP"
         book_text = None
         expected_warnings = 1
-        linter = UsfmLinter()
+        linter = UsfmLinter(repo_subject='Bible')
         linter.parse_usfm_text(sub_path, file_name, book_text, book_full_name, book_code)
         self.verify_results_counts(expected_warnings, linter)
 
@@ -474,7 +474,7 @@ class TestUsfmLinter(LinterTestCase):
         book_code = "PHP"
         book_text = ''
         expected_warnings = 1
-        linter = UsfmLinter()
+        linter = UsfmLinter(repo_subject='Bible')
         linter.parse_usfm_text(sub_path, file_name, book_text, book_full_name, book_code)
         self.verify_results_counts(expected_warnings, linter)
 
@@ -484,7 +484,7 @@ class TestUsfmLinter(LinterTestCase):
         expected_warnings = 0
         start = time.time()
         rc = RC(out_dir)
-        linter = UsfmLinter(source_dir=out_dir, rc=rc)
+        linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir, rc=rc)
         linter.run()
         elapsed_seconds = int(time.time() - start)
         GlobalSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
@@ -496,7 +496,7 @@ class TestUsfmLinter(LinterTestCase):
         expected_warnings = 0
         start = time.time()
         rc = RC(out_dir)
-        linter = UsfmLinter(source_dir=out_dir, rc=rc)
+        linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir, rc=rc)
         linter.run()
         elapsed_seconds = int(time.time() - start)
         GlobalSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
@@ -508,7 +508,7 @@ class TestUsfmLinter(LinterTestCase):
         start = time.time()
         rc = RC(out_dir)
         convert_only = '51-PHP.usfm'
-        linter = UsfmLinter(source_dir=out_dir, rc=rc, single_file=convert_only)
+        linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir, rc=rc, single_file=convert_only)
         linter.run()
         elapsed_seconds = int(time.time() - start)
         GlobalSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
@@ -519,7 +519,7 @@ class TestUsfmLinter(LinterTestCase):
     #
 
     def run_linter(self, out_dir):
-        linter = UsfmLinter(source_dir=out_dir)
+        linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir)
         linter.run()
         return linter
 

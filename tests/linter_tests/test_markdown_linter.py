@@ -66,7 +66,7 @@ class TestMarkdownLinter(LinterTestCase):
         }
         zip_file = os.path.join(self.resources_dir, 'ta_linter', 'en_ta.zip')
         identifier = 'test'
-        linter = MarkdownLinter(source_file=zip_file, commit_data=commit_data, identifier=identifier)
+        linter = MarkdownLinter(repo_subject='Translation_Academy', source_file=zip_file, commit_data=commit_data, identifier=identifier)
         results = linter.run()
         expected = {
             'identifier': identifier,
@@ -82,6 +82,6 @@ class TestMarkdownLinter(LinterTestCase):
         self.assertDictEqual(results, expected)
 
     def test_strip_tags(self):
-        ml = MarkdownLinter()
+        ml = MarkdownLinter(repo_subject='Unknown')
         text = ml.strip_tags('<a href="test"><u>remove my tags')
         self.assertEqual(text, 'remove my tags')

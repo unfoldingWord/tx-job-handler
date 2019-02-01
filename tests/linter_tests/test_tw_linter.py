@@ -34,7 +34,7 @@ class TestTwLinter(LinterTestCase):
         mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tw linting
         expected_warnings = 18
         zip_file = os.path.join(self.resources_dir, 'tw_linter', 'en_tw.zip')
-        linter = TwLinter(source_file=zip_file, commit_data=self.commit_data)
+        linter = TwLinter(repo_subject='Translation_Words', source_file=zip_file, commit_data=self.commit_data)
 
         # when
         linter.run()
@@ -54,7 +54,7 @@ class TestTwLinter(LinterTestCase):
         self.replace_text(out_dir, 'en_tw/bible/other/alarm.md', '(../names/jehoshaphat.md)', '(../kt/jehoshaphat.md)')
         self.replace_text(out_dir, 'en_tw/bible/kt/anoint.md', '(../kt/consecrate.md)', '(..//consecrate.md)')
         new_zip = self.create_new_zip(out_dir)
-        linter = TwLinter(source_file=new_zip, commit_data=self.commit_data)
+        linter = TwLinter(repo_subject='Translation_Words', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         linter.run()

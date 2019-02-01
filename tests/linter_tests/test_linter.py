@@ -8,9 +8,9 @@ from linters.linter import Linter
 
 
 class MyLinter(Linter):
-    def __init__(self, source_url=None, source_file=None, source_dir=None, commit_data=None,
+    def __init__(self, repo_subject=None, source_url=None, source_file=None, source_dir=None, commit_data=None,
                  lint_callback=None, identifier=None, **kwargs):
-        super(MyLinter, self).__init__(source_url=source_url, source_file=source_file,
+        super(MyLinter, self).__init__(repo_subject=repo_subject, source_url=source_url, source_file=source_file,
                                        source_dir=source_dir, commit_data=commit_data,
                                        lint_callback=lint_callback, identifier=identifier, **kwargs)
         self.lint_warning_count = 1
@@ -36,13 +36,13 @@ class TestLinter(LinterTestCase):
         self.assertRaises(TypeError, Linter, None)
 
     def test_run(self):
-        linter = MyLinter(source_file=os.path.join(self.resources_dir, 'linter', 'files.zip'))
+        linter = MyLinter(repo_subject='Unknown', source_file=os.path.join(self.resources_dir, 'linter', 'files.zip'))
         results = linter.run()
         self.assertEqual(len(results['warnings']), 1)
         self.assertEqual(results['warnings'][0], 'warning')
 
     def test_runException(self):
-        linter = MyLinter(source_url='#broken')
+        linter = MyLinter(repo_subject='Unknown', source_url='#broken')
         results = linter.run()
         self.assertFalse(results['success'])
         self.assertEqual(len(results['warnings']), 1)
@@ -54,7 +54,7 @@ class TestLinter(LinterTestCase):
         self.set_mock_response(mock_request_post, expected_response_code, response_string)
         lint_callback = 'http://dummy.org'
         identifier = "my_stuff"
-        linter = MyLinter(source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
+        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
                           identifier=identifier)
         linter.mock_download = True
         results = linter.run()
@@ -67,7 +67,7 @@ class TestLinter(LinterTestCase):
         self.set_mock_response(mock_request_post, expected_response_code, response_string)
         lint_callback = 'http://dummy.org'
         identifier = "my_stuff"
-        linter = MyLinter(source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
+        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
                           identifier=identifier)
         results = linter.run()
         self.validate_response(results, linter, expected_response_code, valid_identifier=True)
@@ -79,7 +79,7 @@ class TestLinter(LinterTestCase):
         self.set_mock_response(mock_request_post, expected_response_code, response_string)
         lint_callback = 'dummy.org'
         identifier = "my_stuff"
-        linter = MyLinter(source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
+        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
                           identifier=identifier)
         results = linter.run()
         self.validate_response(results, linter, expected_response_code, valid_identifier=True)
@@ -91,7 +91,7 @@ class TestLinter(LinterTestCase):
         self.set_mock_response(mock_request_post, expected_response_code, response_string)
         lint_callback = 'http://dummy.org'
         # identifier = "my_stuff"
-        linter = MyLinter(source_url='#broken', source_dir='source_dir', lint_callback=lint_callback)
+        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback)
         linter.mock_download = True
         results = linter.run()
         self.validate_response(results, linter, expected_response_code, valid_identifier=False)

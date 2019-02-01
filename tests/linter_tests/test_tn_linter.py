@@ -19,7 +19,7 @@ class TestTnLinter(LinterTestCase):
         self.temp_dir = tempfile.mkdtemp(prefix='test__tn_')
         self.commit_data = {
             'repository': {
-                'name': 'en_tq',
+                'name': 'en_tn',
                 'owner': {
                     'username': 'door43'
                 }
@@ -36,7 +36,7 @@ class TestTnLinter(LinterTestCase):
         mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tn linting
         expected_warnings = 0
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.zip')
-        linter = TnLinter(source_file=zip_file, commit_data=self.commit_data, single_file='01-GEN.md')
+        linter = TnLinter(repo_subject='Translation_Notes', source_file=zip_file, commit_data=self.commit_data, single_file='01-GEN.md')
         linter.download_archive = self.mock_download_archive
 
         # when
@@ -80,7 +80,7 @@ class TestTnLinter(LinterTestCase):
         file_utils.write_file(file_path, 'dummy')
 
         new_zip = self.create_new_zip(out_dir)
-        linter = TnLinter(source_file=new_zip, commit_data=self.commit_data)
+        linter = TnLinter(repo_subject='Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         linter.run()
@@ -114,7 +114,7 @@ class TestTnLinter(LinterTestCase):
                     file_utils.remove_tree(book_path)
 
         new_zip = self.create_new_zip(out_dir)
-        linter = TnLinter(source_file=new_zip, commit_data=self.commit_data)
+        linter = TnLinter(repo_subject='Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         results = linter.run()
@@ -182,7 +182,7 @@ class TestTnTsvLinter(LinterTestCase):
         # given
         expected_warnings = 218 # 527 for entire Bible 66 books
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.tsv.zip')
-        linter = TnTsvLinter(source_file=zip_file, commit_data=self.commit_data, single_file='en_tn_01-GEN.tsv')
+        linter = TnTsvLinter(repo_subject='Translation_Notes', source_file=zip_file, commit_data=self.commit_data, single_file='en_tn_01-GEN.tsv')
         linter.download_archive = self.mock_download_archive
 
         # when
@@ -214,7 +214,7 @@ class TestTnTsvLinter(LinterTestCase):
         file_utils.write_file(file_path, 'dummy')
 
         new_zip = self.create_new_zip(out_dir)
-        linter = TnTsvLinter(source_file=new_zip, commit_data=self.commit_data)
+        linter = TnTsvLinter(repo_subject='Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         linter.run()
@@ -245,7 +245,7 @@ class TestTnTsvLinter(LinterTestCase):
                     file_utils.remove_tree(book_path)
 
         new_zip = self.create_new_zip(out_dir)
-        linter = TnTsvLinter(source_file=new_zip, commit_data=self.commit_data)
+        linter = TnTsvLinter(repo_subject='Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         results = linter.run()

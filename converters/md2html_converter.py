@@ -16,7 +16,7 @@ from converters.converter import Converter
 class Md2HtmlConverter(Converter):
 
     def convert(self):
-        if self.resource == 'obs':
+        if self.repo_subject == 'obs':
             self.convert_obs()
             return True
         else:
@@ -42,7 +42,9 @@ class Md2HtmlConverter(Converter):
                 with open(filename, 'rt') as md_file:
                     md = md_file.read()
                 html = markdown.markdown(md)
-                html = html_template.safe_substitute(title=self.source.upper(), content=html)
+                html = html_template.safe_substitute(
+                                            title=self.repo_subject.replace('_',' '),
+                                            content=html)
                 base_name = os.path.splitext(os.path.basename(filename))[0]
                 found_chapters[base_name] = True
                 html_filename = base_name + '.html'
@@ -65,7 +67,8 @@ class Md2HtmlConverter(Converter):
 
         # Find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
-        convert_only_list = self.check_for_exclusive_convert()
+        # convert_only_list = self.check_for_exclusive_convert()
+        convert_only_list = [] # Not totally sure what the above line did
 
         current_dir = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
@@ -85,13 +88,15 @@ class Md2HtmlConverter(Converter):
                 # Convert files that are markdown files
                 with open(filepath, 'rt') as md_file:
                     md = md_file.read()
-                if self.resource in ['ta']:
+                if self.repo_subject in ['Translation_Academy',]:
                     html = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
                     if prefix and debug_mode_flag:
                         write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html)
                 else:
                     html = markdown.markdown(md)
-                html = html_template.safe_substitute(title=self.resource.upper(), content=html)
+                html = html_template.safe_substitute(
+                                        title=self.repo_subject.replace('_',' '),
+                                        content=html)
                 if prefix and debug_mode_flag:
                     write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)
 

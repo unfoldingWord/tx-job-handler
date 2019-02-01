@@ -56,7 +56,7 @@ class TqLinter(MarkdownLinter):
                         break
                 if found_book_file: break
 
-            if not found_book_file:
+            if not found_book_file and 'OBS' not in self.repo_subject:
                 msg = f"Missing tQ book: '{link}'"
                 self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
