@@ -45,7 +45,7 @@ class Converter(metaclass=ABCMeta):
             self.log.error(f"No such folder: {self.source_dir}")
             return
 
-        self.converter_dir = tempfile.mkdtemp(prefix='tX_JH_converter_' \
+        self.converter_dir = tempfile.mkdtemp(prefix=f'tX_{repo_subject}_converter_' \
                                 + datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S_'))
         self.download_dir = os.path.join(self.converter_dir, 'Download/')
         os.mkdir(self.download_dir)
