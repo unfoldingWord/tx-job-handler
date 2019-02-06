@@ -18,7 +18,9 @@ from converters.convert_logger import ConvertLogger
 class Converter(metaclass=ABCMeta):
     """
     """
-    EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
+    # RJH removed ReadMe so it can display for otherwise empty repos
+    #   (but usually it's not copied across by the preprocessors anyway).
+    EXCLUDED_FILES = ['license.md', 'package.json', 'project.json'] #, 'readme.md']
 
 
     def __init__(self, repo_subject, source_dir, cdn_file_key=None, options=None, identifier=None):
