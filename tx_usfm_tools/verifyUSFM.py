@@ -423,7 +423,7 @@ def verifyChapterCount():
 def verifyTextTranslated(text, token):
     found, word = needsTranslation(text)
     if found:
-        report_error("Token '\\{0}' has untranslated word '{1}'".format(token, word))
+        report_error(f"Token '\\{token}' has possible untranslated word '{word}'")
 
 def needsTranslation(text):
     state = State()
