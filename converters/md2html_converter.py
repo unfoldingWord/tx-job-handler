@@ -63,7 +63,7 @@ class Md2HtmlConverter(Converter):
 
 
     def convert_markdown(self):
-        logging.info("Converting Markdown files…")
+        self.log.info("Converting Markdown files…")
 
         # Find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
