@@ -44,7 +44,7 @@ class Linter(metaclass=ABCMeta):
 
         self.log = LintLogger()
 
-        self.temp_dir = tempfile.mkdtemp(prefix='tX_JH_linter_' \
+        self.temp_dir = tempfile.mkdtemp(prefix=f'tX_{repo_subject}_linter_' \
                                 + datetime.utcnow().strftime('%Y-%m-%d_%H:%M:%S_'))
 
         self.repo_owner = ''
