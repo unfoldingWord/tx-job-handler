@@ -50,7 +50,7 @@ LINTER_TABLE = (
     ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
                                                 'OBS_Translation_Questions','tq',),     ),
     ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw',),             ),
-    ('markdown', MarkdownLinter, ('md','txt'), ('other',),                              ),
+    ('markdown', MarkdownLinter, ('md','txt'), ('Generic_Markdown','other',),                              ),
     # ('udb',      UdbLinter,      ('usfm',),  ('udb',),                                ),
     # ('ulb',      UlbLinter,      ('usfm',),  ('ulb',),                                ),
     ('usfm',     UsfmLinter,     ('usfm',),    ('Bible','Aligned_Bible',
@@ -60,7 +60,8 @@ LINTER_TABLE = (
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
-                    ('Open_Bible_Stories','OBS_Translation_Notes','OBS_Translation_Questions','obs',
+                    ('Generic_Markdown',
+                    'Open_Bible_Stories','OBS_Translation_Notes','OBS_Translation_Questions','obs',
                     'Translation_Academy','ta', 'Translation_Questions','tq', 'Translation_Words',
                     'Translation_Words','tw', 'Translation_Notes','tn', 'other',),     'html'),
     ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
@@ -89,6 +90,7 @@ def get_linter_module(glm_job):
     :param dict glm_job:
     :return linter name and linter class:
     """
+    # Search the table to find the appropriate linter
     for linter_name, linter_class, input_formats, resource_types in LINTER_TABLE:
         if glm_job['input_format'] in input_formats:
             if glm_job['resource_type'] in resource_types:
@@ -219,8 +221,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     queued_json_payload MUST have the following fields:
         job_id (string)
-        source (url string)
-        resource_type (e.g., obs, ta, tn, tq, tw, bible)
+        source (url string of zip file)
+        resource_type = a subject as specified in https://api.door43.org/v3/subjects
         input_format (e.g., md, usfm, tsv)
         output_format (currently only 'html' is recognised)
     The following OPTIONAL fields are used if present:
