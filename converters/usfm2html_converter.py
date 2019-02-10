@@ -3,6 +3,7 @@ import tempfile
 from bs4 import BeautifulSoup
 from shutil import copyfile
 
+from rq_settings import prefix, debug_mode_flag
 from global_settings.global_settings import GlobalSettings
 from general_tools.file_utils import write_file, remove_tree, get_files
 from converters.converter import Converter
@@ -86,7 +87,8 @@ class Usfm2HtmlConverter(Converter):
                     GlobalSettings.logger.debug(f"Usfm2HtmlConverter {html_filename} was {converted_html_length:,} now {template_soup_string_length:,}")
                     # GlobalSettings.logger.debug(f"Usfm2HtmlConverter {html_filename} was: {converted_html}")
                     write_file(os.path.join(scratch_dir,filebase+'.converted.html'), template_soup_string)
-                    delete_scratch_dir_flag = False
+                    if prefix and debug_mode_flag:
+                        delete_scratch_dir_flag = False
                 #print("Got converted x2 html:", str(template_soup)[:500])
                 # self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
                 if delete_scratch_dir_flag:
