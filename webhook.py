@@ -211,7 +211,10 @@ def download_source_file(source_url, destination_folder):
         if os.path.isfile(source_filepath):
             os.remove(source_filepath)
 
-    GlobalSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {os.listdir(destination_folder)}")
+    str_filelist = str(os.listdir(destination_folder))
+    str_filelist_adjusted = str_filelist if len(str_filelist)<1500 \
+                            else f'{str_filelist[:1000]} …… {str_filelist[-500:]}'
+    GlobalSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {str_filelist_adjusted}")
 #end of download_source_file function
 
 
@@ -279,8 +282,11 @@ def process_tx_job(pj_prefix, queued_json_payload):
     # Find correct source folder
     source_folder_path = base_temp_dir_name
     dirList = os.listdir(base_temp_dir_name)
+    str_dirList = str(dirList)
+    str_dirList_adjusted = str_dirList if len(str_dirList)<1500 \
+                            else f'{str_dirList[:1000]} …… {str_dirList[-500:]}'
     GlobalSettings.logger.debug(f"Discovering source folder from"
-                                f" '{base_temp_dir_name}' with {dirList} …")
+                                f" '{base_temp_dir_name}' with {str_dirList_adjusted} …")
     if len(dirList) == 1:
         tryFolder = os.path.join(base_temp_dir_name, dirList[0])
         if os.path.isdir(tryFolder):
@@ -369,7 +375,10 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
     else:
         remove_tree(base_temp_dir_name)  # cleanup
-    GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {build_log_dict}")
+    str_build_log = str(build_log_dict)
+    str_build_log_adjusted = str_build_log if len(str_build_log)<1500 \
+                            else f'{str_build_log[:1000]} …… {str_build_log[-500:]}'
+    GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {str_build_log_adjusted}")
     return job_descriptive_name
 #end of process_tx_job function
 
