@@ -146,7 +146,7 @@ class Converter(metaclass=ABCMeta):
         #     self.callback_results = results
         #     self.do_callback(self.callback, self.callback_results)
 
-        GlobalSettings.logger.debug(results)
+        # GlobalSettings.logger.debug(results)
         return results
 
 
