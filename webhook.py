@@ -33,29 +33,30 @@ from linters.markdown_linter import MarkdownLinter
 # from linters.udb_linter import UdbLinter
 # from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
+from linters.lexicon_linter import LexiconLinter
 
 from converters.md2html_converter import Md2HtmlConverter
 from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
-# NOTE: The following two tables are scanned in order (so put 'other' entries lower)
-#   All searching of the tables is case-sensitive
+# NOTE: The following two tables are each scanned in order
+#       (so put 'other' entries lower)
+# All searching of the tables is case-sensitive
 # Columns are: 1/ linter name 2/ linter 3/ input formats 4/ resource types
 LINTER_TABLE = (
-    ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs',),           ),
-    ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta',),           ),
-    ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('Translation_Notes','tn',),             ),
+    ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs'),              ),
+    ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta'),              ),
+    ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('TSV_Translation_Notes','tn'),            ),
     ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes',
-                                                'Translation_Notes','tn',),             ),
+                                                'Translation_Notes','tn'),                ),
     ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
-                                                'OBS_Translation_Questions','tq',),     ),
-    ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw',),             ),
-    ('markdown', MarkdownLinter, ('md','txt'), ('Generic_Markdown','other',),                              ),
-    # ('udb',      UdbLinter,      ('usfm',),  ('udb',),                                ),
-    # ('ulb',      UlbLinter,      ('usfm',),  ('ulb',),                                ),
+                                                'OBS_Translation_Questions','tq'),        ),
+    ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw'),                ),
+    ('lexicon',  LexiconLinter,  ('md',),      ('Greek_Lexicon','Hebrew_Aramaic_Lexicon'), ),
+    ('markdown', MarkdownLinter, ('md','txt'), ('Generic_Markdown','other'),              ),
     ('usfm',     UsfmLinter,     ('usfm',),    ('Bible','Aligned_Bible',
                                                 'Greek_New_Testament','Hebrew_Old_Testament',
-                                                'bible', 'reg', 'other',),              ),
+                                                'bible', 'reg', 'other'),                 ),
     )
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
@@ -63,13 +64,17 @@ CONVERTER_TABLE = (
                     ('Generic_Markdown',
                     'Open_Bible_Stories','OBS_Translation_Notes','OBS_Translation_Questions','obs',
                     'Translation_Academy','ta', 'Translation_Questions','tq', 'Translation_Words',
-                    'Translation_Words','tw', 'Translation_Notes','tn', 'other',),     'html'),
+                    'Translation_Words','tw', 'Translation_Notes','tn',
+                    'Greek_Lexicon', 'Hebrew_Aramaic_Lexicon',
+                'other',),                                                          'html'),
     ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
-                    ('Translation_Notes','tn', 'other',),                              'html'),
+                    ('TSV_Translation_Notes','tn',
+                    'other',),                                                      'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
                     ('Bible','Aligned_Bible',
                     'Greek_New_Testament','Hebrew_Old_Testament',
-                    'bible', 'reg', 'other',),                                         'html'),
+                    'bible', 'reg',
+                    'other',),                                                      'html'),
     )
 
 
