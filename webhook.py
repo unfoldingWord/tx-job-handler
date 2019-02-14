@@ -120,9 +120,6 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     GlobalSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
     param_dict['status'] = 'linting'
 
-    # TODO: Why does the linter download the (zip) file again???
-    #linter = linter_class(source_url=param_dict['source'])
-    # TODO: Why does the linter not find books if we give it the preprocessed files???
     linter = linter_class(repo_subject=param_dict['resource_type'], source_dir=source_dir)
     lint_result = linter.run()
     linter.close()  # do cleanup after run
@@ -191,10 +188,10 @@ def download_source_file(source_url, destination_folder):
     """
     GlobalSettings.logger.debug(f"download_source_file( {source_url}, {destination_folder} )")
     source_filepath = os.path.join(destination_folder, source_url.rpartition(os.path.sep)[2])
-    GlobalSettings.logger.info(f"source_filepath: {source_filepath}")
+    GlobalSettings.logger.debug(f"source_filepath: {source_filepath}")
 
     try:
-        GlobalSettings.logger.debug(f"Downloading {source_url} …")
+        GlobalSettings.logger.info(f"Downloading {source_url} …")
 
         # if the file already exists, remove it, we want a fresh copy
         if os.path.isfile(source_filepath):
