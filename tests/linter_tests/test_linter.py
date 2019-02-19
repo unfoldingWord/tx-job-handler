@@ -47,54 +47,55 @@ class TestLinter(LinterTestCase):
         self.assertFalse(results['success'])
         self.assertEqual(len(results['warnings']), 1)
 
-    @mock.patch('requests.post')
-    def test_callback(self, mock_request_post):
-        expected_response_code = 200
-        response_string = 'OK'
-        self.set_mock_response(mock_request_post, expected_response_code, response_string)
-        lint_callback = 'http://dummy.org'
-        identifier = "my_stuff"
-        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
-                          identifier=identifier)
-        linter.mock_download = True
-        results = linter.run()
-        self.validate_response(results, linter, expected_response_code, valid_identifier=True)
+    # Callback code removed Feb 2019 RJH
+    # @mock.patch('requests.post')
+    # def test_callback(self, mock_request_post):
+    #     expected_response_code = 200
+    #     response_string = 'OK'
+    #     self.set_mock_response(mock_request_post, expected_response_code, response_string)
+    #     lint_callback = 'http://dummy.org'
+    #     identifier = "my_stuff"
+    #     linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
+    #                       identifier=identifier)
+    #     linter.mock_download = True
+    #     results = linter.run()
+    #     self.validate_response(results, linter, expected_response_code, valid_identifier=True)
 
-    @mock.patch('requests.post')
-    def test_callback_failure(self, mock_request_post):
-        expected_response_code = 504
-        response_string = 'Timed out'
-        self.set_mock_response(mock_request_post, expected_response_code, response_string)
-        lint_callback = 'http://dummy.org'
-        identifier = "my_stuff"
-        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
-                          identifier=identifier)
-        results = linter.run()
-        self.validate_response(results, linter, expected_response_code, valid_identifier=True)
+    # @mock.patch('requests.post')
+    # def test_callback_failure(self, mock_request_post):
+    #     expected_response_code = 504
+    #     response_string = 'Timed out'
+    #     self.set_mock_response(mock_request_post, expected_response_code, response_string)
+    #     lint_callback = 'http://dummy.org'
+    #     identifier = "my_stuff"
+    #     linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
+    #                       identifier=identifier)
+    #     results = linter.run()
+    #     self.validate_response(results, linter, expected_response_code, valid_identifier=True)
 
-    @mock.patch('requests.post')
-    def test_callback_invalid_url(self, mock_request_post):
-        expected_response_code = 0
-        response_string = 'Timed out'
-        self.set_mock_response(mock_request_post, expected_response_code, response_string)
-        lint_callback = 'dummy.org'
-        identifier = "my_stuff"
-        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
-                          identifier=identifier)
-        results = linter.run()
-        self.validate_response(results, linter, expected_response_code, valid_identifier=True)
+    # @mock.patch('requests.post')
+    # def test_callback_invalid_url(self, mock_request_post):
+    #     expected_response_code = 0
+    #     response_string = 'Timed out'
+    #     self.set_mock_response(mock_request_post, expected_response_code, response_string)
+    #     lint_callback = 'dummy.org'
+    #     identifier = "my_stuff"
+    #     linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback,
+    #                       identifier=identifier)
+    #     results = linter.run()
+    #     self.validate_response(results, linter, expected_response_code, valid_identifier=True)
 
-    @mock.patch('requests.post')
-    def test_callback_missing_identifier(self, mock_request_post):
-        expected_response_code = 200
-        response_string = 'OK'
-        self.set_mock_response(mock_request_post, expected_response_code, response_string)
-        lint_callback = 'http://dummy.org'
-        # identifier = "my_stuff"
-        linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback)
-        linter.mock_download = True
-        results = linter.run()
-        self.validate_response(results, linter, expected_response_code, valid_identifier=False)
+    # @mock.patch('requests.post')
+    # def test_callback_missing_identifier(self, mock_request_post):
+    #     expected_response_code = 200
+    #     response_string = 'OK'
+    #     self.set_mock_response(mock_request_post, expected_response_code, response_string)
+    #     lint_callback = 'http://dummy.org'
+    #     # identifier = "my_stuff"
+    #     linter = MyLinter(repo_subject='Unknown', source_url='#broken', source_dir='source_dir', lint_callback=lint_callback)
+    #     linter.mock_download = True
+    #     results = linter.run()
+    #     self.validate_response(results, linter, expected_response_code, valid_identifier=False)
 
     #
     # helpers

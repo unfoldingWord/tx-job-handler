@@ -11,7 +11,7 @@ import requests
 from rq_settings import prefix, debug_mode_flag
 from general_tools.file_utils import write_file, get_files
 from converters.converter import Converter
-from convert_naked_urls import fix_naked_urls
+from converters.convert_naked_urls import fix_naked_urls
 from global_settings.global_settings import GlobalSettings
 
 
