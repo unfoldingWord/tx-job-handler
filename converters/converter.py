@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 import traceback
-import requests
+# import requests
 from shutil import copy
 from urllib.parse import urlparse, urlunparse, parse_qsl
 from abc import ABCMeta, abstractmethod

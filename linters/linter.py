@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 import traceback
-import requests
+# import requests
 from datetime import datetime
 
 from rq_settings import prefix, debug_mode_flag
@@ -21,7 +21,7 @@ class Linter(metaclass=ABCMeta):
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
 
     def __init__(self, repo_subject=None, source_url=None, source_file=None, source_dir=None, commit_data=None,
-                 lint_callback=None, identifier=None, s3_results_key=None, **kwargs):
+                 identifier=None, s3_results_key=None, **kwargs):
         """
         :param string source_url: The main way to give Linter the files
         :param string source_file: If set, will just unzip this local file
@@ -33,7 +33,7 @@ class Linter(metaclass=ABCMeta):
         :params dict kwargs: Seem to be ignored
         """
         GlobalSettings.logger.debug(f"Linter.__init__(subj={repo_subject}, url={source_url}, file={source_file},"
-                                    f" dir={source_dir}, cd={commit_data}, callback={lint_callback},"
+                                    f" dir={source_dir}, cd={commit_data}" #, callback={lint_callback},"
                                     f" id={identifier}, s3k={s3_results_key})")
         self.repo_subject = repo_subject
         assert self.repo_subject # Make this compulsory
@@ -54,15 +54,16 @@ class Linter(metaclass=ABCMeta):
             self.repo_owner = self.commit_data['repository']['owner']['username']
         self.rc = None   # Constructed later when we know we have a source_dir
 
-        self.callback = lint_callback
+        # assert link_callback is None # I don't think we're using this
+        # self.callback = lint_callback
         self.callback_status = 0
         self.callback_results = None
         self.identifier = identifier
-        if self.callback and not identifier:
-            GlobalSettings.logger.error("Identity not given for callback")
+        # if self.callback and not identifier:
+        #     GlobalSettings.logger.error("Identity not given for callback")
         self.s3_results_key = s3_results_key
-        if self.callback and not s3_results_key:
-            GlobalSettings.logger.error("s3_results_key not given for callback")
+        # if self.callback and not s3_results_key:
+        #     GlobalSettings.logger.error("s3_results_key not given for callback")
 
     def close(self):
         """delete temp files"""
@@ -126,9 +127,9 @@ class Linter(metaclass=ABCMeta):
             's3_results_key': self.s3_results_key
         }
 
-        if self.callback is not None:
-            self.callback_results = results
-            self.do_callback(self.callback, self.callback_results)
+        # if self.callback is not None:
+        #     self.callback_results = results
+        #     self.do_callback(self.callback, self.callback_results)
 
         GlobalSettings.logger.debug(f"Linter results: {results}")
         return results
@@ -153,16 +154,16 @@ class Linter(metaclass=ABCMeta):
         else:
             self.source_dir = self.temp_dir
 
-    def do_callback(self, url, payload):
-        if url.startswith('http'):
-            headers = {"content-type": "application/json"}
-            GlobalSettings.logger.debug('Making callback to {0} with payload:'.format(url))
-            GlobalSettings.logger.debug(json.dumps(payload)[:256])
-            response = requests.post(url, json=payload, headers=headers)
-            self.callback_status = response.status_code
-            if (self.callback_status >= 200) and (self.callback_status < 299):
-                GlobalSettings.logger.debug('Callback finished.')
-            else:
-                GlobalSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
-        else:
-            GlobalSettings.logger.error(f"Invalid callback url: {url}")
+    # def do_callback(self, url, payload):
+    #     if url.startswith('http'):
+    #         headers = {"content-type": "application/json"}
+    #         GlobalSettings.logger.debug('Making callback to {0} with payload:'.format(url))
+    #         GlobalSettings.logger.debug(json.dumps(payload)[:256])
+    #         response = requests.post(url, json=payload, headers=headers)
+    #         self.callback_status = response.status_code
+    #         if (self.callback_status >= 200) and (self.callback_status < 299):
+    #             GlobalSettings.logger.debug('Callback finished.')
+    #         else:
+    #             GlobalSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
+    #     else:
+    #         GlobalSettings.logger.error(f"Invalid callback url: {url}")
