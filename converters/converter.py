@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 import traceback
-import requests
+# import requests
 from shutil import copy
 from urllib.parse import urlparse, urlunparse, parse_qsl
 from abc import ABCMeta, abstractmethod
@@ -120,7 +120,7 @@ class Converter(metaclass=ABCMeta):
                     add_contents_to_zip(self.output_zip_file, self.output_dir)
                     # remove_tree(self.output_dir) # Done in converter.close()
                     # Upload the output archive either to cdn_bucket or to a file (no cdn_bucket)
-                    GlobalSettings.logger.debug(f"Converter uploading output archive to {self.cdn_file_key} …")
+                    GlobalSettings.logger.info(f"Converter uploading output archive to {self.cdn_file_key} …")
                     if self.cdn_file_key:
                         self.upload_archive()
                         GlobalSettings.logger.debug(f"Uploaded converted files (using '{self.cdn_file_key}').")
@@ -146,7 +146,7 @@ class Converter(metaclass=ABCMeta):
         #     self.callback_results = results
         #     self.do_callback(self.callback, self.callback_results)
 
-        GlobalSettings.logger.debug(results)
+        # GlobalSettings.logger.debug(results)
         return results
 
 

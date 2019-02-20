@@ -182,7 +182,7 @@ class TestTnTsvLinter(LinterTestCase):
         # given
         expected_warnings = 218 # 527 for entire Bible 66 books
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.tsv.zip')
-        linter = TnTsvLinter(repo_subject='Translation_Notes', source_file=zip_file, commit_data=self.commit_data, single_file='en_tn_01-GEN.tsv')
+        linter = TnTsvLinter(repo_subject='TSV_Translation_Notes', source_file=zip_file, commit_data=self.commit_data, single_file='en_tn_01-GEN.tsv')
         linter.download_archive = self.mock_download_archive
 
         # when
@@ -214,7 +214,7 @@ class TestTnTsvLinter(LinterTestCase):
         file_utils.write_file(file_path, 'dummy')
 
         new_zip = self.create_new_zip(out_dir)
-        linter = TnTsvLinter(repo_subject='Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
+        linter = TnTsvLinter(repo_subject='TSV_Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         linter.run()
@@ -245,7 +245,7 @@ class TestTnTsvLinter(LinterTestCase):
                     file_utils.remove_tree(book_path)
 
         new_zip = self.create_new_zip(out_dir)
-        linter = TnTsvLinter(repo_subject='Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
+        linter = TnTsvLinter(repo_subject='TSV_Translation_Notes', source_file=new_zip, commit_data=self.commit_data)
 
         # when
         results = linter.run()

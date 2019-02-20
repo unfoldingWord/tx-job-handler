@@ -33,29 +33,30 @@ from linters.markdown_linter import MarkdownLinter
 # from linters.udb_linter import UdbLinter
 # from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
+from linters.lexicon_linter import LexiconLinter
 
 from converters.md2html_converter import Md2HtmlConverter
 from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
-# NOTE: The following two tables are scanned in order (so put 'other' entries lower)
-#   All searching of the tables is case-sensitive
+# NOTE: The following two tables are each scanned in order
+#       (so put 'other' entries lower)
+# All searching of the tables is case-sensitive
 # Columns are: 1/ linter name 2/ linter 3/ input formats 4/ resource types
 LINTER_TABLE = (
-    ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs',),           ),
-    ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta',),           ),
-    ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('Translation_Notes','tn',),             ),
+    ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs'),              ),
+    ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta'),              ),
+    ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('TSV_Translation_Notes','tn'),            ),
     ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes',
-                                                'Translation_Notes','tn',),             ),
+                                                'Translation_Notes','tn'),                ),
     ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
-                                                'OBS_Translation_Questions','tq',),     ),
-    ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw',),             ),
-    ('markdown', MarkdownLinter, ('md','txt'), ('Generic_Markdown','other',),                              ),
-    # ('udb',      UdbLinter,      ('usfm',),  ('udb',),                                ),
-    # ('ulb',      UlbLinter,      ('usfm',),  ('ulb',),                                ),
+                                                'OBS_Translation_Questions','tq'),        ),
+    ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw'),                ),
+    ('lexicon',  LexiconLinter,  ('md',),      ('Greek_Lexicon','Hebrew_Aramaic_Lexicon'), ),
+    ('markdown', MarkdownLinter, ('md','txt'), ('Generic_Markdown','other'),              ),
     ('usfm',     UsfmLinter,     ('usfm',),    ('Bible','Aligned_Bible',
                                                 'Greek_New_Testament','Hebrew_Old_Testament',
-                                                'bible', 'reg', 'other',),              ),
+                                                'bible', 'reg', 'other'),                 ),
     )
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
@@ -63,13 +64,17 @@ CONVERTER_TABLE = (
                     ('Generic_Markdown',
                     'Open_Bible_Stories','OBS_Translation_Notes','OBS_Translation_Questions','obs',
                     'Translation_Academy','ta', 'Translation_Questions','tq', 'Translation_Words',
-                    'Translation_Words','tw', 'Translation_Notes','tn', 'other',),     'html'),
+                    'Translation_Words','tw', 'Translation_Notes','tn',
+                    'Greek_Lexicon', 'Hebrew_Aramaic_Lexicon',
+                'other',),                                                          'html'),
     ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
-                    ('Translation_Notes','tn', 'other',),                              'html'),
+                    ('TSV_Translation_Notes','tn',
+                    'other',),                                                      'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
                     ('Bible','Aligned_Bible',
                     'Greek_New_Testament','Hebrew_Old_Testament',
-                    'bible', 'reg', 'other',),                                         'html'),
+                    'bible', 'reg',
+                    'other',),                                                      'html'),
     )
 
 
@@ -115,9 +120,6 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     GlobalSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
     param_dict['status'] = 'linting'
 
-    # TODO: Why does the linter download the (zip) file again???
-    #linter = linter_class(source_url=param_dict['source'])
-    # TODO: Why does the linter not find books if we give it the preprocessed files???
     linter = linter_class(repo_subject=param_dict['resource_type'], source_dir=source_dir)
     lint_result = linter.run()
     linter.close()  # do cleanup after run
@@ -186,10 +188,10 @@ def download_source_file(source_url, destination_folder):
     """
     GlobalSettings.logger.debug(f"download_source_file( {source_url}, {destination_folder} )")
     source_filepath = os.path.join(destination_folder, source_url.rpartition(os.path.sep)[2])
-    GlobalSettings.logger.info(f"source_filepath: {source_filepath}")
+    GlobalSettings.logger.debug(f"source_filepath: {source_filepath}")
 
     try:
-        GlobalSettings.logger.debug(f"Downloading {source_url} …")
+        GlobalSettings.logger.info(f"Downloading {source_url} …")
 
         # if the file already exists, remove it, we want a fresh copy
         if os.path.isfile(source_filepath):
@@ -211,7 +213,10 @@ def download_source_file(source_url, destination_folder):
         if os.path.isfile(source_filepath):
             os.remove(source_filepath)
 
-    GlobalSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {os.listdir(destination_folder)}")
+    str_filelist = str(os.listdir(destination_folder))
+    str_filelist_adjusted = str_filelist if len(str_filelist)<1500 \
+                            else f'{str_filelist[:1000]} …… {str_filelist[-500:]}'
+    GlobalSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {str_filelist_adjusted}")
 #end of download_source_file function
 
 
@@ -279,8 +284,11 @@ def process_tx_job(pj_prefix, queued_json_payload):
     # Find correct source folder
     source_folder_path = base_temp_dir_name
     dirList = os.listdir(base_temp_dir_name)
+    str_dirList = str(dirList)
+    str_dirList_adjusted = str_dirList if len(str_dirList)<1500 \
+                            else f'{str_dirList[:1000]} …… {str_dirList[-500:]}'
     GlobalSettings.logger.debug(f"Discovering source folder from"
-                                f" '{base_temp_dir_name}' with {dirList} …")
+                                f" '{base_temp_dir_name}' with {str_dirList_adjusted} …")
     if len(dirList) == 1:
         tryFolder = os.path.join(base_temp_dir_name, dirList[0])
         if os.path.isdir(tryFolder):
@@ -369,7 +377,10 @@ def process_tx_job(pj_prefix, queued_json_payload):
         GlobalSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
     else:
         remove_tree(base_temp_dir_name)  # cleanup
-    GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {build_log_dict}")
+    str_build_log = str(build_log_dict)
+    str_build_log_adjusted = str_build_log if len(str_build_log)<1500 \
+                            else f'{str_build_log[:1000]} …… {str_build_log[-500:]}'
+    GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {str_build_log_adjusted}")
     return job_descriptive_name
 #end of process_tx_job function
 
