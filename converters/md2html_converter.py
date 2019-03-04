@@ -130,7 +130,7 @@ class Md2HtmlConverter(Converter):
                     if self.repo_subject in ['Translation_Academy',]:
                         html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
                         if prefix and debug_mode_flag:
-                            write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html)
+                            write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html2)
                     else:
                         html2 = markdown.markdown(md)
                 # if 0:
