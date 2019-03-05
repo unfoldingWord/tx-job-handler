@@ -313,6 +313,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Run the linter first
     if linter:
+        build_log_dict['status'] = 'linting'
+        build_log_dict['message'] = 'tX job linting…'
         build_log_dict['lint_module'] = linter_name
         # Log dict gets updated by the following line
         do_linting(build_log_dict, source_folder_path, linter_name, linter)
@@ -326,6 +328,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Now run the converter
     if converter:
+        build_log_dict['status'] = 'converting'
+        build_log_dict['message'] = 'tX job converting…'
         build_log_dict['convert_module'] = converter_name
         # Log dict gets updated by the following line
         do_converting(build_log_dict, source_folder_path, converter_name, converter)
@@ -338,6 +342,9 @@ def process_tx_job(pj_prefix, queued_json_payload):
         build_log_dict['converter_info'] = []
         build_log_dict['converter_warnings'] = []
         build_log_dict['converter_errors'] = [error_message]
+
+    build_log_dict['status'] = 'finished'
+    build_log_dict['message'] = 'tX job completed.'
 
 
     # Do the callback (if requested) to advise the caller of our results
