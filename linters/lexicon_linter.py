@@ -20,24 +20,24 @@ class LexiconLinter(MarkdownLinter):
         project_dir = os.path.join(self.source_dir, self.rc.project().path)
         GlobalSettings.logger.debug(f"project_dir = {project_dir}")
 
-        # Check front and back matter
-        for book_end in ['front', 'back']:
-            filename = os.path.join(project_dir, book_end, 'intro.md')
-            if not os.path.isfile(filename):
-                filename = os.path.join(project_dir, '{0}.md'.format(book_end))
+        # # Check front and back matter
+        # for book_end in ['front', 'back']:
+        #     filename = os.path.join(project_dir, book_end, 'intro.md')
+        #     if not os.path.isfile(filename):
+        #         filename = os.path.join(project_dir, '{0}.md'.format(book_end))
 
-            lines = {
-                'front': 'The licensor cannot revoke',
-                'back':  'We want to make this visual'
-            }
+        #     lines = {
+        #         'front': 'The licensor cannot revoke',
+        #         'back':  'We want to make this visual'
+        #     }
 
-            if not os.path.isfile(filename):
-                self.log.warning(f"{book_end}.md does not exist!")
-                continue
+        #     if not os.path.isfile(filename):
+        #         self.log.warning(f"{book_end}.md does not exist!")
+        #         continue
 
-            if self.rc.resource.language.identifier != 'en':
-                end_content = read_file(filename)
-                if lines[book_end] in end_content:
-                    self.log.warning(f"Story {book_end} matter is not translated!")
+        #     if self.rc.resource.language.identifier != 'en':
+        #         end_content = read_file(filename)
+        #         if lines[book_end] in end_content:
+        #             self.log.warning(f"Story {book_end} matter is not translated!")
 
         return super(LexiconLinter, self).lint()  # Runs the markdown linter
