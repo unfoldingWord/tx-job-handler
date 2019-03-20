@@ -31,6 +31,7 @@ class State:
     IDs = []
     ID = ""
     IDE = ""
+    usfm = ""
     toc1 = ""
     toc2 = ""
     toc3 = ""
@@ -63,6 +64,7 @@ class State:
     def reset_book(self):
         State.ID = ""
         State.IDE = ""
+        State.usfm = ""
         State.toc1 = ""
         State.toc2 = ""
         State.toc3 = ""
@@ -105,6 +107,9 @@ class State:
 
     def addIDE(self, ide):
         State.IDE = ide
+
+    def addUSFM(self, usfm):
+        State.usfm = usfm
 
     def addTOC1(self, toc):
         State.toc1 = toc
@@ -406,7 +411,7 @@ def verifyChapterCount():
         if len(state.chapters) != expected_chapters:
             for i in range(1, expected_chapters + 1):
                 if i not in state.chapters:
-                    report_error(state.ID + " " + str(i) + " - Missing chapter " + "\n")
+                    report_error(f"{state.ID} {i} - Missing chapter\n")
 
 # def printToken(token):
 #     if token.isV():
@@ -496,6 +501,10 @@ def takeIDE(ide):
     state = State()
     state.addIDE(ide)
 
+def takeUSFM(usfm):
+    state = State()
+    state.addUSFM(usfm)
+
 def takeID(id):
     state = State()
     code = '' if not id else id.split(' ')[0]
@@ -539,19 +548,18 @@ def takeV(v):
     state.addVerses(v)
     if state.lastVerse == 0:  # if first verse in chapter
         if not state.IDs and state.chapter == 0:
-            report_error(state.reference + " " + v + " - Missing ID before verse" + '\n')
+            report_error(f"{state.reference} {v} - Missing ID before verse\n")
         if state.chapter == 0:
-            report_error(state.reference + " - Missing chapter tag" + '\n')
+            report_error(f"{state.reference} - Missing chapter tag\n")
         if (state.nParagraphs == 0) and (state.nQuotes == 0) and (state.nMargin == 0):
-            report_error(state.reference + " - Missing paragraph marker (\\p), margin (\\m) or quote (\\q) before: "
-                         + '\n')
+            report_error(f"{state.reference} - Missing paragraph marker (\\p), margin (\\m) or quote (\\q) before verse text\n")
 
     missing = ""
     if state.verse < state.lastVerse and state.addError(state.lastRef):
-        report_error(state.reference + " - Verse out of order: after " + state.lastRef + '\n')
+        report_error(f"{state.reference} - Verse out of order: after {state.lastRef}\n")
         state.addError(state.reference)
     elif state.verse == state.lastVerse:
-        report_error(state.reference + " - Duplicated verse" + '\n')
+        report_error(f"{state.reference} - Duplicated verse\n")
     elif state.verse == state.lastVerse + 2 and not isOptional(state.reference):
         missing = " - Missing verse between this and: "
     elif state.verse > state.lastVerse + 2:
@@ -562,7 +570,7 @@ def takeV(v):
         if not error_log is None:  # see if already warned for missing verses
             gaps = False
             for i in range(state.lastVerse+1, state.verse):
-                ref = state.ID + ' ' + str(state.chapter) + ':' + str(i)
+                ref = f"{state.ID} {state.chapter}:{i}"
                 ref_len = len(ref)
                 verse_warning_found = False
                 for error in error_log:
@@ -599,7 +607,7 @@ def takeUnknown(state, token):
     elif value == 'p':
         report_error( state.reference + " - Orphan paragraph marker follows")
     else:
-        report_error( state.reference + " - Unknown Token: '\\" + value + "'")
+        report_error( state.reference + " - Unknown USFM Token: '\\" + value + "'")
 
 # Returns True if token is part of a footnote
 def isFootnote(token):
@@ -634,6 +642,8 @@ def take(token):
         takeID(token.value)
     elif token.isIDE():
         takeIDE(token.value)
+    elif token.isUSFM():
+        takeUSFM(token.value)
     elif token.isH():
         takeH(token.value)
     elif token.isTOC1():
