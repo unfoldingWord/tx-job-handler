@@ -421,7 +421,7 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def writeFootnotes(self):
         fkeys = self.footnotes.keys()
-        if len(fkeys) > 0:
+        if fkeys:
             self.write('<div class="footnotes">')
             self.write('<hr class="footnotes-hr"/>')
             for fkey in sorted(fkeys):

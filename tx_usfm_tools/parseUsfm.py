@@ -40,6 +40,7 @@ escape    = usfmTokenValue("\\", phrase)
 
 id      = usfmTokenValue("id", phrase)
 ide     = usfmTokenValue("ide", phrase)
+usfmV   = usfmTokenValue("usfm", phrase)
 h       = usfmTokenValue("h", phrase)
 
 mt      = usfmTokenValue("mt", phrase)
@@ -204,7 +205,7 @@ imt3    = usfmTokenValue("imt3", phrase)
 bk_s    = usfmToken("bk")
 bk_e    = usfmEndToken("bk")
 
-element =  MatchFirst([ide, id, h, toc, toc1, toc2, toc3, mt, mt1, mt2, mt3,
+element =  MatchFirst([ide, id, usfmV, h, toc, toc1, toc2, toc3, mt, mt1, mt2, mt3,
                        ms,
                        ms1,
                        ms2,
@@ -387,6 +388,7 @@ def createToken(t):
     options = {
         'id':   IDToken,
         'ide':  IDEToken,
+        'usfm': USFMToken,
         'h':    HToken,
         'mt':   MTToken,
         'mt1':  MTToken,
@@ -552,6 +554,7 @@ class UsfmToken:
     def isUnknown(self): return False
     def isID(self):     return False
     def isIDE(self):    return False
+    def isUSFM(self):   return False
     def isH(self):      return False
     def isTOC1(self):   return False
     def isTOC2(self):   return False
@@ -709,6 +712,10 @@ class IDToken(UsfmToken):
 class IDEToken(UsfmToken):
     def renderOn(self, printer): return printer.renderIDE(self)
     def isIDE(self):    return True
+
+class USFMToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderUSFM(self)
+    def isUSFM(self):    return True
 
 class HToken(UsfmToken):
     def renderOn(self, printer): return printer.renderH(self)

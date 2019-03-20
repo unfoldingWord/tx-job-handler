@@ -519,4 +519,4 @@ class USXRenderer(abstractRenderer.AbstractRenderer):
         if token.value == 'v':
             self.currentV = int(self.currentV) + 1
         self.__logger.error(self.renderBook + ' ' + str(self.currentC) + ':' + str(self.currentV) +
-              ' - Unknown Token: \\' + self.escape(token.value))
+              ' - Unknown input token: \\' + self.escape(token.value))

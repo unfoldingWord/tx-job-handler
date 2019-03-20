@@ -52,7 +52,7 @@ class TnLinter(MarkdownLinter):
                 if root == file_path:
                     continue  # skip book folder
 
-                if len(files) > 0:
+                if files:
                     found_files = True
                     break
 
