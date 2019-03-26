@@ -315,86 +315,90 @@ class Md2HtmlConverter(Converter):
 
     def fix_markdown_urls(self, content):
         """
+        Change lexicon links that point to .md URL to instead point to a default page
+            with the xxx.md link added
         """
         self.log.info("Md2HtmlConverter.fix_markdown_urls()…")
+        if 'href="https://git.door43.org/' not in content:
+            self.log.error(f"Md2HtmlConverter.write_lexicon_view_entry_file() has unexpected links: {content}")
 
+        new_content = content
         # new_content = re.sub(r'href="(.+?).md"', r'''href="javascript.ViewMarkdownFile('\1.md');"''', content)
-        new_content = re.sub(r'href="(.+?).md"', r'''class="mdLink" href="\1.md" onclick="ViewMarkdownFile('\1.md');"''', content)
-        if new_content != content:
-#             new_content = new_content.replace('</body>', '''
-# <script type="text/javascript">
-# function ViewMarkdownFile(mdURL) {
-#     mdContents = ''
-#     fetch(mdURL)
-#     .then(function(data) {
-#         // Here you get the data to modify as you please
-#         mdContents = resp.text();
-#         })
-#     })
-#     .catch(function(error) {
-#         // If there is any error you will catch them here
-#     });
-#     return '<!DOCTYPE html>' +
-#         '<html>' +
-#         '<title>Hello Strapdown</title>' +
-#         '<xmp theme="united" style="display:none;">' +
-#         mdContents +
-#         '</xmp>' +
-#         '<script src="http://strapdownjs.com/v/0.2/strapdown.js" type="text/javascript"></script>' +
-#         '</html>';
-#     }
-# </script>
-# </body>''')
-            # The following adapted from https://stackoverflow.com/questions/37678823/dynamically-load-css-files-through-jquery-does-not-work
-#             new_content = new_content.replace('</body>', '''
-# <xmp theme="cerulean" style="display:none;"></xmp>
-# <script type="text/javascript">
-# function ViewMarkdownFile(mdURL) {
-#     alert( mdURL );
-#     $.get( mdURL, function( content ) {
-#         alert( content );
-#         $( "xmp" ).html( content );
-#         $( 'head' ).append( '<script src="v/0.2/strapdown.js"><\\/script>' );
-#         }, 'text');
-#     }
-# </script>
-# </body>''')
-#             new_content = new_content.replace('</body>', '''
-# <script src="/js/jquery.min.js" type="text/javascript"></script>
-# <xmp theme="cerulean" style="display:none;"></xmp>
-# <script type="text/javascript">
-# $(".mdLink").get( $(this).href, function( data, status, xhr ) {
-#     alert("Status: " + status);
-#     alert("Data: " + data);
-#     alert("xhr: " + xhr);
-#     }, 'text');
-# </script>
-# </body>''')
-            new_content = new_content.replace('</body>', '''
-<script type="text/javascript">
-function ViewMarkdownFile(mdURL) {
-    console.log( "ViewMarkdownFile(" + mdURL + ")" );
-    fetch(mdURL)
-    .then(function(response) {
-        console.log( "Got ViewMarkdownFile response" );
-        return response.text();
-        })
-    .then(function(mdText) {
-        console.log( "Got ViewMarkdownFile mdText: " + mdText );
-        // TODO: What could we do here?
-        })
-    .catch(function(error) { // Note: error has .name and .message properties
-        // NOTE: We are getting "TypeError: NetworkError when attempting to fetch resource."
-        console.log( "Got ViewMarkdownFile fetch " + error );
-        mdContents = 'Unable to load ' + mdURL
-        });
-    window.location.href = "TODO: put new link to go to in here";
-    console.log( "ViewMarkdownFile returning false..." );
-    return false; // Prevent default action of loading raw md file
-    }
-</script>
-</body>''')
-            print("fix_markdown_urls now has", new_content)
+        # new_content = re.sub(r'href="(.+?).md"', r'''class="mdLink" href="\1.md" onclick="ViewMarkdownFile('\1.md');"''', content)
+        md_pattern = re.compile(r'href="(.+?).md"')
+        # TODO: Need to double-check that '/content/' is always included in the .md path
+        #       Could maybe use '/raw/' (but not '/branch/')
+        path_split_string = '/content/'
+        fixed_string = 'class="mdLink" href="view_lexicon_entry.html?path='
+        adj_len = len(fixed_string) + 10 # How far to step thru the file (so don't find the same .md string twice)
+        search_from = 0
+        while True:
+            match = md_pattern.search(new_content, search_from)
+            if not match: break
+            # print(search_from, match.start(), match.end(), len(new_content))
 
+            bits = match.group(1).split(path_split_string)
+            # print("bits", bits)
+            assert len(bits) == 2 # Will fail below if not
+            fixed_path = bits[0] # + path_split_string
+            # print(fixed_string + bits[1] + '.md"')
+            new_content = new_content[:match.start()] \
+                + fixed_string + path_split_string + bits[1] + '.md"' \
+                + new_content[match.end():]
+            search_from = match.start() + adj_len
+
+        if new_content != content:
+            # print("fix_markdown_urls now has", new_content)
+            self.write_lexicon_view_entry_file(fixed_path)
         return new_content
     # end of Md2HtmlConverter.fix_markdown_urls()
+
+
+    def write_lexicon_view_entry_file(self, path_prefix):
+        """
+        Write the dummy html file that will be used to display markdown lexicon entries.
+        """
+        self.log.info(f"Md2HtmlConverter.write_lexicon_view_entry_file({path_prefix})…")
+
+        with open(os.path.join(self.output_dir, 'view_lexicon_entry.html'), 'wt') as output_file:
+            output_file.write(f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lexicon entry</title>
+</head>
+<body>
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script>
+    function getPassedMarkdownURL() {{
+        var href = window.location.href;
+        var n = href.indexOf('?path='); // returns -1 if none found
+        var newURL =  '{path_prefix}' + href.substring(n+6); // From n+6 to end
+        return newURL;
+    }}
+    function getPassedMarkdownLink() {{
+        var newURL =  getPassedMarkdownURL();
+        var markdownLink = '<a href="' + newURL + '">' + newURL + '</a>';
+        return markdownLink;
+    }}
+    // Adapted from https://stackoverflow.com/questions/4533018/how-to-read-a-text-file-from-server-using-javascript
+    getTxt = function (){{
+        $.ajax({{
+            url:getPassedMarkdownURL(),
+            success: function (data){{
+                document.getElementById('content').innerHTML = marked(data);
+            }}
+        }});
+    }}
+</script>
+<div id="content">
+    <p>We need to display the markdown lexicon entry from
+        <script>document.write(getPassedMarkdownLink());</script></p>
+    <p><script>document.write(getTxt());</script></p>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</body>
+</html>
+''')
+    # end of Md2HtmlConverter.write_lexicon_view_entry_file()
+# end of Md2HtmlConverter class
