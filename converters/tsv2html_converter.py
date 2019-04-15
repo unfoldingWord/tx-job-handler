@@ -113,7 +113,9 @@ class Tsv2HtmlConverter(Converter):
         """
         # GlobalSettings.logger.debug(f"process_manifest({manifest_file_path}) …")
         with open(manifest_file_path, 'rt') as manifest_file:
-            self.manifest_dict = yaml.load(manifest_file)
+            # TODO: Check if full_load (less safe for untrusted input) is required
+            #       See https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation
+            self.manifest_dict = yaml.safe_load(manifest_file)
         GlobalSettings.logger.info(f"Loaded {len(self.manifest_dict)} manifest_dict main entries: {self.manifest_dict.keys()}")
         # GlobalSettings.logger.debug(f"Got manifest_dict: {self.manifest_dict}")
 
