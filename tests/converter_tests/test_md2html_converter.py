@@ -18,7 +18,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
     def setUp(self):
         """Runs before each test."""
         GlobalSettings(prefix='{0}-'.format(self._testMethodName))
-        self.temp_dir = tempfile.mkdtemp(prefix='test_Md2HtmlConverter')
+        self.temp_dir = tempfile.mkdtemp(prefix='tX_test_Md2HtmlConverter')
         self.out_dir = ''
         self.out_zip_file = ''
 
@@ -72,7 +72,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
 
         # verify the output
         # # self.assertTrue(os.path.isfile(out_zip_file), "There was no output zip file produced.")
-        # self.out_dir = tempfile.mkdtemp(prefix='test_obs_')
+        # self.out_dir = tempfile.mkdtemp(prefix='tX_test_obs_')
         # unzip(out_zip_file, self.out_dir)
         # remove(out_zip_file)
         # files_to_verify = []
@@ -112,7 +112,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         self.doTransformTa(file_name)
         # self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         # self.assertIsNotNone(self.return_val, "There was no return value.")
-        # self.out_dir = tempfile.mkdtemp(prefix='test_ta_')
+        # self.out_dir = tempfile.mkdtemp(prefix='tX_test_ta_')
         # unzip(self.out_zip_file, self.out_dir)
         # remove(self.out_zip_file)
         # files_to_verify = ['checking.html', 'checking-toc.yaml', 'intro.html', 'intro-toc.yaml',
@@ -139,7 +139,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         # self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         # self.assertIsNotNone(self.return_val, "There was no return value.")
-        # self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
+        # self.out_dir = tempfile.mkdtemp(prefix='tX_test_tw_')
         # unzip(self.out_zip_file, self.out_dir)
         # remove(self.out_zip_file)
 
@@ -169,7 +169,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         # self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         # self.assertIsNotNone(self.return_val, "There was no return value.")
-        # self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
+        # self.out_dir = tempfile.mkdtemp(prefix='tX_test_tw_')
         # unzip(self.out_zip_file, self.out_dir)
         # remove(self.out_zip_file)
 
@@ -196,7 +196,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         # self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         # self.assertIsNotNone(self.return_val, "There was no return value.")
-        # self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
+        # self.out_dir = tempfile.mkdtemp(prefix='tX_test_tw_')
         # unzip(self.out_zip_file, self.out_dir)
         # remove(self.out_zip_file)
 
@@ -229,7 +229,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         # then
         # self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         # self.assertIsNotNone(self.return_val, "There was no return value.")
-        # self.out_dir = tempfile.mkdtemp(prefix='test_tw_')
+        # self.out_dir = tempfile.mkdtemp(prefix='tX_test_tw_')
         # unzip(self.out_zip_file, self.out_dir)
         # remove(self.out_zip_file)
 
@@ -320,7 +320,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
             missing_chapters = []
         self.assertTrue(os.path.isfile(self.out_zip_file), "There was no output zip file produced.")
         self.assertIsNotNone(self.return_val, "There was no return value.")
-        self.out_dir = tempfile.mkdtemp(prefix='test_obs_')
+        self.out_dir = tempfile.mkdtemp(prefix='tX_test_obs_')
         unzip(self.out_zip_file, self.out_dir)
         remove(self.out_zip_file)
 
