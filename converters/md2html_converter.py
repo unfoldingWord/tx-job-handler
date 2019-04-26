@@ -329,7 +329,8 @@ class Md2HtmlConverter(Converter):
         # TODO: Need to double-check that '/content/' is always included in the .md path
         #       Could maybe use '/raw/' (but not '/branch/')
         path_split_string = '/content/'
-        fixed_string = 'class="mdLink" href="view_lexicon_entry.html?path='
+        # "a.lexIndexLink {float:left; width:100px;}" needs to go into door43.org/_site/css/project-page.css
+        fixed_string = 'class="lexIndexLink" href="view_lexicon_entry.html?path='
         adj_len = len(fixed_string) + 10 # How far to step thru the file (so don't find the same .md string twice)
         search_from = 0
         while True:

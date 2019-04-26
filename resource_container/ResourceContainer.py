@@ -1,9 +1,9 @@
 import os
 import re
-from datetime import datetime
+from datetime import datetime, date
 from glob import glob
 from json.decoder import JSONDecodeError
-from yaml.parser import ParserError
+from yaml.parser import ParserError, ScannerError
 
 from door43_tools.td_language import TdLanguage
 from door43_tools.bible_books import BOOK_NAMES
@@ -25,6 +25,7 @@ class RC:
         self._manifest = manifest
         self._repo_name = repo_name
         self._resource = None
+        self.loadeded_manifest_file = False
         self._projects = []
 
     @property
@@ -35,37 +36,43 @@ class RC:
 
     def get_manifest_from_dir(self):
         manifest = None
+        self.loadeded_manifest_file = False
         if not self.path or not os.path.isdir(self.path):
             return get_manifest_from_repo_name(self.repo_name)
         try:
             manifest = load_yaml_object(os.path.join(self.path, 'manifest.yaml'))
-        except ParserError as e:
+        except (ParserError, ScannerError) as e:
             GlobalSettings.logger.error(f"Badly formed 'manifest.yaml' in {self.repo_name}: {e}")
         if manifest:
+            self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'manifest.json'))
         except JSONDecodeError as e:
                 GlobalSettings.logger.error(f"Badly formed 'manifest.json' in {self.repo_name}: {e}")
         if manifest:
+            self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'package.json'))
         except JSONDecodeError as e:
                 GlobalSettings.logger.error(f"Badly formed 'package.json' in {self.repo_name}: {e}")
         if manifest:
+            self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'project.json'))
         except JSONDecodeError as e:
                 GlobalSettings.logger.error(f"Badly formed 'project.json' in {self.repo_name}: {e}")
         if manifest:
+            self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'meta.json'))
         except JSONDecodeError as e:
                 GlobalSettings.logger.error(f"Badly formed 'meta.json' in {self.repo_name}: {e}")
         if manifest:
+            self.loadeded_manifest_file = True
             return manifest
         return get_manifest_from_repo_name(self.repo_name)
 
@@ -282,9 +289,11 @@ class Resource:
         :param dict resource:
         """
         self.rc = rc
+        assert isinstance(rc, RC)
         self.resource = resource
         if not isinstance(self.resource, dict):
             raise Exception('Missing dict parameter: resource')
+        # GlobalSettings.logger.debug(f"Created new RC Resource with: {resource}")
         self._language = None
 
 
@@ -306,6 +315,9 @@ class Resource:
         # RJH added the next few lines Dec 2018
         elif 'content_mime_type' in self.rc.manifest and self.rc.manifest['content_mime_type']:
             return self.rc.manifest['content_mime_type']
+        elif 'format' in self.rc.manifest and self.rc.manifest['format']:
+            # GlobalSettings.logger.debug(f"Returning Resource format={self.rc.manifest['format']} from rc.manifest{' for '+self.identifier if self.identifier else ''}.")
+            return self.rc.manifest['format']
         elif self.rc.usfm_files(): # e.g., a plain USFM bundle (with no manifest, etc.)
             return 'text/usfm'
         if self.identifier:
@@ -315,6 +327,7 @@ class Resource:
         #     if self.identifier in resource_map:
         #         GlobalSettings.logger.critical(f"Found {self.identifier} format = '{resource_map[self.identifier]['format']}' in resource_map.")
         #         return resource_map[self.identifier]['format']
+    # end of Resource.format() property
 
 
     @property
@@ -331,8 +344,12 @@ class Resource:
                 'text/markdown': 'md',
                 'text/tsv': 'tsv',
             }.get(self.format, 'txt')
+        if not self.format and self.identifier=='bible':
+            GlobalSettings.logger.debug(f"Forcing file_ext='usfm' from identifier='{self.identifier}'")
+            result = 'usfm'
         GlobalSettings.logger.debug(f"RC.file_ext() returning '{result}'.")
         return result
+    # end of Resource.file_ext() property
 
 
     @property
@@ -354,6 +371,8 @@ class Resource:
         else:
             # GlobalSettings.logger.critical("Searched unsuccessfully for Resource.type() in resource_map. (Returning 'book'.)")
             return 'book'
+    # end of Resource.type() property
+
 
     @property
     def identifier(self):
@@ -366,6 +385,8 @@ class Resource:
         elif 'slug' in self.resource and self.resource['slug']:
             return self.resource['slug'].lower()
         GlobalSettings.logger.critical(f"Returning Resource identifier=None.")
+    # end of Resource.identifier() property
+
 
     @property
     def title(self):
@@ -384,6 +405,8 @@ class Resource:
             #print(f"RESOURCE.title (final ELSE) returning4 resource identifier {self.identifier!r}")
             # GlobalSettings.logger.critical(f"Searched unsuccessfully for Resource.title() in resource_map. (Returning '{self.identifier}'.)")
             return self.identifier
+    # end of Resource.title() property
+
 
     @property
     def subject(self):
@@ -403,16 +426,40 @@ class Resource:
 
     @property
     def issued(self):
+        # Make sure a string is returned -- not a date object
         if 'issued' in self.resource and self.resource['issued']:
-            return self.resource.get('issued')
+            issued_result = self.resource.get('issued')
+            if isinstance(issued_result, str):
+                return issued_result
+            GlobalSettings.logger.error(f"RC issued={issued_result!r}")
+            if isinstance(issued_result, (date, datetime)):
+                return issued_result.strftime('%Y-%m-%d')
+            GlobalSettings.logger.critical(f"RC issued={issued_result!r}")
         elif 'pub_date' in self.resource.get('status', {}):
-            return self.resource['status']['pub_date']
+            issued_pub_date = self.resource['status']['pub_date']
+            if isinstance(issued_pub_date, str):
+                return issued_pub_date
+            GlobalSettings.logger.error(f"RC issued pub_date={issued_pub_date!r}")
+            if isinstance(issued_result, (date, datetime)):
+                return issued_pub_date.strftime('%Y-%m-%d')
+            GlobalSettings.logger.critical(f"RC issued pub_date={issued_pub_date!r}")
         else:
+            GlobalSettings.logger.warning("RC has no 'issued' date available")
             return datetime.utcnow().strftime('%Y-%m-%d')
 
     @property
     def modified(self):
-        return self.resource.get('modified', datetime.utcnow().strftime('%Y-%m-%d'))
+        # Make sure a string is returned -- not a date object
+        if 'modified' in self.resource and self.resource['modified']:
+            modified_result = self.resource.get('modified')
+            if isinstance(modified_result, str): return modified_result
+            GlobalSettings.logger.error(f"RC modified={modified_result!r}")
+            if isinstance(modified_result, (date, datetime)):
+                return modified_result.strftime('%Y-%m-%d')
+            GlobalSettings.logger.critical(f"RC modified={modified_result!r}")
+        else:
+            GlobalSettings.logger.warning("RC has no 'modified' date available")
+            return datetime.utcnow().strftime('%Y-%m-%d')
 
     @property
     def rights(self):
@@ -621,6 +668,9 @@ class Project:
 
 
 def get_manifest_from_repo_name(repo_name):
+    """
+    If no manifest file was given, try dissecting the repo name.
+    """
     GlobalSettings.logger.debug(f"get_manifest_from_repo_name({repo_name})…")
     manifest = {
         'dublin_core': {},
@@ -629,9 +679,8 @@ def get_manifest_from_repo_name(repo_name):
     if not repo_name:
         return manifest
 
-    parts = re.findall(r'[A-Za-z0-9]+', repo_name)
-
     language_set = False
+    parts = re.findall(r'[A-Za-z0-9]+', repo_name)
     for part in parts:
         if not language_set:
             if part == 'en':

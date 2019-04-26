@@ -21,7 +21,7 @@ class TestUsfmLinter(LinterTestCase):
 
     def setUp(self):
         """Runs before each test."""
-        self.temp_dir = tempfile.mkdtemp(prefix='test_usfm_')
+        self.temp_dir = tempfile.mkdtemp(prefix='tX_test_usfm_')
 
     def tearDown(self):
         """Runs after each test."""
