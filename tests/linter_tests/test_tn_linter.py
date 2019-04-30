@@ -95,7 +95,7 @@ class TestTnLinter(LinterTestCase):
         warning = {'errorContext': 'dummy error message', 'lineNumber': 42, 'ruleDescription': 'dummy rule'}
         warnings = []
         warning_count = 202
-        for i in range(0, warning_count):
+        for _ in range(0, warning_count):
             warnings.append(warning)
         mock_invoke_markdown_linter.return_value = {  # Don't care about markdown linting here, just specific tw linting
             '/tmp/tmp_lint_EYZ5zV/en_tn/2th/front/intro.md': warnings
@@ -229,7 +229,7 @@ class TestTnTsvLinter(LinterTestCase):
         warning = {'errorContext': 'dummy error message', 'lineNumber': 42, 'ruleDescription': 'dummy rule'}
         warnings = []
         warning_count = 202
-        for i in range(0, warning_count):
+        for _ in range(0, warning_count):
             warnings.append(warning)
         expected_warnings = 200  # should be limited
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.tsv.zip')
