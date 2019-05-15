@@ -15,7 +15,7 @@ sqlalchemy==1.3.3
 pymysql==0.9.3
 
 # boto3 is used by aws_tools
-boto3==1.9.137
+boto3==1.9.146
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==2.4.0
