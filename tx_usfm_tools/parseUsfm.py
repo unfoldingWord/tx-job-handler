@@ -30,180 +30,184 @@ def usfmTokenNumber(key):
 
 # define grammar
 # phrase = Word(alphas + "-.,!? —–‘“”’;:()'\"[]/&%=*…{}" + nums)
-phrase    = CharsNotIn("\n\\")
-backslash = Literal("\\")
-plus      = Literal("+")
+phrase    = CharsNotIn('\n\\')
+backslash = Literal('\\')
+plus      = Literal('+')
 
 textBlock = Group(Optional(NoMatch(), "text") + phrase)
 unknown   = Group(Optional(NoMatch(), "unknown") + Suppress(backslash) + CharsNotIn(' \n\t\\'))
-escape    = usfmTokenValue("\\", phrase)
+escape    = usfmTokenValue('\\', phrase)
 
-id      = usfmTokenValue("id", phrase)
-ide     = usfmTokenValue("ide", phrase)
-usfmV   = usfmTokenValue("usfm", phrase)
-h       = usfmTokenValue("h", phrase)
+id      = usfmTokenValue('id', phrase)
+ide     = usfmTokenValue('ide', phrase)
+usfmV   = usfmTokenValue('usfm', phrase)
+h       = usfmTokenValue('h', phrase)
 
-mt      = usfmTokenValue("mt", phrase)
-mt1     = usfmTokenValue("mt1", phrase)
-mt2     = usfmTokenValue("mt2", phrase)
-mt3     = usfmTokenValue("mt3", phrase)
-ms      = usfmTokenValue("ms", phrase)
-ms1     = usfmTokenValue("ms1", phrase)
-ms2     = usfmTokenValue("ms2", phrase)
-mr      = usfmTokenValue("mr", phrase)
-s       = usfmTokenValue("s", phrase)
-s1      = usfmTokenValue("s1", phrase)
-s2      = usfmTokenValue("s2", phrase)
-s3      = usfmTokenValue("s3", phrase)
-s4      = usfmTokenValue("s4", phrase)
-s5      = usfmTokenValue("s5", phrase)
-sr      = usfmTokenValue("sr", phrase)
-sts     = usfmTokenValue("sts", phrase)
-r       = usfmTokenValue("r", phrase)
-p       = usfmToken("p")
-pc      = usfmToken("pc")
-pi      = usfmToken("pi")
-pi2     = usfmToken("pi2")
-b       = usfmToken("b")
-c       = usfmTokenNumber("c")
-cas     = usfmToken("ca")
-cae     = usfmEndToken("ca")
-cl      = usfmTokenValue("cl", phrase)
-v       = usfmTokenNumber("v")
-wjs     = usfmToken("wj")
-wje     = usfmEndToken("wj")
-q       = usfmToken("q")
-q1      = usfmToken("q1")
-q2      = usfmToken("q2")
-q3      = usfmToken("q3")
-q4      = usfmToken("q4")
-qa      = usfmToken("qa")
-qac     = usfmToken("qac")
-qc      = usfmToken("qc")
-qm      = usfmToken("qm")
-qm1     = usfmToken("qm1")
-qm2     = usfmToken("qm2")
-qm3     = usfmToken("qm3")
-qr      = usfmToken("qr")
-qss     = usfmToken("qs")
-qse     = usfmEndToken("qs")
-qts     = usfmToken("qt")
-qte     = usfmEndToken("qt")
-nb      = usfmToken("nb")
-m       = usfmToken("m")
+mt      = usfmTokenValue('mt', phrase)
+mt1     = usfmTokenValue('mt1', phrase)
+mt2     = usfmTokenValue('mt2', phrase)
+mt3     = usfmTokenValue('mt3', phrase)
+ms      = usfmTokenValue('ms', phrase)
+ms1     = usfmTokenValue('ms1', phrase)
+ms2     = usfmTokenValue('ms2', phrase)
+mr      = usfmTokenValue('mr', phrase)
+s       = usfmTokenValue('s', phrase)
+s1      = usfmTokenValue('s1', phrase)
+s2      = usfmTokenValue('s2', phrase)
+s3      = usfmTokenValue('s3', phrase)
+s4      = usfmTokenValue('s4', phrase)
+s5      = usfmTokenValue('s5', phrase)
+sr      = usfmTokenValue('sr', phrase)
+sts     = usfmTokenValue('sts', phrase)
+r       = usfmTokenValue('r', phrase)
+p       = usfmToken('p')
+pc      = usfmToken('pc')
+pi      = usfmToken('pi')
+pi2     = usfmToken('pi2')
+b       = usfmToken('b')
+c       = usfmTokenNumber('c')
+cas     = usfmToken('ca')
+cae     = usfmEndToken('ca')
+cl      = usfmTokenValue('cl', phrase)
+v       = usfmTokenNumber('v')
+wjs     = usfmToken('wj')
+wje     = usfmEndToken('wj')
+q       = usfmToken('q')
+q1      = usfmToken('q1')
+q2      = usfmToken('q2')
+q3      = usfmToken('q3')
+q4      = usfmToken('q4')
+qa      = usfmToken('qa')
+qac     = usfmToken('qac')
+qc      = usfmToken('qc')
+qm      = usfmToken('qm')
+qm1     = usfmToken('qm1')
+qm2     = usfmToken('qm2')
+qm3     = usfmToken('qm3')
+qr      = usfmToken('qr')
+qss     = usfmToken('qs')
+qse     = usfmEndToken('qs')
+qts     = usfmToken('qt')
+qte     = usfmEndToken('qt')
+nb      = usfmToken('nb')
+m       = usfmToken('m')
 
 # Footnotes
-fs      = usfmTokenValue("f", plus)
-fe      = usfmEndToken("f")
-fes     = usfmTokenValue("fe", plus)
-fee     = usfmEndToken("fe")
-fr      = usfmTokenValue("fr", phrase)
-fre     = usfmEndToken("fr")
-fk      = usfmTokenValue("fk", phrase)
-ft      = usfmTokenValue("ft", phrase)
-fp      = usfmToken("fp")
-fq      = usfmTokenValue("fq", phrase)
-fqe     = usfmEndToken("fq")
-fqa     = usfmTokenValue("fqa", phrase)
-fqae    = usfmEndToken("fqa")
-fqb     = usfmTokenValue("fqb", phrase)
-fv      = usfmTokenValue("fv", phrase)
-fve     = usfmEndToken("fv")
-fdc     = usfmTokenValue("fdc", phrase)
-fdce    = usfmEndToken("fdc")
+fs      = usfmTokenValue('f', plus)
+fe      = usfmEndToken('f')
+fes     = usfmTokenValue('fe', plus)
+fee     = usfmEndToken('fe')
+fr      = usfmTokenValue('fr', phrase)
+fre     = usfmEndToken('fr')
+fk      = usfmTokenValue('fk', phrase)
+ft      = usfmTokenValue('ft', phrase)
+fp      = usfmToken('fp')
+fq      = usfmTokenValue('fq', phrase)
+fqe     = usfmEndToken('fq')
+fqa     = usfmTokenValue('fqa', phrase)
+fqae    = usfmEndToken('fqa')
+fqb     = usfmTokenValue('fqb', phrase)
+fv      = usfmTokenValue('fv', phrase)
+fve     = usfmEndToken('fv')
+fdc     = usfmTokenValue('fdc', phrase)
+fdce    = usfmEndToken('fdc')
 
 # Cross References
-xs      = usfmTokenValue("x", plus)
-xdcs    = usfmToken("xdc")
-xdce    = usfmEndToken("xdc")
-xo      = usfmTokenValue("xo", phrase)
-xt      = usfmTokenValue("xt", phrase)
-xe      = usfmEndToken("x")
+xs      = usfmTokenValue('x', plus)
+xdcs    = usfmToken('xdc')
+xdce    = usfmEndToken('xdc')
+xo      = usfmTokenValue('xo', phrase)
+xt      = usfmTokenValue('xt', phrase)
+xe      = usfmEndToken('x')
 
 # Transliterated
-tls      = usfmToken("tl")
-tle      = usfmEndToken("tl")
+tls      = usfmToken('tl')
+tle      = usfmEndToken('tl')
 
 # Transliterated
-scs      = usfmToken("sc")
-sce      = usfmEndToken("sc")
+scs      = usfmToken('sc')
+sce      = usfmEndToken('sc')
 
 # Italics
-ist     = usfmToken("it")
-ien     = usfmEndToken("it")
+ist     = usfmToken('it')
+ien     = usfmEndToken('it')
 
 # Bold
-bds    = usfmToken("bd")
-bde    = usfmEndToken("bd")
-bdits  = usfmToken("bdit")
-bdite  = usfmEndToken("bdit")
+bds    = usfmToken('bd')
+bde    = usfmEndToken('bd')
+bdits  = usfmToken('bdit')
+bdite  = usfmEndToken('bdit')
 
-li      = usfmToken("li")
-li1     = usfmToken("li1")
-li2     = usfmToken("li2")
-li3     = usfmToken("li3")
-li4     = usfmToken("li4")
-d       = usfmTokenValue("d", phrase)
-sp      = usfmTokenValue("sp", phrase)
-adds    = usfmToken("add")
-adde    = usfmEndToken("add")
-nds     = usfmToken("nd")
-nde     = usfmEndToken("nd")
-pbr     = usfmBackslashToken("\\\\")
-mi      = usfmToken("mi")
+li      = usfmToken('li')
+li1     = usfmToken('li1')
+li2     = usfmToken('li2')
+li3     = usfmToken('li3')
+li4     = usfmToken('li4')
+d       = usfmTokenValue('d', phrase)
+sp      = usfmTokenValue('sp', phrase)
+adds    = usfmToken('add')
+adde    = usfmEndToken('add')
+nds     = usfmToken('nd')
+nde     = usfmEndToken('nd')
+pbr     = usfmBackslashToken('\\\\')
+mi      = usfmToken('mi')
 
 # Comments
-rem     = usfmTokenValue("rem", phrase)
+rem     = usfmTokenValue('rem', phrase)
 
 # Tables
-tr      = usfmToken("tr")
-th1     = usfmToken("th1")
-th2     = usfmToken("th2")
-th3     = usfmToken("th3")
-th4     = usfmToken("th4")
-th5     = usfmToken("th5")
-th6     = usfmToken("th6")
-thr1    = usfmToken("thr1")
-thr2    = usfmToken("thr2")
-thr3    = usfmToken("thr3")
-thr4    = usfmToken("thr4")
-thr5    = usfmToken("thr5")
-thr6    = usfmToken("thr6")
-tc1     = usfmToken("tc1")
-tc2     = usfmToken("tc2")
-tc3     = usfmToken("tc3")
-tc4     = usfmToken("tc4")
-tc5     = usfmToken("tc5")
-tc6     = usfmToken("tc6")
-tcr1    = usfmToken("tcr1")
-tcr2    = usfmToken("tcr2")
-tcr3    = usfmToken("tcr3")
-tcr4    = usfmToken("tcr4")
-tcr5    = usfmToken("tcr5")
-tcr6    = usfmToken("tcr6")
+tr      = usfmToken('tr')
+th1     = usfmToken('th1')
+th2     = usfmToken('th2')
+th3     = usfmToken('th3')
+th4     = usfmToken('th4')
+th5     = usfmToken('th5')
+th6     = usfmToken('th6')
+thr1    = usfmToken('thr1')
+thr2    = usfmToken('thr2')
+thr3    = usfmToken('thr3')
+thr4    = usfmToken('thr4')
+thr5    = usfmToken('thr5')
+thr6    = usfmToken('thr6')
+tc1     = usfmToken('tc1')
+tc2     = usfmToken('tc2')
+tc3     = usfmToken('tc3')
+tc4     = usfmToken('tc4')
+tc5     = usfmToken('tc5')
+tc6     = usfmToken('tc6')
+tcr1    = usfmToken('tcr1')
+tcr2    = usfmToken('tcr2')
+tcr3    = usfmToken('tcr3')
+tcr4    = usfmToken('tcr4')
+tcr5    = usfmToken('tcr5')
+tcr6    = usfmToken('tcr6')
 
 # Table of Contents
-toc     = usfmTokenValue("toc", phrase)
-toc1    = usfmTokenValue("toc1", phrase)
-toc2    = usfmTokenValue("toc2", phrase)
-toc3    = usfmTokenValue("toc3", phrase)
+toc     = usfmTokenValue('toc', phrase)
+toc1    = usfmTokenValue('toc1', phrase)
+toc2    = usfmTokenValue('toc2', phrase)
+toc3    = usfmTokenValue('toc3', phrase)
 
 # Introductory Materials
-is1     = usfmTokenValue("is1", phrase) | usfmTokenValue("is", phrase)
-ip      = usfmToken("ip")
-iot     = usfmToken("iot")
-io1     = usfmToken("io1") | usfmToken("io")
-io2     = usfmToken("io2")
-ior_s   = usfmToken("ior")
-ior_e   = usfmEndToken("ior")
-imt     = usfmTokenValue("imt", phrase)
-imt1    = usfmTokenValue("imt1", phrase)
-imt2    = usfmTokenValue("imt2", phrase)
-imt3    = usfmTokenValue("imt3", phrase)
+is1     = usfmTokenValue('is1', phrase) | usfmTokenValue('is', phrase)
+is2      = usfmToken('is2')
+is3      = usfmToken('is3')
+ip      = usfmToken('ip')
+im      = usfmToken('im')
+imi      = usfmToken('imi')
+iot     = usfmToken('iot')
+io1     = usfmToken('io1') | usfmToken('io')
+io2     = usfmToken('io2')
+ior_s   = usfmToken('ior')
+ior_e   = usfmEndToken('ior')
+imt     = usfmTokenValue('imt', phrase)
+imt1    = usfmTokenValue('imt1', phrase)
+imt2    = usfmTokenValue('imt2', phrase)
+imt3    = usfmTokenValue('imt3', phrase)
 
 # Quoted book title
-bk_s    = usfmToken("bk")
-bk_e    = usfmEndToken("bk")
+bk_s    = usfmToken('bk')
+bk_e    = usfmEndToken('bk')
 
 element =  MatchFirst([ide, id, usfmV, h, toc, toc1, toc2, toc3, mt, mt1, mt2, mt3,
                        ms,
@@ -296,7 +300,11 @@ element =  MatchFirst([ide, id, usfmV, h, toc, toc1, toc2, toc3, mt, mt1, mt2, m
                        tls,
                        tle,
                        is1,
+                       is2,
+                       is3,
                        ip,
+                       im,
+                       imi,
                        iot,
                        io1,
                        io2,
@@ -517,11 +525,15 @@ def createToken(t):
         'toc3': TOC3Token,
         'is':   IS1_Token,
         'is1':  IS1_Token,
+        'is2':  IS2_Token,
+        'is3':  IS3_Token,
         'imt':  IMT1_Token,
         'imt1': IMT1_Token,
         'imt2': IMT2_Token,
         'imt3': IMT3_Token,
         'ip':   IP_Token,
+        'im':   IM_Token,
+        'imi':  IMI_Token,
         'iot':  IOT_Token,
         'io':   IO1_Token,
         'io1':  IO1_Token,
@@ -683,10 +695,14 @@ class UsfmToken:
     def is_toc2(self):  return False
     def is_toc3(self):  return False
     def is_is1(self):   return False
+    def is_is2(self):   return False
+    def is_is3(self):   return False
     def is_imt1(self):  return False
     def is_imt2(self):  return False
     def is_imt3(self):  return False
     def is_ip(self):    return False
+    def is_im(self):    return False
+    def is_imi(self):    return False
     def is_iot(self):   return False
     def is_io1(self):   return False
     def is_io2(self):   return False
@@ -1227,6 +1243,14 @@ class IS1_Token(UsfmToken):
     def renderOn(self, printer):  return printer.render_is1(self)
     def is_is1(self):             return True
 
+class IS2_Token(UsfmToken):
+    def renderOn(self, printer):  return printer.render_is2(self)
+    def is_is3(self):             return True
+
+class IS3_Token(UsfmToken):
+    def renderOn(self, printer):  return printer.render_is3(self)
+    def is_is3(self):             return True
+
 class IMT1_Token(UsfmToken):
     def renderOn(self, printer): return printer.render_imt1(self)
     def is_imt1(self): return True
@@ -1242,6 +1266,14 @@ class IMT3_Token(UsfmToken):
 class IP_Token(UsfmToken):
     def renderOn(self, printer):  return printer.render_ip(self)
     def is_ip(self):              return True
+
+class IM_Token(UsfmToken):
+    def renderOn(self, printer):  return printer.render_im(self)
+    def is_im(self):              return True
+
+class IMI_Token(UsfmToken):
+    def renderOn(self, printer):  return printer.render_imi(self)
+    def is_imi(self):              return True
 
 class IOT_Token(UsfmToken):
     def renderOn(self, printer):  return printer.render_iot(self)

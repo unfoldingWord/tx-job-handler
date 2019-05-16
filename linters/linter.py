@@ -149,7 +149,7 @@ class Linter(metaclass=ABCMeta):
         GlobalSettings.logger.debug(f"Unzipping {self.source_zip_file} to {self.temp_dir}")
         unzip(self.source_zip_file, self.temp_dir)
         dirs = [d for d in os.listdir(self.temp_dir) if os.path.isdir(os.path.join(self.temp_dir, d))]
-        if len(dirs):
+        if dirs:
             self.source_dir = os.path.join(self.temp_dir, dirs[0])
         else:
             self.source_dir = self.temp_dir

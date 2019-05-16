@@ -205,6 +205,7 @@ class State:
             success = True
         return success
 
+
     def getEnglishWords(self):
         if not State.englishWords:
             for book in usfm_verses.verses:
@@ -217,35 +218,28 @@ class State:
             State.englishWords.sort()
         return State.englishWords
 
+
     def loadVerseCounts(self):
         if not State.verseCounts:
             State.verseCounts = usfm_verses.verses
 
-            # jsonPath = 'verses.json'
-            # if not os.access(jsonPath, os.F_OK):
-            #     jsonPath = os.path.dirname(os.path.abspath(__file__)) + "\\" + jsonPath
-            # if os.access(jsonPath, os.F_OK):
-            #     f = open(jsonPath, 'r')
-            #     State.verseCounts = json.load(f)
-            #     f.close()
-            # else:
-            #     report_error("File not found: verses.json\n")
 
     # Returns the number of chapters that the specified book should contain
-    def nChapters(self, id):
-        n = 0
+    def nChapters(self, book_id):
         self.loadVerseCounts()
-        n = State.verseCounts[id]['chapters']
-        return n
+        try: return State.verseCounts[book_id]['chapters']
+        except KeyError: return 0
 
-        # Returns the number of verses that the specified chapter should contain
-    def nVerses(self, id, chap):
-        n = 0
+
+    # Returns the number of verses that the specified chapter should contain
+    def nVerses(self, book_id, chap):
         self.loadVerseCounts()
-        chaps = State.verseCounts[id]['verses']
-        n = chaps[chap-1]
-        return n
-    # end of State class
+        try:
+            chaps = State.verseCounts[book_id]['verses']
+            return chaps[chap-1]
+        except KeyError: return 0
+# end of State class
+
 
 
 def report_error(msg):
@@ -253,6 +247,7 @@ def report_error(msg):
         sys.stderr.write(msg)
     else:
         error_log.append(msg.rstrip(' \t\n\r'))
+
 
 def verifyVerseCount():
     state = State()
@@ -263,12 +258,14 @@ def verifyVerseCount():
         # Revelation 12 may have 17 or 18 verses
         # 3 John may have 14 or 15 verses
         if state.reference != 'REV 12:18' and state.reference != '3JN 1:15':
-            report_error(state.reference + " - Should have " + str(state.nVerses(state.ID, state.chapter)) + " verses" + '\n')
+            report_error(state.reference + " - Should have " + str(state.nVerses(state.ID, state.chapter)) + " verses\n")
+
 
 def verifyNotEmpty(filename):
     state = State()
     if not state.ID or state.chapter == 0:
         report_error(filename + " - File may be empty.\n")
+
 
 def verifyIdentification(book_code):
     state = State()
@@ -280,7 +277,10 @@ def verifyIdentification(book_code):
     if not state.IDE:
         report_error(book_code + " - Missing \\ide tag")
 
-    if not state.heading:
+    if state.heading:
+        if state.heading.isupper():
+            report_error(f"{book_code} - \\h '{state.heading}' shouldn't be UPPERCASE")
+    else:
         report_error(book_code + " - Missing \\h tag")
 
     if not state.toc1:
@@ -295,11 +295,13 @@ def verifyIdentification(book_code):
     if not state.mt:
         report_error(book_code + " - Missing \\mt tag")
 
+
 def get_reference(book, chapter, verse=None):
     ref = book + " " + str(chapter)
     if verse is not None:
           ref += ":" + verse
     return ref
+
 
 def verifyChapterAndVerseMarkers(text, book):
     pos = 0
@@ -331,10 +333,12 @@ def verifyChapterAndVerseMarkers(text, book):
 
     check_chapter(text, book, last_ch, pos, len(text))  # check last chapter
 
+
 def add_error(text, book, message, pos, chapter, verse=None):
     length = 8
     example = text[pos: pos + length]
     report_error(get_reference(book, chapter, verse) + " - " + message.format(example))
+
 
 def check_chapter(text, book, chapter_num, start, end):
     last_vs_range = '1'
@@ -359,6 +363,7 @@ def check_chapter(text, book, chapter_num, start, end):
         else:
             add_error(text, book, "Invalid verse number: '{0}'", start, chapter_num, last_vs_range)
 
+
 def get_verse_range(text, start):
     pos = start
     verse, c, end = get_number(text, pos)
@@ -377,13 +382,15 @@ def get_verse_range(text, start):
     has_white_space = (c in WHITE_SPACE)
     return verse, has_white_space
 
+
 def get_chapter_number(text, start):
     pos = start
-    digits, c, end = get_number(text, pos)
+    digits, c, _end = get_number(text, pos)
     has_white_space = (c in WHITE_SPACE)
     if digits:
         return int(digits), has_white_space
     return -1, has_white_space
+
 
 def get_number(text, start):
     """
@@ -413,26 +420,16 @@ def verifyChapterCount():
                 if i not in state.chapters:
                     report_error(f"{state.ID} {i} - Missing chapter\n")
 
-# def printToken(token):
-#     if token.isV():
-#         print("Verse number " + token.value)
-#     elif token.isC():
-#         print("Chapter " + token.value)
-#     elif token.isP():
-#         print("Paragraph " + token.value)
-#     elif token.isTEXT():
-#         print("Text: <" + token.value + ">")
-#     else:
-#         print(token)
 
 def verifyTextTranslated(text, token):
     found, word = needsTranslation(text)
     if found:
         report_error(f"Token '\\{token}' has possible untranslated word '{word}'")
 
+
 def needsTranslation(text):
     state = State()
-    if state.lang_code and (state.lang_code[0:2] != 'en'):  # no need to translate english
+    if state.lang_code and state.lang_code[0:2]!='en':  # no need to translate english
         english = state.getEnglishWords()
         words = text.split(' ')
         for word in words:
@@ -441,6 +438,7 @@ def needsTranslation(text):
                 if found:
                     return True, word
     return False, None
+
 
 def binarySearch(alist, item):
     first = 0
@@ -460,12 +458,14 @@ def binarySearch(alist, item):
 
     return found
 
+
 def isNumber(s):
     if s:
         char = s[0]
         if (char >= '0') and (char <= '9'):
             return True
     return False
+
 
 def takeCL(text):
     state = State()
@@ -507,29 +507,33 @@ def takeUSFM(usfm):
 
 def takeID(id):
     state = State()
-    code = '' if not id else id.split(' ')[0]
+    code = '' if not id else id.split(' ')[0] # Take the first token in the \id field
     if len(code) < 3:
         report_error(state.reference + " - Invalid ID: '" + id + "'\n")
         return
     if code in state.getIDs():
         report_error(state.reference + " - Duplicate ID: " + id + '\n')
         return
+    if code in ('FRT','BAK','OTH','INT','CNC','GLO','TDX','NDX'):
+        # Books without chapters/verses
+        state.addID(code)
+        return
     state.loadVerseCounts()
     for k in State.verseCounts:  # look for match in bible names
         if k == code:
             state.addID(code)
             return
-    report_error(state.reference + " - Invalid Code '" + code + "' in ID: '" + id + "'\n")
+    report_error(f"{state.reference} - Invalid Code '{code}' in ID: '{id}'\n")
 
 def takeC(c):
     state = State()
     state.addChapter(c)
     if not state.IDs:
-        report_error(state.reference + " - Missing ID before chapter" + '\n')
+        report_error(state.reference + " - Missing ID before chapter\n")
     if state.chapter < state.lastChapter:
-        report_error(state.reference + " - Chapter out of order" + '\n')
+        report_error(state.reference + " - Chapter out of order\n")
     elif state.chapter == state.lastChapter:
-        report_error(state.reference + " - Duplicate chapter" + '\n')
+        report_error(state.reference + " - Duplicate chapter\n")
     elif state.chapter > state.lastChapter + 2:
         report_error(state.lastRef + " - Missing chapters between this and: " + state.reference + '\n')
     elif state.chapter > state.lastChapter + 1:
@@ -589,16 +593,17 @@ def takeText(t):
     global lastToken
     if not state.textOkay() and not isTextCarryingToken(lastToken):
         if t[0] == '\\':
-            report_error(state.reference + " - Nearby uncommon or invalid marker" + '\n')
+            report_error(state.reference + " - Nearby uncommon or invalid marker\n")
         else:
             # print "Missing verse marker before text: <" + t.encode('utf-8') + "> around " + state.reference
             # report_error("Missing verse marker or extra text around " + state.reference + ": <" + t[0:10] + '>.\n')
-            report_error(state.reference + " - Missing verse marker or extra text nearby " + '\n')
+            report_error(state.reference + " - Missing verse marker or extra text nearby\n")
         if lastToken:
             report_error(state.reference + " - Preceding Token.type was " + lastToken.getType() + '\n')
         else:
             report_error(state.reference + " - No preceding Token\n")
     state.addText()
+
 
 def takeUnknown(state, token):
     value = token.getValue()
@@ -617,6 +622,7 @@ def isFootnote(token):
 def isCrossRef(token):
     return token.isXS() or token.isXE() or token.isXO() or token.isXT()
 
+
 # Returns True if the specified reference immediately FOLLOWS a verse that does not appear in some manuscripts.
 # Does not handle optional passages, such as John 7:53-8:11, or Mark 16:9-20.
 def isOptional(ref):
@@ -629,15 +635,32 @@ def isPoetry(token):
 def isIntro(token):
     return token.is_is1() or token.is_ip() or token.is_iot() or token.is_io1()
 
+def isCharacterFormatting(token):
+    # RJH added this 16May2019 -- doesn't contain all character format codes yet
+    return token.isADDS() or token.isADDE() \
+        or token.isNDS() or token.isNDE() \
+        or token.isWJS() or token.isWJE() \
+        or token.isBDS() or token.isBDE() \
+        or token.isBDITS() or token.isBDITE()
+
 def isTextCarryingToken(token):
-    return token.isB() or token.isM() or token.isD() or isFootnote(token) or isCrossRef(token) or isPoetry(token) or isIntro(token)
+    """
+    NOTE: RJH -- how can this work when it contains both newline markers
+                    and character (e.g., footnote) markers???
+            Also, does it check if they actually contain text?
+    """
+    return token.isB() or token.isM() or token.isD() or isFootnote(token) \
+        or isCrossRef(token) or isPoetry(token) or isIntro(token) \
+        or isCharacterFormatting(token) # RJH added this (for \wj fields)
+
 
 def take(token):
     state = State()
     if isFootnote(token):
         state.addText()     # footnote suffices for verse text
     if state.needText() and not token.isTEXT() and not isTextCarryingToken(token):
-        report_error(state.reference + " - Empty verse" + '\n')
+        print(f"EMPTY VERSE {state.reference}: {token}")
+        report_error(f"{state.reference} - Empty verse\n")
     if token.isID():
         takeID(token.value)
     elif token.isIDE():
@@ -674,27 +697,6 @@ def take(token):
     global lastToken
     lastToken = token
 
-# def verifyFile(filename):
-#     # detect file encoding
-#     enc = detect_by_bom(filename, default="utf-8")
-#     # print "DECODING: " + enc
-#     input = io.open(filename, "tr", 1, encoding=enc)
-#     str = input.read(-1)
-#     input.close
-#
-#     print("CHECKING " + filename + ":")
-#     sys.stdout.flush()
-#     verifyChapterAndVerseMarkers(str, filename)
-#     for token in parseUsfm.parseString(str):
-#         take(token)
-#     verifyNotEmpty(filename)
-#     verifyIdentification(None)
-#     verifyVerseCount()  # for last chapter
-#     verifyChapterCount()
-#     state = State()
-#     state.addID("")
-#     sys.stderr.flush()
-#     print("FINISHED CHECKING.\n")
 
 def verify_contents_quiet(unicodestring, filename, book_code, lang_code):
     """
@@ -716,38 +718,3 @@ def verify_contents_quiet(unicodestring, filename, book_code, lang_code):
     errors = error_log
     error_log = None  # turn error logging back off
     return errors, state.ID
-
-# def detect_by_bom(path, default):
-#     with open(path, 'rb') as f:
-#         raw = f.read(4)
-#     for enc,boms in \
-#             ('utf-8-sig',(codecs.BOM_UTF8)), \
-#             ('utf-16',(codecs.BOM_UTF16_LE,codecs.BOM_UTF16_BE)), \
-#             ('utf-32',(codecs.BOM_UTF32_LE,codecs.BOM_UTF32_BE)):
-#         if any(raw.startswith(bom) for bom in boms):
-#             return enc
-#     return default
-#
-# def verifyDir(dirpath):
-#     for f in os.listdir(dirpath):
-#         path = os.path.join(dirpath, f)
-#         if os.path.isdir(path):
-#             # It's a directory, recurse into it
-#             verifyDir(path)
-#         elif os.path.isfile(path) and path[-3:].lower() == 'sfm':
-#             verifyFile(path)
-
-# if __name__ == "__main__":
-#     if len(sys.argv) < 2:
-#         source = raw_input("Enter path to .usfm file or directory containing .usfm files: ")
-#     # elif sys.argv[1] == 'hard-coded-path':
-#     #     source = r'C:\Users\Larry\Documents\GitHub\Bengali\BENGALI-ULB-OT.BCS\STAGE3'
-#     else:
-#         source = sys.argv[1]
-#
-#     if os.path.isdir(source):
-#         verifyDir(source)
-#     elif os.path.isfile(source):
-#         verifyFile(source)
-#     else:
-#         sys.stderr.write("File not found: " + source + '\n')

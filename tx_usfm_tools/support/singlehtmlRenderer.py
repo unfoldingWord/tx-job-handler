@@ -426,9 +426,7 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.write('<hr class="footnotes-hr"/>')
             for fkey in sorted(fkeys):
                 footnote = self.footnotes[fkey]
-                self.write('<div id="{0}" class="footnote">{1}:{2} <sup><i>[<a href="#ref-{0}">{5}</a>]</i></sup><span class="text">{6}</span></div>'.
-                           format(fkey, footnote['chapter'].lstrip('0'), footnote['verse'].lstrip('0'), footnote['chapter'], footnote['verse'],\
-                                  footnote['footnote'], footnote['text']))
+                self.write(f'<div id="{fkey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup><i>[<a href="#ref-{fkey}">{footnote["footnote"]}</a>]</i></sup><span class="text">{footnote["text"]}</span></div>')
             self.write('</div>')
         self.footnotes = {}
 

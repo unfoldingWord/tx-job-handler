@@ -479,6 +479,7 @@ class Resource:
             elif 'target_language' in self.rc.manifest and self.rc.manifest['target_language']:
                 self._language = Language(self.rc, self.rc.manifest['target_language'])
             else:
+                GlobalSettings.logger.warning(f"Resource '{self.title}' is assuming 'English' language")
                 # Always assume English by default
                 self._language = Language(self.rc, {
                     'identifier': 'en',
@@ -557,6 +558,7 @@ class Language:
         elif 'id' in self.language and self.language['id']:
             return self.language['id'].lower()
         else:
+            GlobalSettings.logger.warning(f"Language '{self.language}' is assuming 'en' identifier")
             return 'en'
 
     @property
@@ -566,6 +568,7 @@ class Language:
         if 'dir'in self.language:
             return self.language['dir']
         else:
+            GlobalSettings.logger.warning(f"Language '{self.language}' is assuming 'ltr' direction")
             return 'ltr'
 
     @property
@@ -575,6 +578,7 @@ class Language:
         elif 'name'in self.language:
             return self.language['name']
         else:
+            GlobalSettings.logger.warning(f"Language '{self.language}' is assuming 'English' title")
             return 'English'
 
 
@@ -671,7 +675,7 @@ def get_manifest_from_repo_name(repo_name):
     """
     If no manifest file was given, try dissecting the repo name.
     """
-    GlobalSettings.logger.debug(f"get_manifest_from_repo_name({repo_name})…")
+    GlobalSettings.logger.warning(f"Getting manifest from repo name '{repo_name}'…")
     manifest = {
         'dublin_core': {},
     }
@@ -691,16 +695,20 @@ def get_manifest_from_repo_name(repo_name):
                     'direction': 'ltr'
                 }
                 language_set = True
-                continue
+                continue # Used the part
             else:
                 lang = TdLanguage.get_language(part)
-                if lang and 'language' not in manifest['dublin_core']:
-                    manifest['dublin_core']['language'] = {
-                        'identifier': lang.lc,
-                        'title': lang.ln,
-                        'direction': lang.ld
-                    }
-                    continue
+                if lang:
+                    if 'language' in manifest['dublin_core']:
+                        GlobalSettings.logger.warning(f"Ignoring '{part}' potential language in repo name '{repo_name}' coz already have '{manifest['dublin_core']['language']}'")
+                    else: # we'll take this to be the language
+                        GlobalSettings.logger.info(f"Taking '{part}' to be the language code in repo name '{repo_name}'")
+                        manifest['dublin_core']['language'] = {
+                            'identifier': lang.lc,
+                            'title': lang.ln,
+                            'direction': lang.ld
+                            }
+                        continue # Used the part
 
         # GlobalSettings.logger.critical(f"Checking for {part}/{part.lower()} in resource_map…")
         # if part.lower() in resource_map:

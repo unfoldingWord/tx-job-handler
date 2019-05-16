@@ -71,7 +71,7 @@ class ConTeXtRenderer(abstractRenderer.AbstractRenderer):
              self.smallcaps = True
 
     def renderSmallCaps(self, s):
-        if self.smallcaps == True:
+        if self.smallcaps:
             self.smallcaps = False
             return self.smallCapText(s)
         return s
