@@ -37,11 +37,14 @@ class Usfm2HtmlConverter(Converter):
                 self.log.info(f"Converting Bible USFM file: {base_name} …") # Logger also issues DEBUG msg
                 # Copy just the single file to be converted into a single scratch folder
                 scratch_dir = tempfile.mkdtemp(prefix='tX_convert_usfm_scratch_')
-                delete_scratch_dir_flag = True
+                delete_scratch_dir_flag = True # Set to False for debugging this code
                 copyfile(filename, os.path.join(scratch_dir, os.path.basename(filename)))
                 filebase = os.path.splitext(os.path.basename(filename))[0]
                 # Do the actual USFM -> HTML conversion
-                UsfmTransform.buildSingleHtml(scratch_dir, scratch_dir, filebase)
+                warning_list = UsfmTransform.buildSingleHtml(scratch_dir, scratch_dir, filebase)
+                if warning_list:
+                    for warning_msg in warning_list:
+                        self.log.warning(f"{filebase} - {warning_msg}")
 
                 # This code seems to be cleaning up or adjusting the converted HTML file
                 html_filename = filebase + '.html'
@@ -63,7 +66,7 @@ class Usfm2HtmlConverter(Converter):
                     content_div.body.unwrap()
                     num_successful_books += 1
                 else:
-                    content_div.append('ERROR! NOT CONVERTED!')
+                    content_div.append("ERROR! NOT CONVERTED!")
                     self.log.warning(f"USFM parsing or conversion error for {base_name}")
                     GlobalSettings.logger.debug(f"Got converted html: {converted_html[:600]}{' …' if len(converted_html)>600 else ''}")
                     if not converted_soup:
