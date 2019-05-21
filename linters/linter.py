@@ -34,7 +34,7 @@ class Linter(metaclass=ABCMeta):
         """
         GlobalSettings.logger.debug(f"Linter.__init__(subj={repo_subject}, url={source_url}, file={source_file},"
                                     f" dir={source_dir}, cd={commit_data}" #, callback={lint_callback},"
-                                    f" id={identifier}, s3k={s3_results_key})")
+                                    f" id={identifier}, s3k={s3_results_key}, kw={kwargs})")
         self.repo_subject = repo_subject
         assert self.repo_subject # Make this compulsory
         self.source_zip_url = source_url
@@ -116,15 +116,18 @@ class Linter(metaclass=ABCMeta):
             GlobalSettings.logger.error('{0}: {1}'.format(str(e), traceback.format_exc()))
         warnings = self.log.warnings
         if len(warnings) > 200:  # sanity check so we don't overflow callback size limits
-            warnings = warnings[0:199]
-            msg = f"Warnings truncated (from {len(self.log.warnings)} to {len(warnings)})"
-            GlobalSettings.logger.debug(msg)
+            warnings = warnings[:190]
+            warnings.append("………………")
+            warnings.extend(self.log.warnings[-9:])
+            # msg = f"Warnings truncated (from {len(self.log.warnings)} to {len(warnings)})"
+            msg = f"Warnings reduced from {len(self.log.warnings)} to {len(warnings)}"
+            GlobalSettings.logger.debug(f"Linter {msg}")
             warnings.append(msg)
         results = {
             'identifier': self.identifier,
             'success': success,
             'warnings': warnings,
-            's3_results_key': self.s3_results_key
+            #'s3_results_key': self.s3_results_key,
         }
 
         # if self.callback is not None:

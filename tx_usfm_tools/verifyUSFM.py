@@ -6,6 +6,7 @@
 
 import re
 import sys
+import logging
 
 from tx_usfm_tools import parseUsfm, usfm_verses
 
@@ -25,16 +26,16 @@ NON_CHAPTER_BOOK_CODES = ('FRT','BAK','OTH','INT','CNC','GLO','TDX','NDX')
 
 class State:
     IDs = []
-    ID = ""
-    IDE = ""
-    usfm = ""
-    toc1 = ""
-    toc2 = ""
-    toc3 = ""
-    mt = ""
-    heading = ""
-    master_chapter_label = ""
-    chapter_label = ""
+    ID = ''
+    IDE = ''
+    usfm = ''
+    toc1 = ''
+    toc2 = ''
+    toc3 = ''
+    mt = ''
+    heading = ''
+    master_chapter_label = ''
+    chapter_label = ''
     chapter = 0
     nParagraphs = 0
     nMargin = 0
@@ -43,8 +44,8 @@ class State:
     lastVerse = 0
     needVerseText = False
     textOkayHere = False
-    referenceString = ""
-    lastReferenceString = ""
+    referenceString = ''
+    lastReferenceString = ''
     chapters = set()
     verseCounts = {}
     errorRefs = set()
@@ -58,16 +59,16 @@ class State:
         State.errorRefs = set()
 
     def reset_book(self):
-        State.ID = ""
-        State.IDE = ""
-        State.usfm = ""
-        State.toc1 = ""
-        State.toc2 = ""
-        State.toc3 = ""
-        State.mt = ""
-        State.heading = ""
-        State.master_chapter_label = ""
-        State.chapter_label = ""
+        State.ID = ''
+        State.IDE = ''
+        State.usfm = ''
+        State.toc1 = ''
+        State.toc2 = ''
+        State.toc3 = ''
+        State.mt = ''
+        State.heading = ''
+        State.master_chapter_label = ''
+        State.chapter_label = ''
         State.chapter = 0
         State.lastVerse = 0
         State.verse = 0
@@ -77,8 +78,8 @@ class State:
         State.nParagraphs = 0
         State.nMargin = 0
         State.nQuotes = 0
-        State.lastReferenceString = ""
-        State.referenceString = ""
+        State.lastReferenceString = ''
+        State.referenceString = ''
         State.book_code = None
 
     def set_book_code(self, book):
@@ -175,7 +176,7 @@ class State:
         State.needVerseText = True
         State.textOkayHere = True
         State.lastReferenceString = State.referenceString
-        State.referenceString = self.get_id() + ' ' + str(State.chapter) + ":" + v
+        State.referenceString = self.get_id() + ' ' + str(State.chapter) + ':' + v
 
     def textOkay(self):
         return State.textOkayHere
@@ -206,7 +207,7 @@ class State:
         if not State.englishWords:
             for book in usfm_verses.verses:
                 book_data = usfm_verses.verses[book]
-                english_name = book_data["en_name"].lower()
+                english_name = book_data['en_name'].lower()
                 english_words = english_name.split(' ')
                 for word in english_words:
                     if word and not isNumber(word):
@@ -224,7 +225,9 @@ class State:
     def nChapters(self, book_id):
         self.loadVerseCounts()
         try: return State.verseCounts[book_id]['chapters']
-        except KeyError: return 0
+        except KeyError as e:
+            logging.error(f"verifyUSFM.State.nChapters failed for book_id={book_id} with {e}")
+            return 0
 
 
     # Returns the number of verses that the specified chapter should contain
@@ -233,7 +236,9 @@ class State:
         try:
             chaps = State.verseCounts[book_id]['verses']
             return chaps[chap-1]
-        except KeyError: return 0
+        except (KeyError, IndexError) as e:
+            logging.error(f"verifyUSFM.State.nVerses failed for book_id={book_id} chap={chap} with {e}")
+            return 0
 # end of State class
 
 

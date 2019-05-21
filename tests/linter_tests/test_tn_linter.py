@@ -100,7 +100,7 @@ class TestTnLinter(LinterTestCase):
         mock_invoke_markdown_linter.return_value = {  # Don't care about markdown linting here, just specific tw linting
             '/tmp/tmp_lint_EYZ5zV/en_tn/2th/front/intro.md': warnings
         }
-        expected_warnings = 200  # should be limited
+        expected_warnings = 200+1  # should be limited
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.zip')
         out_dir = self.unzip_resource(zip_file)
 
@@ -231,7 +231,7 @@ class TestTnTsvLinter(LinterTestCase):
         warning_count = 202
         for _ in range(0, warning_count):
             warnings.append(warning)
-        expected_warnings = 200  # should be limited
+        expected_warnings = 200+1  # should be limited
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.tsv.zip')
         out_dir = self.unzip_resource(zip_file)
 
