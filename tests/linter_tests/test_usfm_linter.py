@@ -102,11 +102,11 @@ class TestUsfmLinter(LinterTestCase):
 
     def test_PhpIdInvalidCode(self):
         out_dir = self.copy_resource(self.php_repo_path)
-        self.replace_tag(out_dir, self.php_file_name, 'id', '\\id PH Unlocked Literal Bible')
+        self.replace_tag(out_dir, self.php_file_name, 'id', "\\id PH Unlocked Literal Bible")
         expected_warnings = True
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], 'PHP - Invalid ID: \'PH Unlocked Literal Bible\'')
-        self.assertEqual(linter.log.warnings[1], 'PHP 1 - Missing ID before chapter')
+        self.assertEqual(linter.log.warnings[0], "PHP - Invalid ID: 'PH Unlocked Literal Bible'")
+        self.assertEqual(linter.log.warnings[1], "PHP 1 - Missing ID before chapter")
         self.verify_results(expected_warnings, linter)
 
     def test_PhpInvalidIdLength(self):
@@ -114,8 +114,8 @@ class TestUsfmLinter(LinterTestCase):
         self.replace_tag(out_dir, self.php_file_name, 'id', '\\id PH')
         expected_warnings = True
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], 'PHP - Invalid ID: \'PH\'')
-        self.assertEqual(linter.log.warnings[1], 'PHP 1 - Missing ID before chapter')
+        self.assertEqual(linter.log.warnings[0], "PHP - Invalid ID: 'PH'")
+        self.assertEqual(linter.log.warnings[1], "PHP 1 - Missing ID before chapter")
         self.verify_results(expected_warnings, linter)
 
     def test_PhpDuplicateID(self):
@@ -123,7 +123,7 @@ class TestUsfmLinter(LinterTestCase):
         self.append_text(out_dir, self.php_file_name, '\\id  PHP Unlocked Literal Bible')
         expected_warnings = True
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], 'PHP 4:23 - Duplicate ID: PHP Unlocked Literal Bible')
+        self.assertEqual(linter.log.warnings[0], "PHP 4:23 - Duplicate ID: 'PHP Unlocked Literal Bible'")
         self.verify_results(expected_warnings, linter)
 
     def test_PhpMissingHeading(self):

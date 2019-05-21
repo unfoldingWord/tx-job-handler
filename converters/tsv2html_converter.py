@@ -8,7 +8,7 @@ import re
 from global_settings.global_settings import GlobalSettings
 from general_tools.file_utils import write_file, remove_tree, get_files
 from converters.converter import Converter
-from tx_usfm_tools.support.books import bookNames
+from tx_usfm_tools.books import bookNames
 
 
 class Tsv2HtmlConverter(Converter):

@@ -1,13 +1,7 @@
-# import getopt
-# import sys
 import os
 import logging
-# from subprocess import Popen, PIPE
 
-# from tx_usfm_tools.support import loutRenderer, contextRenderer, \
-#         htmlRenderer, singlehtmlRenderer, csvRenderer, readerise, \
-#         mdRenderer, asciiRenderer, usxRenderer, mediawikiPrinter
-from tx_usfm_tools.support import singlehtmlRenderer
+from tx_usfm_tools import singlehtmlRenderer
 
 
 
@@ -107,7 +101,8 @@ class UsfmTransform:
         UsfmTransform.__logger.debug("transform: building Single Page HTML…")
         UsfmTransform.ensureOutputDir(builtDir)
         c = singlehtmlRenderer.SingleHTMLRenderer(usfmDir, builtDir + '/' + buildName + '.html')
-        c.render()
+        warning_list = c.render()
+        return warning_list
 
     # @staticmethod
     # def buildCSV(usfmDir, builtDir, buildName):
