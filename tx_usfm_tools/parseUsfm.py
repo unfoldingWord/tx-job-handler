@@ -32,7 +32,11 @@ def usfmTokenNumber(key):
     return Group(Suppress(backslash) + Literal(key) + Suppress(White()) + Word(nums + '-()') + Suppress(White()))
 
 
-# define grammar
+# Define grammar
+# NOTE: We separate fields like \mt and \mt1, \s and \s1
+#           so that we could conceivably rewrite the file without changing the convention used
+#           even though it does increase the complexity a little.
+
 # phrase = Word(alphas + "-.,!? —–‘“”’;:()'\"[]/&%=*…{}" + nums)
 phrase    = CharsNotIn('\n\\')
 backslash = Literal('\\')
@@ -435,12 +439,12 @@ def createToken(t):
         'fq':   FQToken, 'fq*':  FQEndToken,
         'fqa':  FQAToken, 'fqa*': FQAEndToken,
         'fqb':  FQAEndToken,
-        'f*':   FEToken,
-        'fe*':  FEEToken,
+        'f*':   FEndToken,
+        'fe*':  FEEndToken,
         'fv':   FVStartToken, 'fv*':  FVEndToken,
         'fdc':  FDCStartToken, 'fdc*': FDCEndToken,
         'fp':   FPToken,
-        'x':    XSToken,
+        'x':    XStartToken,
         'xdc':  XDCStartToken, 'xdc*': XDCEndToken,
         'xo':   XOToken,
         'xt':   XTToken, 'xt*': XTEndToken,
@@ -954,11 +958,11 @@ class FQBToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFQAE(self)
     def isFQB(self):     return True
 
-class FEToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFE(self)
+class FEndToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderFEnd(self)
     def isFE(self):      return True
 
-class FEEToken(UsfmToken):
+class FEEndToken(UsfmToken):
     def renderOn(self, printer):
         return printer.renderFEE(self)
     def isFEE(self):      return True
@@ -1057,7 +1061,7 @@ class PBRToken(UsfmToken):
 
 
 # Cross References
-class XSToken(UsfmToken):
+class XStartToken(UsfmToken):
     def renderOn(self, printer): return printer.renderXS(self)
     def isXS(self):      return True
 

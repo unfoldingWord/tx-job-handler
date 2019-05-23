@@ -33,6 +33,9 @@ pip-delete-this-directory.txt
 coverage.xml
 *.cover
 
+# Editors
+.vscode/
+
 # Flask stuff:
 instance/
 .webassets-cache

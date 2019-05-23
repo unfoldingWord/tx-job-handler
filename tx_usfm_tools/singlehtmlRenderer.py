@@ -25,12 +25,20 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.bookName = ''
         self.chapterLabel = 'Chapter'
         self.listItemLevel = 0
+
         self.footnoteFlag = False
         self.fqaFlag = False
         self.footnotes = {}
         self.footnote_id = ''
         self.footnote_num = 1
         self.footnote_text = ''
+
+        # TODO: This isn't finished
+        self.crossReferenceFlag = False
+        self.crossReferences = {}
+        self.crossReference_id = ''
+        self.crossReference_num = 1
+        self.crossReference_text = ''
 
 
     def render(self):
@@ -150,6 +158,9 @@ class SingleHTMLRenderer(AbstractRenderer):
         pass # Ignore
     def renderUSFMV(self, token):
         pass # Ignore
+
+    def renderREM(self, token):
+        pass # Don't output these comments here
 
     def renderH(self, token):
         self.bookName = token.value
@@ -357,7 +368,7 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderFT(self, token):
         self.footnote_text += token.value
 
-    def renderFE(self, token):
+    def renderFEnd(self, token):
         assert not token.value
         self.closeFootnote()
 
@@ -365,10 +376,21 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('<br />')
 
+
+    # TODO: render other \x fields
+    def renderXT(self, token):
+        if self.crossReferenceFlag:
+            self.crossReference_text += token.value
+        else: # Can occur not in a cross-reference
+            self.write(token.value)
+
+    def renderXTE(self, token):
+        assert not token.value
+
+
     def renderQSS(self, token):
         assert not token.value
         self.write('<i class="quote selah" style="float:right;">')
-
     def renderQSE(self, token):
         assert not token.value
         self.write('</i>')
@@ -376,7 +398,6 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderEMS(self, token):
         assert not token.value
         self.write('<i class="emphasis">')
-
     def renderEME(self, token):
         assert not token.value
         self.write('</i>')
@@ -488,6 +509,7 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.footnote_text += '</i>' + token.value
         self.fqaFlag = False
 
+
     def closeFootnote(self):
         if self.footnoteFlag:
             self.footnoteFlag = False
@@ -513,6 +535,35 @@ class SingleHTMLRenderer(AbstractRenderer):
                 self.write(f'<div id="{fkey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup><i>[<a href="#ref-{fkey}">{footnote["footnote"]}</a>]</i></sup><span class="text">{footnote["text"]}</span></div>')
             self.write('</div>')
         self.footnotes = {}
+
+
+    # TODO: This isn't finished
+    def closeCrossReference(self):
+        if self.crossReferenceFlag:
+            self.crossReferenceFlag = False
+            # self.renderFQAE(UsfmToken(''))
+            self.crossReferences[self.crossReference_id] = {
+                'text': self.crossReference_text,
+                'book': self.cb,
+                'chapter': self.cc,
+                'verse': self.cv,
+                'footnote': self.crossReference_num
+            }
+            self.crossReference_num += 1
+            self.crossReference_text = ''
+            self.crossReference_id = ''
+
+    def writeCrossReferences(self):
+        crKeys = self.crossReferences.keys()
+        if crKeys:
+            self.write('<div class="footnotes">')
+            self.write('<hr class="footnotes-hr"/>')
+            for crKey in sorted(crKeys):
+                footnote = self.crossReferences[crKey]
+                self.write(f'<div id="{crKey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup><i>[<a href="#ref-{crKey}">{footnote["footnote"]}</a>]</i></sup><span class="text">{footnote["text"]}</span></div>')
+            self.write('</div>')
+        self.crossReferences = {}
+
 
     def renderQA(self, token):
         self.write('<p class="quote acrostic heading" style="text-align:center;text-style:italic;">'+token.value+'</p>')
