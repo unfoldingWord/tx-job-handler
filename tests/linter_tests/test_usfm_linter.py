@@ -54,7 +54,7 @@ class TestUsfmLinter(LinterTestCase):
         os.rename(os.path.join(out_dir, self.php_file_name), os.path.join(out_dir, '51-PHs.usfm'))
         expected_warnings = 1
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], 'PHP - Found in \\id tag does not match code \'PHS\' found in file name')
+        self.assertEqual(linter.log.warnings[0], "PHP - Found in \\id tag does not match code 'PHS' found in filename")
         self.verify_results_counts(expected_warnings, linter)
 
     def test_PhpMissingUsfmFileName(self):
@@ -62,7 +62,7 @@ class TestUsfmLinter(LinterTestCase):
         os.rename(os.path.join(out_dir, self.php_file_name), os.path.join(out_dir, '51-PHP.txt'))
         expected_warnings = 1
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], 'No translations found')
+        self.assertEqual(linter.log.warnings[0], "No translations found")
         self.verify_results_counts(expected_warnings, linter)
 
     def test_PhpDuplicateUsfmFileName(self):
@@ -456,11 +456,26 @@ class TestUsfmLinter(LinterTestCase):
         linter.parse_file(file_path, sub_path, file_name)
         self.verify_results_counts(expected_warnings, linter)
 
+
+    def test_get_books_ids(self):
+        linter = UsfmLinter(repo_subject='Bible')
+        for filename, expectedResults in (
+                            ('00-FRT.usfm', ('FRT','00-FRT')),
+                            ('01-GEN.USFM', ('GEN','01-GEN')),
+                            ('10-2Sa.usfm3', ('2SA','10-2SA')),
+                            ('en-ult-php-book.usfm', ('PHP','EN-ULT-PHP-BOOK')),
+                            ('en_ust_1Co_book.USFM', ('1CO','EN_UST_1CO_BOOK')),
+                            ('en_UHB-Rev_book.usfm', ('REV','EN_UHB-REV_BOOK')),
+                            ):
+            results = linter.get_book_ids(filename)
+            self.assertEqual(results, expectedResults)
+
+
     def test_parse_usfm_text_none(self):
         sub_path = self.php_file_name
-        file_name = "51-PHP.usfm"
-        book_full_name = "51-PHP"
-        book_code = "PHP"
+        file_name = '51-PHP.usfm'
+        book_full_name = '51-PHP'
+        book_code = 'PHP'
         book_text = None
         expected_warnings = 1
         linter = UsfmLinter(repo_subject='Bible')
@@ -469,9 +484,9 @@ class TestUsfmLinter(LinterTestCase):
 
     def test_parse_usfm_text_empty(self):
         sub_path = self.php_file_name
-        file_name = "51-PHP.usfm"
-        book_full_name = "51-PHP"
-        book_code = "PHP"
+        file_name = '51-PHP.usfm'
+        book_full_name = '51-PHP'
+        book_code = 'PHP'
         book_text = ''
         expected_warnings = 1
         linter = UsfmLinter(repo_subject='Bible')

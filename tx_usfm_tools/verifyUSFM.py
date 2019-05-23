@@ -274,7 +274,7 @@ def verifyIdentification(book_code):
     if not state.ID:
         report_error(f"{book_code} - Missing \\id tag")
     elif (book_code is not None) and (book_code != state.ID):
-        report_error(f"{state.ID} - Found in \\id tag does not match code '{book_code}' found in file name")
+        report_error(f"{state.ID} - Found in \\id tag does not match code '{book_code}' found in filename")
 
     if not state.IDE:
         report_error(f"{book_code} - Missing \\ide tag")
@@ -704,6 +704,7 @@ def take(token):
         takeUnknown(state, token)
     global lastToken
     lastToken = token
+# end of take(token) function
 
 
 def verify_contents_quiet(unicodestring, filename, book_code, lang_code):
@@ -726,3 +727,4 @@ def verify_contents_quiet(unicodestring, filename, book_code, lang_code):
     errors = error_log
     error_log = None  # turn error logging back off
     return errors, state.ID
+# end of verify_contents_quiet function
