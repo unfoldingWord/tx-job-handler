@@ -266,7 +266,7 @@ def verifyNotEmpty(filename, book_code):
     state = State()
     if not state.ID \
     or (state.chapter==0 and book_code not in NON_CHAPTER_BOOK_CODES):
-        report_error(f"{filename} - File may be empty.\n")
+        report_error(f"{filename} - File may be empty.")
 
 
 def verifyIdentification(book_code):
@@ -296,7 +296,8 @@ def verifyIdentification(book_code):
 
     if not state.mt:
         if book_code not in NON_CHAPTER_BOOK_CODES:
-            report_error(f"{book_code} - Missing \\mt tag")
+            report_error(f"{book_code} - Missing \\mt or \\mt1 tag")
+# end of verifyIdentification function
 
 
 def make_reference_string(book, chapter, verse=None):
@@ -304,6 +305,7 @@ def make_reference_string(book, chapter, verse=None):
     if verse is not None:
           ref += ":" + verse
     return ref
+# end of make_reference_string function
 
 
 def verifyChapterAndVerseMarkers(text, book):
@@ -683,7 +685,7 @@ def take(token):
         takeTOC2(token.value)
     elif token.isTOC3():
         takeTOC3(token.value)
-    elif token.isMT():
+    elif token.isMT() or token.isMT1():
         takeMT(token.value)
     elif token.isCL():
         takeCL(token.value)
