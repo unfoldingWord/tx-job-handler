@@ -7,6 +7,7 @@ import logging
 __logger = logging.getLogger('usfm_tools')
 
 bookKeys = {
+    'FRT': '000',
     'GEN': '001',
     'EXO': '002',
     'LEV': '003',
@@ -76,6 +77,7 @@ bookKeys = {
 }
 
 silNames = [
+    'FRT',
     'GEN',
     'EXO',
     'LEV',

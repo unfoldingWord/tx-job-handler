@@ -1,8 +1,8 @@
 import logging
 
-from tx_usfm_tools.support.abstractRenderer import AbstractRenderer
-from tx_usfm_tools.support.books import bookKeyForIdValue, bookNames
-from tx_usfm_tools.support.parseUsfm import UsfmToken
+from tx_usfm_tools.abstractRenderer import AbstractRenderer
+from tx_usfm_tools.books import bookKeyForIdValue, bookNames
+from tx_usfm_tools.parseUsfm import UsfmToken
 
 #
 #   Simplest renderer. Ignores everything except ascii text.
@@ -38,9 +38,10 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.loadUSFM(self.inputDir) # Result is in self.booksUsfm
         #print(f"About to render USFM ({len(self.booksUsfm)} books): {str(self.booksUsfm)[:300]} …")
         with open(self.outputFilename, 'wt', encoding='utf-8') as self.f:
-            self.run()
+            warning_list = self.run()
             self.writeFootnotes()
             self.f.write('\n    </body>\n</html>\n')
+        return warning_list
 
 
     def writeHeader(self):
@@ -145,29 +146,42 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.closeParagraph()
         #self.write('\n\n<span id="' + self.cb + '"></span>\n')
 
+    def renderIDE(self, token):
+        pass # Ignore
+    def renderUSFMV(self, token):
+        pass # Ignore
+
     def renderH(self, token):
         self.bookName = token.value
         self.writeHeader()
 
+    def renderTOC1(self, token):
+        pass # Ignore
     def renderTOC2(self, token):
         if not self.bookName: # i.e., there was no \h field in the USFM
             self.bookName = token.value
             self.writeHeader()
+    def renderTOC3(self, token):
+        pass # Ignore
 
-    def renderMT(self, token):
+
+    # def renderMT(self, token):
+    #     return  #self.write('\n\n<h1>' + token.value + '</h1>') # removed to use TOC2
+    def renderMT1(self, token):
         return  #self.write('\n\n<h1>' + token.value + '</h1>') # removed to use TOC2
-
     def renderMT2(self, token):
         self.write('\n\n<h2>' + token.value + '</h2>')
-
     def renderMT3(self, token):
         self.write('\n\n<h2>' + token.value + '</h2>')
 
+
+    # def renderMS(self, token):
+    #     self.write('\n\n<h3>' + token.value + '</h3>')
     def renderMS1(self, token):
         self.write('\n\n<h3>' + token.value + '</h3>')
-
     def renderMS2(self, token):
         self.write('\n\n<h4>' + token.value + '</h4>')
+
 
     def renderP(self, token):
         assert not token.value
@@ -177,12 +191,18 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('\n\n<p>')
         self.inParagraph = True
 
-    def renderPI(self, token):
+    def renderPI1(self, token):
         assert not token.value
         # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderPI({token.value})…")
         self.stopLI()
         self.closeParagraph()
         self.writeIndent(2)
+    def renderPI2(self, token):
+        assert not token.value
+        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderPI({token.value})…")
+        self.stopLI()
+        self.closeParagraph()
+        self.writeIndent(3)
 
     def renderM(self, token):
         assert not token.value
@@ -190,18 +210,33 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<p>')
+        self.inParagraph = True
 
+    def renderMI(self, token):
+        assert not token.value
+        # TODO: This should NOT be identical to renderP
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p>')
+        self.inParagraph = True
+
+    # def renderS(self, token):
+    #     self.stopLI()
+    #     self.closeParagraph()
+    #     self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
     def renderS1(self, token):
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
-
     def renderS2(self, token):
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<h5 style="text-align:center">' + token.getValue() + '</h5>')
-
     def renderS3(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<h5">' + token.getValue() + '</h5>')
+    def renderS4(self, token):
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<h5">' + token.getValue() + '</h5>')
@@ -218,7 +253,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         if not self.bookName: # i.e., there was no \h or \toc2 field in the USFM
             # NOTE: The next line is not tested on New Testament -- may be out by one book
             self.bookName = bookNames[int(self.cb)-1]
-            logging.info(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
+            logging.warning(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
             self.writeHeader()
         self.stopLI()
         self.closeParagraph()
@@ -251,22 +286,19 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write(' ' + self.escape(token.value) + ' ')
 
 
-    def renderQ(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
-        assert not token.value
-        self.renderQ1(token)
-
+    # def renderQ(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
+    #     assert not token.value
+    #     self.renderQ1(token)
     def renderQ1(self, token):
         assert not token.value
         self.stopLI()
         self.closeParagraph()
         self.writeIndent(1)
-
     def renderQ2(self, token):
         assert not token.value
         self.stopLI()
         self.closeParagraph()
         self.writeIndent(2)
-
     def renderQ3(self, token):
         assert not token.value
         self.stopLI()
@@ -359,35 +391,87 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderPERIPH(self, token):
         pass
 
-    def renderLI(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
-        assert not token.value
-        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderLI({token.value})…")
-        self.renderLI1(token)
-
+    # def renderLI(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
+    #     assert not token.value
+    #     # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderLI({token.value})…")
+    #     self.renderLI1(token)
     def renderLI1(self, token):
         assert not token.value
         self.startLI(1)
-
     def renderLI2(self, token):
         assert not token.value
         self.startLI(2)
-
     def renderLI3(self, token):
         assert not token.value
         self.startLI(3)
 
-    def renderD(self, token): # Added by RJH
+    def renderD(self, token):
         # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.cb} {self.cc}:{self.cv}")
+        self.closeParagraph()
         self.write('<span class="d">' + token.value + '</span>')
+    def renderSP(self, token):
+        # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.cb} {self.cc}:{self.cv}")
+        self.closeParagraph()
+        self.write('<span class="sp">' + token.value + '</span>')
 
+    # def render_imt(self, token):
+    #     self.write('\n\n<h2>' + token.value + '</h2>')
     def render_imt1(self, token):
         self.write('\n\n<h2>' + token.value + '</h2>')
-
     def render_imt2(self, token):
         self.write('\n\n<h3>' + token.value + '</h3>')
-
     def render_imt3(self, token):
         self.write('\n\n<h4>' + token.value + '</h4>')
+
+    # def render_is(self, token):
+    #     self.stopLI()
+    #     self.closeParagraph()
+    #     self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
+    def render_is1(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
+    def render_is2(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<h5 style="text-align:center">' + token.getValue() + '</h5>')
+    def render_is3(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<h5">' + token.getValue() + '</h5>')
+
+    def render_ip(self, token):
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p>')
+        self.inParagraph = True
+
+    def render_ipi(self, token):
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
+        self.writeIndent(2)
+
+    def render_im(self, token):
+        assert not token.value
+        # TODO: This should NOT be identical to render_ip
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p>')
+        self.inParagraph = True
+
+    def render_imi(self, token):
+        assert not token.value
+        # TODO: This should NOT be identical to render_ip
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p>')
+        self.inParagraph = True
+
+    def render_ie(self, token):
+        assert not token.value
+        self.closeParagraph()
 
     def renderCL(self, token):
         self.chapterLabel = token.value
@@ -440,4 +524,4 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderQACE(self,token):
         assert not token.value
         self.write('</i>')
-
+# end of class SingleHTMLRenderer
