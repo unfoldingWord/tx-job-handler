@@ -150,6 +150,8 @@ class SingleHTMLRenderer(AbstractRenderer):
         pass # Ignore
     def renderUSFMV(self, token):
         pass # Ignore
+    def renderREM(self, token):
+        pass # Ignore
 
     def renderH(self, token):
         self.bookName = token.value
