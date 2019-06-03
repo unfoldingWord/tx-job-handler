@@ -144,13 +144,16 @@ class RC:
                 self._resource = Resource(self, self.manifest)
         return self._resource
 
+
     @property
     def checking_entity(self):
         return self.manifest.get('checking', {}).get('checking_entity', ['Wycliffe Associates'])
 
+
     @property
     def checking_level(self):
         return self.manifest.get('checking', {}).get('checking_level', '1')
+
 
     @property
     def projects(self):
@@ -162,9 +165,10 @@ class RC:
             elif 'project'in self.manifest:
                 project = Project(self, self.manifest['project'])
                 self._projects.append(project)
-            if not len(self._projects):
+            if not self._projects:
                 self._projects.append(Project(self, {}))  # will rely on info in the resource
         return self._projects
+
 
     @property
     def projects_as_dict(self):
@@ -172,6 +176,7 @@ class RC:
         for project in self.projects:
             projects.append(project.as_dict())
         return projects
+
 
     def project(self, identifier=None):
         """

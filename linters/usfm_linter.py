@@ -43,7 +43,7 @@ class UsfmLinter(Linter):
                 sub_path = '.' + file_path[len(self.source_dir):]
                 self.parse_file(file_path, sub_path, filename)
 
-        if not len(self.found_books):
+        if not self.found_books:
             self.log.warning("No translations found")
 
         return True
@@ -103,7 +103,7 @@ class UsfmLinter(Linter):
             book_code = book_full_name # again
         if book_code not in books.silNames:
             GlobalSettings.logger.warning(f"get_book_ids({usfm_filename}) try4 seemed to fail with book_code='{book_code}'")
-            
+
         return book_code, book_full_name
     # end of get_book_ids function
 

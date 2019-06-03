@@ -74,6 +74,7 @@ class MarkdownLinter(Linter):
                     self.log.warning(line)
         return True
 
+
     def get_files(self, relative_paths):
         """
         relative_paths can be True or False
@@ -92,13 +93,17 @@ class MarkdownLinter(Linter):
                                      extensions=['.md']))
         return files
 
+
     def get_strings(self):
         strings = {}
-        for f in self.get_files(relative_paths=True):
-            path = os.path.join(self.source_dir, f)
-            text = read_file(path)
-            strings[f] = text
+        for filename in self.get_files(relative_paths=True):
+            filepath = os.path.join(self.source_dir, filename)
+            try: text = read_file(filepath)
+            except Exception as e:
+                self.log.warning(f"Error reading {filename}: {e}")
+            strings[filename] = text
         return strings
+
 
     def get_invoke_payload(self, strings):
         return {
