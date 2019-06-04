@@ -19,7 +19,9 @@ from global_settings.global_settings import GlobalSettings
 class Md2HtmlConverter(Converter):
 
     def convert(self):
-        if self.repo_subject == 'obs':
+        if self.repo_subject == 'Open_Bible_Stories':
+            # TODO: What is the difference here?
+            # TODO: What about 'OBS_Translation_Notes', 'OBS_Translation_Questions'
             self.convert_obs()
             return True
         elif '_Lexicon' in self.repo_subject:

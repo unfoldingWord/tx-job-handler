@@ -42,7 +42,7 @@ class TestConverter(unittest.TestCase):
             'cdn_file': 'tx/job/1234567890.zip',
             'identifier': 'richmahn/en-obs/705948ab00',
             'source': 'https://cdn.example.com/preconvert/705948ab00.zip',
-            'resource_type': 'obs',
+            'resource_type': 'Open_Bible_Stories',
             'options': {'pageSize': 'A4'}
         }
 
