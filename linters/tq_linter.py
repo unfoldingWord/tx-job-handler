@@ -26,7 +26,7 @@ class TqLinter(MarkdownLinter):
 
             # Look in the given source_dir first
             search_book_string = f'-{book_abbreviation.upper()}'
-            for root, dirs, files in os.walk(self.source_dir):
+            for root, _dirs, files in os.walk(self.source_dir):
                 for this_filename in files:
                     # GlobalSettings.logger.debug(f"this_filename1 is '{this_filename}'")
                     parts = os.path.splitext(this_filename)
@@ -56,10 +56,12 @@ class TqLinter(MarkdownLinter):
                         break
                 if found_book_file: break
 
-            if not found_book_file and 'OBS' not in self.repo_subject:
+            if not found_book_file \
+            and 'OBS' not in self.repo_subject \
+            and len(self.rc.projects) != 1: # Many repos are intentionally just one book
                 msg = f"Missing tQ book: '{link}'"
-                self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
+                self.log.warnings.append(msg)
         # print(self.log.warnings)
 
         return super(TqLinter, self).lint()  # Runs checks on Markdown, using the markdown linter

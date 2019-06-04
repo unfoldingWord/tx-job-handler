@@ -34,7 +34,7 @@ class TnLinter(MarkdownLinter):
         """
         self.source_dir = os.path.abspath(self.source_dir)
         source_dir = self.source_dir if not self.single_dir else os.path.join(self.source_dir, self.single_dir)
-        for root, dirs, files in os.walk(source_dir):
+        for root, _dirs, files in os.walk(source_dir):
             for f in files:
                 file_path = os.path.join(root, f)
                 parts = os.path.splitext(f)
@@ -48,7 +48,7 @@ class TnLinter(MarkdownLinter):
                 continue
             GlobalSettings.logger.debug(f"Processing folder {dir}")
             file_path = os.path.join(self.source_dir, dir)
-            for root, dirs, files in os.walk(file_path):
+            for root, _dirs, files in os.walk(file_path):
                 if root == file_path:
                     continue  # skip book folder
 
@@ -56,10 +56,12 @@ class TnLinter(MarkdownLinter):
                     found_files = True
                     break
 
-            if not found_files and 'OBS' not in self.repo_subject:
+            if not found_files \
+            and 'OBS' not in self.repo_subject \
+            and len(self.rc.projects) != 1: # Many repos are intentionally just one book
                 msg = f"Missing tN book: '{dir}'"
-                self.log.warnings.append(msg)
                 GlobalSettings.logger.debug(msg)
+                self.log.warnings.append(msg)
 
         results = super(TnLinter, self).lint()  # Runs checks on Markdown, using the markdown linter
         if not results:
@@ -114,7 +116,7 @@ class TnTsvLinter(Linter):
         """
         self.source_dir = os.path.abspath(self.source_dir)
         source_dir = self.source_dir
-        for root, dirs, files in os.walk(source_dir):
+        for root, _dirs, files in os.walk(source_dir):
             for f in files:
                 file_path = os.path.join(root, f)
                 if os.path.splitext(f)[1] == '.tsv':
@@ -152,9 +154,9 @@ class TnTsvLinter(Linter):
                         started = True
                     elif tab_count != TnTsvLinter.expected_tab_count:
                         self.log.warnings.append(f"Bad {expectedB} line near {C}:{V} with {tab_count} tabs (expected {TnTsvLinter.expected_tab_count})")
-                        B = C = V = ID = SupportReference = OrigQuote = Occurrence = GLQuote = OccurrenceNote = None
+                        B = C = V = _ID = _SupportReference = _OrigQuote = _Occurrence = _GLQuote = OccurrenceNote = None
                     else:
-                        B, C, V, ID, SupportReference, OrigQuote, Occurrence, GLQuote, OccurrenceNote = tsv_line.split('\t')
+                        B, C, V, _ID, _SupportReference, _OrigQuote, _Occurrence, _GLQuote, OccurrenceNote = tsv_line.split('\t')
                         if B != expectedB:
                             self.log.warnings.append(f"Unexpected {B} line in {filename}")
                         if not C:

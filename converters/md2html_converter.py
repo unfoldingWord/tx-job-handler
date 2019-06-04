@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 import requests
 
 from rq_settings import prefix, debug_mode_flag
-from general_tools.file_utils import write_file, get_files
+from general_tools.file_utils import read_file, write_file, get_files
 from converters.converter import Converter
 from converters.convert_naked_urls import fix_naked_urls
 from global_settings.global_settings import GlobalSettings
@@ -19,7 +19,9 @@ from global_settings.global_settings import GlobalSettings
 class Md2HtmlConverter(Converter):
 
     def convert(self):
-        if self.repo_subject == 'obs':
+        if self.repo_subject == 'Open_Bible_Stories':
+            # TODO: What is the difference here?
+            # TODO: What about 'OBS_Translation_Notes', 'OBS_Translation_Questions'
             self.convert_obs()
             return True
         elif '_Lexicon' in self.repo_subject:
@@ -42,27 +44,29 @@ class Md2HtmlConverter(Converter):
             html_template = string.Template(template_file.read())
 
         # found_chapters = {}
-        for filename in sorted(files):
-            if filename.endswith('.md'):
+        for filepath in sorted(files):
+            if filepath.endswith('.md'):
                 # Convert files that are markdown files
-                with open(filename, 'rt') as md_file:
-                    md = md_file.read()
+                base_name = os.path.splitext(os.path.basename(filepath))[0]
+                # found_chapters[base_name] = True
+                try: md = read_file(filepath)
+                except Exception as e:
+                    self.log.error(f"Error reading {base_name+'.md'}: {e}")
+                    continue
                 html = markdown.markdown(md)
                 html = html_template.safe_substitute(
                                             title=self.repo_subject.replace('_',' '),
                                             content=html)
-                base_name = os.path.splitext(os.path.basename(filename))[0]
-                # found_chapters[base_name] = True
                 html_filename = base_name + '.html'
                 output_filepath = os.path.join(self.output_dir, html_filename)
                 write_file(output_filepath, html)
-                self.log.info(f"Converted {os.path.basename(filename)} to {os.path.basename(html_filename)}.")
+                self.log.info(f"Converted {os.path.basename(filepath)} to {os.path.basename(html_filename)}.")
             else:
                 # Directly copy over files that are not markdown files
                 try:
-                    output_filepath = os.path.join(self.output_dir, os.path.basename(filename))
+                    output_filepath = os.path.join(self.output_dir, os.path.basename(filepath))
                     if not os.path.exists(output_filepath):
-                        copyfile(filename, output_filepath)
+                        copyfile(filepath, output_filepath)
                 except:
                     pass
         self.log.info("Finished processing OBS Markdown files.")
@@ -93,8 +97,10 @@ class Md2HtmlConverter(Converter):
                 GlobalSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
 
                 # Convert files that are markdown files
-                with open(filepath, 'rt') as md_file:
-                    md = md_file.read()
+                try: md = read_file(filepath)
+                except Exception as e:
+                    self.log.error(f"Error reading {filename}: {e}")
+                    continue
                 # if 0: # test code -- creates html1
                 #     headers = {"content-type": "application/json"}
                 #     url = "http://bg.door43.org/api/v1/markdown"
@@ -129,8 +135,6 @@ class Md2HtmlConverter(Converter):
                 #     else: # no response
                 #         GlobalSettings.logger.error("Submission of job to Markdown->HTML got no response")
                 if 1: # old/existing code -- creates html2
-                    with open(filepath, 'rt') as md_file:
-                        md = md_file.read()
                     if self.repo_subject in ['Translation_Academy',]:
                         html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
                         if prefix and debug_mode_flag:
@@ -216,8 +220,10 @@ class Md2HtmlConverter(Converter):
                 GlobalSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
 
                 # Convert files that are markdown files
-                with open(filepath, 'rt') as md_file:
-                    md = md_file.read()
+                try: md = read_file(filepath)
+                except Exception as e:
+                    self.log.error(f"Error reading {filename}: {e}")
+                    continue
                 # if 0: # test code -- creates html1
                 #     headers = {"content-type": "application/json"}
                 #     url = "http://bg.door43.org/api/v1/markdown"
@@ -252,8 +258,6 @@ class Md2HtmlConverter(Converter):
                 #     else: # no response
                 #         GlobalSettings.logger.error("Submission of job to Markdown->HTML got no response")
                 if 1: # old/existing code -- creates html2
-                    with open(filepath, 'rt') as md_file:
-                        md = md_file.read()
                     if self.repo_subject in ['Translation_Academy',]:
                         html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
                         if prefix and debug_mode_flag:

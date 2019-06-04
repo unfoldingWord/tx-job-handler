@@ -7,6 +7,7 @@ import yaml
 from mimetypes import MimeTypes
 
 from general_tools.data_utils import json_serial
+from global_settings.global_settings import GlobalSettings
 
 
 def unzip(source_file, destination_dir):
@@ -101,12 +102,21 @@ def load_yaml_object(file_name, default=None):
     return yaml.safe_load(read_file(file_name))
 
 
-def read_file(file_name, encoding='utf-8'):
-    with open(file_name, 'rt', encoding=encoding) as f:
+def read_file(filepath, encoding='utf-8'):
+    """
+    Read a UTF-8 text file,
+        remove the optional BOM prefix,
+        convert Windows line endings to Linux line endings,
+        and remove the text
+    """
+    with open(filepath, 'r', encoding=encoding) as f:
         content = f.read()
-    # convert Windows line endings to Linux line endings
-    content = content.replace('\r\n', '\n')
+    if content.startswith(chr(65279)): # U+FEFF or \ufeff
+        GlobalSettings.logger.info(f"Detected Unicode Byte Order Marker (BOM) in {filepath}")
+        content = content[1:] # remove (optional) BOM prefix
+    content = content.replace('\r\n', '\n') # convert Windows line endings to Linux line endings
     return content
+# end of read_file function
 
 
 def write_file(file_name, file_contents, indent=None):

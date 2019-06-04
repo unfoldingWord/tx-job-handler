@@ -669,7 +669,7 @@ def take(token):
     if isFootnote(token):
         state.addText()     # footnote suffices for verse text
     if state.needText() and not token.isTEXT() and not isTextCarryingToken(token):
-        print(f"EMPTY VERSE {state.referenceString}: {token}")
+        # print(f"EMPTY VERSE {state.referenceString}: {token}")
         report_error(f"{state.referenceString} - Empty verse\n")
     if token.isID():
         takeID(token.value)
