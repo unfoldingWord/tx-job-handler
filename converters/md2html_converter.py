@@ -21,8 +21,10 @@ class Md2HtmlConverter(Converter):
     def convert(self):
         if self.repo_subject == 'Open_Bible_Stories':
             # TODO: What is the difference here?
-            # TODO: What about 'OBS_Translation_Notes', 'OBS_Translation_Questions'
             self.convert_obs()
+            return True
+        elif self.repo_subject in ('OBS_Translation_Notes', 'OBS_Translation_Questions'):
+            self.convert_obsNotes()
             return True
         elif '_Lexicon' in self.repo_subject:
             self.convert_lexicon()
@@ -47,17 +49,17 @@ class Md2HtmlConverter(Converter):
         for filepath in sorted(files):
             if filepath.endswith('.md'):
                 # Convert files that are markdown files
-                base_name = os.path.splitext(os.path.basename(filepath))[0]
+                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
                 # found_chapters[base_name] = True
                 try: md = read_file(filepath)
                 except Exception as e:
-                    self.log.error(f"Error reading {base_name+'.md'}: {e}")
+                    self.log.error(f"Error reading {base_name_part+'.md'}: {e}")
                     continue
                 html = markdown.markdown(md)
                 html = html_template.safe_substitute(
                                             title=self.repo_subject.replace('_',' '),
                                             content=html)
-                html_filename = base_name + '.html'
+                html_filename = base_name_part + '.html'
                 output_filepath = os.path.join(self.output_dir, html_filename)
                 write_file(output_filepath, html)
                 self.log.info(f"Converted {os.path.basename(filepath)} to {os.path.basename(html_filename)}.")
@@ -71,6 +73,87 @@ class Md2HtmlConverter(Converter):
                     pass
         self.log.info("Finished processing OBS Markdown files.")
     # end of Md2HtmlConverter.convert_obs()
+
+
+    def convert_obsNotes(self):
+        """
+        This converter is used for OBS_tn and OBS_tq
+        """
+        self.log.info("Converting OBSNotes markdown files…")
+
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
+            html_template = string.Template(template_file.read())
+
+        # First handle files in the root folder
+        files = os.listdir(self.files_dir)
+        for filename in sorted(files):
+            if filename in self.EXCLUDED_FILES:
+                continue # ignore it
+            filepath = os.path.join(self.files_dir, filename)
+            if filename.endswith('.md'):
+                # Convert files that are markdown files
+                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
+                # found_chapters[base_name] = True
+                try: md = read_file(filepath)
+                except Exception as e:
+                    self.log.error(f"Error reading {base_name_part+'.md'}: {e}")
+                    continue
+                html = markdown.markdown(md)
+                html = html_template.safe_substitute(
+                                            title=self.repo_subject.replace('_',' '),
+                                            content=html)
+                html_filename = base_name_part + '.html'
+                output_filepath = os.path.join(self.output_dir, html_filename)
+                write_file(output_filepath, html)
+                self.log.info(f"Converted {os.path.basename(filepath)} to {os.path.basename(html_filename)}.")
+            else:
+                # Directly copy over files that are not markdown files
+                try:
+                    output_filepath = os.path.join(self.output_dir, os.path.basename(filepath))
+                    if not os.path.exists(output_filepath):
+                        copyfile(filepath, output_filepath)
+                except:
+                    pass
+
+        # # Now handle the story folders
+        # # found_chapters = {}
+        # for story_number in range(1, 50+1):
+        #     story_number_string = str(story_number).zfill(2)
+        #     story_folder_path = os.path.join(self.files_dir, f'{story_number_string}/')
+        #     if not os.path.isdir(story_folder_path):
+        #         self.log.warning(f"Unable to find folder '{story_number_string}/'")
+        #         continue
+        #     for filename in sorted(os.listdir(story_folder_path)):
+        #         filepath = os.path.join(story_folder_path, filename)
+        #         print(f"Filename={filename} at {filepath}")
+        #         if filename.endswith('.md'):
+        #             # Convert files that are markdown files
+        #             base_name_part = os.path.splitext(os.path.basename(filepath))[0]
+        #             # found_chapters[base_name] = True
+        #             try: md = read_file(filepath)
+        #             except Exception as e:
+        #                 self.log.error(f"Error reading {base_name_part+'.md'}: {e}")
+        #                 continue
+        #             html = markdown.markdown(md)
+        #             html = html_template.safe_substitute(
+        #                                         title=self.repo_subject.replace('_',' '),
+        #                                         content=html)
+        #             html_filename = f'{story_number_string}-{base_name_part}.html'
+        #             output_filepath = os.path.join(self.output_dir, html_filename)
+        #             write_file(output_filepath, html)
+        #             self.log.info(f"Converted {os.path.basename(filepath)} to {os.path.basename(html_filename)}.")
+        #         else:
+        #             self.log.error(f"Unexpected '{filename}' file in {story_number_string}/")
+        #             # Directly copy over files that are not markdown files
+        #             try:
+        #                 output_filepath = os.path.join(self.output_dir, os.path.basename(filepath))
+        #                 if not os.path.exists(output_filepath):
+        #                     copyfile(filepath, output_filepath)
+        #             except:
+        #                 pass
+        self.log.info("Finished processing OBSNotes Markdown files.")
+    # end of Md2HtmlConverter.convert_obsNotes()
 
 
     def convert_markdown(self):

@@ -3,7 +3,7 @@
 
 FROM python:alpine
 
-ADD . /code
+COPY . /code
 WORKDIR /code
 
 RUN pip3 install --upgrade pip

@@ -105,7 +105,7 @@ class AbstractRenderer:
     # def renderWJS(self, token):     pass
     # def renderWJE(self, token):     pass
 
-    # def renderTEXT(self, token):    pass
+    # def renderText(self, token):    pass
 
     # def renderQ(self, token):       pass
     # def renderQ1(self, token):      pass

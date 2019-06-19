@@ -16,8 +16,8 @@ lastToken = None
 vv_re = re.compile(r'([0-9]+)-([0-9]+)')
 error_log = None
 
-chapter_marker_re = re.compile(r'\\c')
-verse_marker_re = re.compile(r'\\v')
+chapter_marker_re = re.compile(r'\\c(?!a)') # Don't match on \ca
+verse_marker_re = re.compile(r'\\v(?!a)') # Don't match on \va
 
 WHITE_SPACE = [' ', '\u00A0', '\r', '\n', '\t']
 SPACE = [' ', '\u00A0']
@@ -366,6 +366,10 @@ def check_chapter(text, book, chapter_num, start, end):
                 add_error(text, book, "Missing space before verse marker: '{0}'", start-1, chapter_num, vs_range)
             last_vs_range = vs_range
         else:
+            # print("book", book, "chapter", chapter_num, "verse_current", verse_current)
+            # print(f"start='{start}' end='{end}'")
+            # print(f"char='{char}'")
+            # print(f"space_before={space_before} vs_range={vs_range} has_space_after={has_space_after}")
             add_error(text, book, "Invalid verse number: '{0}'", start, chapter_num, last_vs_range)
 
 
@@ -651,7 +655,10 @@ def isCharacterFormatting(token):
         or token.isNDS() or token.isNDE() \
         or token.isWJS() or token.isWJE() \
         or token.isBDS() or token.isBDE() \
-        or token.isBDITS() or token.isBDITE()
+        or token.isBDITS() or token.isBDITE() \
+        or token.isSCS() or token.isSCE() \
+        or token.isCAS() or token.isCAE() \
+        or token.isVAS() or token.isVAE()
 
 def isTextCarryingToken(token):
     """
@@ -661,7 +668,7 @@ def isTextCarryingToken(token):
     """
     return token.isB() or token.isM() or token.isD() or isFootnote(token) \
         or isCrossRef(token) or isPoetry(token) or isIntro(token) \
-        or isCharacterFormatting(token) # RJH added this (for \wj fields)
+        or isCharacterFormatting(token) # RJH added this (for \wj fields, etc.)
 
 
 def take(token):

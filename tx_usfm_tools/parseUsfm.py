@@ -85,8 +85,8 @@ ca_s     = usfmToken('ca')
 ca_e     = usfmEndToken('ca')
 cl      = usfmTokenValue('cl', phrase)
 v       = usfmTokenNumber('v')
-wj_s     = usfmToken('wj')
-wj_e     = usfmEndToken('wj')
+va_s     = usfmToken('va')
+va_e     = usfmEndToken('va')
 
 q       = usfmToken('q')
 q1      = usfmToken('q1')
@@ -102,17 +102,17 @@ qm1     = usfmToken('qm1')
 qm2     = usfmToken('qm2')
 qm3     = usfmToken('qm3')
 qr      = usfmToken('qr')
-qss     = usfmToken('qs')
-qse     = usfmEndToken('qs')
-qts     = usfmToken('qt')
-qte     = usfmEndToken('qt')
+qs_s     = usfmToken('qs')
+qs_e     = usfmEndToken('qs')
+qt_s     = usfmToken('qt')
+qt_e     = usfmEndToken('qt')
 nb      = usfmToken('nb')
 m       = usfmToken('m')
 
 # Footnotes
-fs      = usfmTokenValue('f', plus)
-fe      = usfmEndToken('f')
-fes     = usfmTokenValue('fe', plus)
+f_s      = usfmTokenValue('f', plus)
+f_e      = usfmEndToken('f')
+fe_s     = usfmTokenValue('fe', plus)
 fe_e     = usfmEndToken('fe')
 fr      = usfmTokenValue('fr', phrase)
 fr_e     = usfmEndToken('fr')
@@ -141,6 +141,9 @@ xe      = usfmEndToken('x')
 xt      = usfmTokenValue('xt', phrase)
 # xts    = usfmToken('xt')
 xt_e    = usfmEndToken('xt')
+
+wj_s     = usfmToken('wj')
+wj_e     = usfmEndToken('wj')
 
 # Transliterated
 tl_s      = usfmToken('tl')
@@ -255,12 +258,11 @@ element =  MatchFirst([ide, id,
                        pi2,
                        mi,
                        b,
-                       c,
                        ca_s, ca_e,
+                       c,
                        cl,
+                       va_s, va_e,
                        v,
-                       wj_s, wj_e,
-                       nd_s, nd_e,
                        q, q1, q2, q3, q4,
                        qa,
                        qac,
@@ -270,21 +272,21 @@ element =  MatchFirst([ide, id,
                        qm2,
                        qm3,
                        qr,
-                       qss,
-                       qse,
-                       qts,
-                       qte,
+                       qs_s,
+                       qs_e,
+                       qt_s,
+                       qt_e,
                        nb,
                        m,
-                       fs,
-                       fes,
+                       f_s,
+                       fe_s,
                        fr, fr_e,
                        fk,
                        ft,
                        fq, fq_e,
                        fqa, fqa_e,
                        fqb,
-                       fe, fe_e,
+                       f_e, fe_e,
                        fp,
                        fv, fv_e,
                        fdc, fdc_e,
@@ -295,6 +297,8 @@ element =  MatchFirst([ide, id,
                        xe,
                        ist,
                        ien,
+                       wj_s, wj_e,
+                       nd_s, nd_e,
                        bd_s, bd_e,
                        bdit_s, bdit_e,
                        li, li1, li2, li3, li4,
@@ -372,7 +376,7 @@ def createToken(t):
     options = {
         'id':   IDToken,
         'ide':  IDEToken,
-        'usfm': USFMVToken,
+        'usfm': USFMVersionToken,
         'h':    HToken,
 
         'mt':   MTToken,
@@ -410,7 +414,7 @@ def createToken(t):
         'ca':   CAStartToken, 'ca*':  CAEndToken,
         'cl':   CLToken,
         'v':    VToken,
-        'wj':   WJStartToken, 'wj*':  WJEndToken,
+        'va':   VAStartToken, 'va*':  VAEndToken,
 
         'q':    QToken,
         'q1':   Q1Token,
@@ -465,6 +469,7 @@ def createToken(t):
         'add':  ADDStartToken, 'add*': ADDEndToken,
         'nd':   NDStartToken, 'nd*':  NDEndToken,
         'sc':   SCStartToken, 'sc*':  SCEndToken,
+        'wj':   WJStartToken, 'wj*':  WJEndToken,
         'm':    MToken,
         'tl':   TLStartToken, 'tl*':  TLEndToken,
         '\\\\': EscapedToken,
@@ -579,6 +584,8 @@ class UsfmToken:
     def isCAE(self):    return False
     def isCL(self):     return False
     def isV(self):      return False
+    def isVAS(self):    return False
+    def isVAE(self):    return False
     def isWJS(self):    return False
     def isWJE(self):    return False
     def isTEXT(self):   return False
@@ -708,7 +715,7 @@ class UnknownToken(UsfmToken):
 class EscapedToken(UsfmToken):
     def renderOn(self, printer):
         self.value = '\\'
-        return printer.renderTEXT(self)
+        return printer.renderText(self)
     def isUnknown(self): return True
 
 
@@ -719,7 +726,7 @@ class IDEToken(UsfmToken):
     def renderOn(self, printer): return printer.renderIDE(self)
     def isIDE(self):    return True
 
-class USFMVToken(UsfmToken):
+class USFMVersionToken(UsfmToken):
     def renderOn(self, printer): return printer.renderUSFMV(self)
     def isUSFM(self):    return True
 
@@ -785,11 +792,10 @@ class CToken(UsfmToken):
     def isC(self):      return True
 
 class CAStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderCAS(self)
+    def renderOn(self, printer): return printer.renderCA_S(self)
     def isCAS(self):    return True
-
 class CAEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderCAE(self)
+    def renderOn(self, printer): return printer.renderCA_E(self)
     def isCAE(self):    return True
 
 class CLToken(UsfmToken):
@@ -800,15 +806,22 @@ class VToken(UsfmToken):
     def renderOn(self, printer): return printer.renderV(self)
     def isV(self):      return True
 
+class VAStartToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderVA_S(self)
+    def isVAS(self):    return True
+class VAEndToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderVA_E(self)
+    def isVAE(self):    return True
+
 class TEXTToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderTEXT(self)
+    def renderOn(self, printer): return printer.renderText(self)
     def isTEXT(self):   return True
 
 class WJStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderWJS(self)
+    def renderOn(self, printer): return printer.renderWJ_S(self)
     def isWJS(self):    return True
 class WJEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderWJE(self)
+    def renderOn(self, printer): return printer.renderWJ_E(self)
     def isWJE(self):    return True
 
 class SToken(UsfmToken):
@@ -892,19 +905,19 @@ class QRToken(UsfmToken):
     def isQR(self):      return True
 
 class QSStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderQSS(self)
+    def renderOn(self, printer): return printer.renderQS_S(self)
     def isQSS(self):     return True
 
 class QSEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderQSE(self)
+    def renderOn(self, printer): return printer.renderQS_E(self)
     def isQSE(self):     return True
 
 class QTStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderQTS(self)
+    def renderOn(self, printer): return printer.renderQT_S(self)
     def isQTS(self):     return True
 
 class QTEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderQTE(self)
+    def renderOn(self, printer): return printer.renderQT_E(self)
     def isQTE(self):     return True
 
 class NBToken(UsfmToken):
@@ -912,12 +925,11 @@ class NBToken(UsfmToken):
     def isNB(self):      return True
 
 class FStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFS(self)
+    def renderOn(self, printer): return printer.renderF_S(self)
     def isFS(self):      return True
 
 class FEStartToken(UsfmToken):
-    def renderOn(self, printer):
-        return printer.renderFES(self)
+    def renderOn(self, printer): return printer.renderFE_S(self)
     def isFES(self):      return True
 
 class FRToken(UsfmToken):
@@ -925,7 +937,7 @@ class FRToken(UsfmToken):
     def isFR(self):      return True
 
 class FREndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFRE(self)
+    def renderOn(self, printer): return printer.renderFR_E(self)
     def isFRE(self):      return True
 
 class FKToken(UsfmToken):
@@ -937,13 +949,11 @@ class FTToken(UsfmToken):
     def isFT(self):      return True
 
 class FQToken(UsfmToken):
-    def renderOn(self, printer):
-        return printer.renderFQ(self)
+    def renderOn(self, printer): return printer.renderFQ(self)
     def isFQ(self):      return True
 
 class FQEndToken(UsfmToken):
-    def renderOn(self, printer):
-        return printer.renderFQE(self)
+    def renderOn(self, printer): return printer.renderFQ_E(self)
     def isFQE(self):      return True
 
 class FQAToken(UsfmToken):
@@ -951,36 +961,35 @@ class FQAToken(UsfmToken):
     def isFQA(self):     return True
 
 class FQAEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFQAE(self)
+    def renderOn(self, printer): return printer.renderFQA_E(self)
     def isFQAE(self):    return True
 
 class FQBToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFQAE(self)
+    def renderOn(self, printer): return printer.renderFQA_E(self)
     def isFQB(self):     return True
 
 class FEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFEnd(self)
+    def renderOn(self, printer): return printer.renderF_E(self)
     def isFE(self):      return True
 
 class FEEndToken(UsfmToken):
-    def renderOn(self, printer):
-        return printer.renderFEE(self)
+    def renderOn(self, printer): return printer.renderFE_E(self)
     def isFEE(self):      return True
 
 class FVStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFVS(self)
+    def renderOn(self, printer): return printer.renderFV_S(self)
     def isFVS(self):      return True
 
 class FVEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFVE(self)
+    def renderOn(self, printer): return printer.renderFV_E(self)
     def isFVE(self):      return True
 
 class FDCStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFDCS(self)
+    def renderOn(self, printer): return printer.renderFDC_S(self)
     def isFDCS(self):      return True
 
 class FDCEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFDCE(self)
+    def renderOn(self, printer): return printer.renderFDC_E(self)
     def isFDCE(self):      return True
 
 class FPToken(UsfmToken):
@@ -988,27 +997,27 @@ class FPToken(UsfmToken):
     def isFP(self):      return True
 
 class ITStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderIS(self)
+    def renderOn(self, printer): return printer.renderIT_S(self)
     def isIS(self):      return True
 
 class ITEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderIE(self)
+    def renderOn(self, printer): return printer.renderIT_E(self)
     def isIE(self):      return True
 
 class BDStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderBDS(self)
+    def renderOn(self, printer): return printer.renderBD_S(self)
     def isBDS(self):      return True
 
 class BDEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderBDE(self)
+    def renderOn(self, printer): return printer.renderBD_E(self)
     def isBDE(self):      return True
 
 class BDITStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderBDITS(self)
+    def renderOn(self, printer): return printer.renderBDIT_S(self)
     def isBDITS(self):     return True
 
 class BDITEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderBDITE(self)
+    def renderOn(self, printer): return printer.renderBDIT_E(self)
     def isBDITE(self):      return True
 
 class LIToken(UsfmToken):
@@ -1040,19 +1049,19 @@ class SPToken(UsfmToken):
     def isSP(self):      return True
 
 class ADDStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderADDS(self)
+    def renderOn(self, printer): return printer.renderADD_S(self)
     def isADDS(self):    return True
 
 class ADDEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderADDE(self)
+    def renderOn(self, printer): return printer.renderADD_E(self)
     def isADDE(self):    return True
 
 class NDStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderNDS(self)
+    def renderOn(self, printer): return printer.renderND_S(self)
     def isNDS(self):    return True
 
 class NDEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderNDE(self)
+    def renderOn(self, printer): return printer.renderND_E(self)
     def isNDE(self):    return True
 
 class PBRToken(UsfmToken):
@@ -1066,11 +1075,11 @@ class XStartToken(UsfmToken):
     def isXS(self):      return True
 
 class XDCStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderXDCS(self)
+    def renderOn(self, printer): return printer.renderXDC_S(self)
     def isXDCS(self):      return True
 
 class XDCEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderXDCE(self)
+    def renderOn(self, printer): return printer.renderXDC_E(self)
     def isXDCE(self):      return True
 
 class XOToken(UsfmToken):
@@ -1082,15 +1091,15 @@ class XTToken(UsfmToken):
     def isXT(self):      return True
 
 class XTSToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderXTS(self)
+    def renderOn(self, printer): return printer.renderXT_S(self)
     def isXTS(self):      return True
 
 class XTEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderXTE(self)
+    def renderOn(self, printer): return printer.renderXT_E(self)
     def isXTE(self):      return True
 
 class XEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderXE(self)
+    def renderOn(self, printer): return printer.renderX_E(self)
     def isXE(self):      return True
 
 class MToken(UsfmToken):
@@ -1099,17 +1108,16 @@ class MToken(UsfmToken):
 
 # Transliterated Words
 class TLStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderTLS(self)
+    def renderOn(self, printer): return printer.renderTL_S(self)
     def isTLS(self):      return True
 
 class TLEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderTLE(self)
+    def renderOn(self, printer): return printer.renderTL_E(self)
     def isTLE(self):      return True
 
 # Formatted paragraphs, like pc, pi, etc.
 class PCToken(UsfmToken):
-    def renderOn(self, printer):
-        return printer.renderPC(self)
+    def renderOn(self, printer): return printer.renderPC(self)
     def isPC(self):      return True
 
 # Indenting paragraphs
@@ -1125,11 +1133,11 @@ class PI2Token(UsfmToken):
 
 # Small caps
 class SCStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderSCS(self)
+    def renderOn(self, printer): return printer.renderSC_S(self)
     def isSCS(self):      return True
 
 class SCEndToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderSCE(self)
+    def renderOn(self, printer): return printer.renderSC_E(self)
     def isSCE(self):      return True
 
 # REMarks
