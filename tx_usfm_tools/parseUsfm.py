@@ -85,8 +85,8 @@ ca_s     = usfmToken('ca')
 ca_e     = usfmEndToken('ca')
 cl      = usfmTokenValue('cl', phrase)
 v       = usfmTokenNumber('v')
-wj_s     = usfmToken('wj')
-wj_e     = usfmEndToken('wj')
+va_s     = usfmToken('va')
+va_e     = usfmEndToken('va')
 
 q       = usfmToken('q')
 q1      = usfmToken('q1')
@@ -141,6 +141,9 @@ xe      = usfmEndToken('x')
 xt      = usfmTokenValue('xt', phrase)
 # xts    = usfmToken('xt')
 xt_e    = usfmEndToken('xt')
+
+wj_s     = usfmToken('wj')
+wj_e     = usfmEndToken('wj')
 
 # Transliterated
 tl_s      = usfmToken('tl')
@@ -255,12 +258,11 @@ element =  MatchFirst([ide, id,
                        pi2,
                        mi,
                        b,
-                       c,
                        ca_s, ca_e,
+                       c,
                        cl,
+                       va_s, va_e,
                        v,
-                       wj_s, wj_e,
-                       nd_s, nd_e,
                        q, q1, q2, q3, q4,
                        qa,
                        qac,
@@ -295,6 +297,8 @@ element =  MatchFirst([ide, id,
                        xe,
                        ist,
                        ien,
+                       wj_s, wj_e,
+                       nd_s, nd_e,
                        bd_s, bd_e,
                        bdit_s, bdit_e,
                        li, li1, li2, li3, li4,
@@ -410,7 +414,7 @@ def createToken(t):
         'ca':   CAStartToken, 'ca*':  CAEndToken,
         'cl':   CLToken,
         'v':    VToken,
-        'wj':   WJStartToken, 'wj*':  WJEndToken,
+        'va':   VAStartToken, 'va*':  VAEndToken,
 
         'q':    QToken,
         'q1':   Q1Token,
@@ -465,6 +469,7 @@ def createToken(t):
         'add':  ADDStartToken, 'add*': ADDEndToken,
         'nd':   NDStartToken, 'nd*':  NDEndToken,
         'sc':   SCStartToken, 'sc*':  SCEndToken,
+        'wj':   WJStartToken, 'wj*':  WJEndToken,
         'm':    MToken,
         'tl':   TLStartToken, 'tl*':  TLEndToken,
         '\\\\': EscapedToken,
@@ -579,6 +584,8 @@ class UsfmToken:
     def isCAE(self):    return False
     def isCL(self):     return False
     def isV(self):      return False
+    def isVAS(self):    return False
+    def isVAE(self):    return False
     def isWJS(self):    return False
     def isWJE(self):    return False
     def isTEXT(self):   return False
@@ -787,7 +794,6 @@ class CToken(UsfmToken):
 class CAStartToken(UsfmToken):
     def renderOn(self, printer): return printer.renderCA_S(self)
     def isCAS(self):    return True
-
 class CAEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderCA_E(self)
     def isCAE(self):    return True
@@ -799,6 +805,13 @@ class CLToken(UsfmToken):
 class VToken(UsfmToken):
     def renderOn(self, printer): return printer.renderV(self)
     def isV(self):      return True
+
+class VAStartToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderVA_S(self)
+    def isVAS(self):    return True
+class VAEndToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderVA_E(self)
+    def isVAE(self):    return True
 
 class TEXTToken(UsfmToken):
     def renderOn(self, printer): return printer.renderText(self)

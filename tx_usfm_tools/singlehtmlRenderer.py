@@ -273,6 +273,12 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.cc = token.value.zfill(3)
         self.write('\n\n<h2 id="{0}-ch-{1}" class="c-num">{2} {3}</h2>'
                    .format(self.cb, self.cc, self.chapterLabel, token.value))
+    def renderCA_S(self, token):
+        assert not token.value
+        self.write('<span class="altChapter">')
+    def renderCA_E(self, token):
+        assert not token.value
+        self.write('</span>')
 
     def renderV(self, token):
         self.stopLI()
@@ -280,13 +286,12 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.cv = token.value.zfill(3)
         self.write(' <span id="{0}-ch-{1}-v-{2}" class="v-num"><sup><b>{3}</b></sup></span>'.
                    format(self.cb, self.cc, self.cv, token.value))
-
-    def renderWJ_S(self, token):
+    def renderVA_S(self, token):
         assert not token.value
-        self.write('<span class="woc">')
-    def renderWJ_E(self, token):
+        self.write('<span class="altVerse"><sup> (')
+    def renderVA_E(self, token):
         assert not token.value
-        self.write('</span>')
+        self.write(')</sup></span>')
 
 
     # def renderQ(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
@@ -348,6 +353,13 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderQS_E(self, token):
         assert not token.value
         self.write('</i>')
+
+    def renderWJ_S(self, token):
+        assert not token.value
+        self.write('<span class="woc">')
+    def renderWJ_E(self, token):
+        assert not token.value
+        self.write('</span>')
 
     def renderEM_S(self, token):
         assert not token.value
