@@ -25,13 +25,12 @@ from general_tools.url_utils import download_file
 from global_settings.global_settings import GlobalSettings
 
 from linters.obs_linter import ObsLinter
+from linters.obs_notes_linter import ObsNotesLinter
 from linters.ta_linter import TaLinter
 from linters.tn_linter import TnLinter, TnTsvLinter
 from linters.tq_linter import TqLinter
 from linters.tw_linter import TwLinter
 from linters.markdown_linter import MarkdownLinter
-# from linters.udb_linter import UdbLinter
-# from linters.ulb_linter import UlbLinter
 from linters.usfm_linter import UsfmLinter
 from linters.lexicon_linter import LexiconLinter
 
@@ -45,12 +44,12 @@ from converters.usfm2html_converter import Usfm2HtmlConverter
 # Columns are: 1/ linter name 2/ linter 3/ input formats 4/ resource types
 LINTER_TABLE = (
     ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs'),              ),
+    ('obsNotes', ObsNotesLinter, ('md',),      ('OBS_Translation_Notes',
+                                                'OBS_Translation_Questions'),             ),
     ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta'),              ),
     ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('TSV_Translation_Notes','tn'),            ),
-    ('tn',       TnLinter,       ('md',),      ('OBS_Translation_Notes',
-                                                'Translation_Notes','tn'),                ),
-    ('tq',       TqLinter,       ('md',),      ('Translation_Questions',
-                                                'OBS_Translation_Questions','tq'),        ),
+    ('tn',       TnLinter,       ('md',),      ('Translation_Notes','tn'),                ),
+    ('tq',       TqLinter,       ('md',),      ('Translation_Questions','tq'),            ),
     ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw'),                ),
     ('lexicon',  LexiconLinter,  ('md',),      ('Greek_Lexicon','Hebrew-Aramaic_Lexicon'), ),
     ('markdown', MarkdownLinter, ('md','txt'), ('Generic_Markdown','other'),              ),
