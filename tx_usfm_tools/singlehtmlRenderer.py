@@ -281,20 +281,12 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write(' <span id="{0}-ch-{1}-v-{2}" class="v-num"><sup><b>{3}</b></sup></span>'.
                    format(self.cb, self.cc, self.cv, token.value))
 
-    def renderWJS(self, token):
+    def renderWJ_S(self, token):
         assert not token.value
         self.write('<span class="woc">')
-
-    def renderWJE(self, token):
+    def renderWJ_E(self, token):
         assert not token.value
         self.write('</span>')
-
-    def renderTEXT(self, token):
-        """
-        This is where unattached chunks of USFM text (e.g., contents of paragraphs)
-            are written out.
-        """
-        self.write(' ' + self.escape(token.value) + ' ')
 
 
     # def renderQ(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
@@ -325,19 +317,17 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.stopLI()
         self.write('\n\n<p class="indent-0">&nbsp;</p>')
 
-    def renderIS(self, token):
+    def renderI_S(self, token):
         assert not token.value
         self.write('<i>')
-
-    def renderIE(self, token):
+    def renderI_E(self, token):
         assert not token.value
         self.write('</i>')
 
-    def renderNDS(self, token):
+    def renderND_S(self, token):
         assert not token.value
         self.write('<span class="tetragrammaton">')
-
-    def renderNDE(self, token):
+    def renderND_E(self, token):
         assert not token.value
         self.write('</span>')
 
@@ -345,60 +335,24 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('<br></br>')
 
-    def renderSCS(self, token):
+    def renderSC_S(self, token):
         assert not token.value
         self.write('<b>')
-
-    def renderSCE(self, token):
+    def renderSC_E(self, token):
         assert not token.value
         self.write('</b>')
 
-    def renderFS(self, token):
-        self.closeFootnote()
-        self.footnote_id = 'fn-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.footnote_num)
-        self.write('<span id="ref-{0}"><sup><i>[<a href="#{0}">{1}</a>]</i></sup></span>'.format(self.footnote_id, self.footnote_num))
-        self.footnoteFlag = True
-        text = token.value
-        if text.startswith('+ '):
-            text = text[2:]
-        elif text.startswith('+'):
-            text = text[1:]
-        self.footnote_text = text
-
-    def renderFT(self, token):
-        self.footnote_text += token.value
-
-    def renderFEnd(self, token):
-        assert not token.value
-        self.closeFootnote()
-
-    def renderFP(self, token):
-        assert not token.value
-        self.write('<br />')
-
-
-    # TODO: render other \x fields
-    def renderXT(self, token):
-        if self.crossReferenceFlag:
-            self.crossReference_text += token.value
-        else: # Can occur not in a cross-reference
-            self.write(token.value)
-
-    def renderXTE(self, token):
-        assert not token.value
-
-
-    def renderQSS(self, token):
+    def renderQS_S(self, token):
         assert not token.value
         self.write('<i class="quote selah" style="float:right;">')
-    def renderQSE(self, token):
+    def renderQS_E(self, token):
         assert not token.value
         self.write('</i>')
 
-    def renderEMS(self, token):
+    def renderEM_S(self, token):
         assert not token.value
         self.write('<i class="emphasis">')
-    def renderEME(self, token):
+    def renderEM_E(self, token):
         assert not token.value
         self.write('</i>')
 
@@ -500,20 +454,53 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderQR(self, token):
         self.write('<i class="quote right" style="display:block;float:right;">'+token.value+'</i>')
 
+
+    def renderF_S(self, token):
+        # print(f"renderF_S({token.value}) with {self.footnoteFlag} and '{self.footnote_text}'")
+        self.closeFootnote()
+        self.footnote_id = 'fn-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.footnote_num)
+        self.write('<span id="ref-{0}"><sup><i>[<a href="#{0}">{1}</a>]</i></sup></span>'.format(self.footnote_id, self.footnote_num))
+        self.footnoteFlag = True
+        text = token.value
+        if text.startswith('+ '):
+            text = text[2:]
+        elif text.startswith('+'):
+            text = text[1:]
+        self.footnote_text = text
+
+    def renderFT(self, token):
+        # print(f"renderFT({token.value}) with '{self.footnote_text}'")
+        self.footnote_text += token.value
+
+    def renderF_E(self, token):
+        # print(f"renderF_E({token.value}) with '{self.footnote_text}'")
+        assert not token.value
+        self.closeFootnote()
+
+    def renderFP(self, token):
+        # print(f"renderFP({token.value}) with '{self.footnote_text}'")
+        assert not token.value
+        self.write('<br />')
+
+
     def renderFQA(self, token):
+        # print(f"renderFQA({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
         self.footnote_text += '<i>' + token.value
         self.fqaFlag = True
 
-    def renderFQAE(self, token):
+    def renderFQA_E(self, token):
+        # print(f"renderFQA_E({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
         if self.fqaFlag:
             self.footnote_text += '</i>' + token.value
         self.fqaFlag = False
 
 
     def closeFootnote(self):
+        # if self.footnoteFlag or self.footnote_text:
+        #     print(f"closeFootnote() with {self.footnoteFlag} and '{self.footnote_text}'")
         if self.footnoteFlag:
             self.footnoteFlag = False
-            self.renderFQAE(UsfmToken(''))
+            self.renderFQA_E(UsfmToken(''))
             self.footnotes[self.footnote_id] = {
                 'text': self.footnote_text,
                 'book': self.cb,
@@ -537,11 +524,21 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.footnotes = {}
 
 
+    # TODO: render other \x fields
+    def renderXT(self, token):
+        if self.crossReferenceFlag:
+            self.crossReference_text += token.value
+        else: # Can occur not in a cross-reference
+            self.write(token.value)
+    def renderXT_E(self, token):
+        assert not token.value
+
+
     # TODO: This isn't finished
     def closeCrossReference(self):
         if self.crossReferenceFlag:
             self.crossReferenceFlag = False
-            # self.renderFQAE(UsfmToken(''))
+            # self.renderFQA_E(UsfmToken(''))
             self.crossReferences[self.crossReference_id] = {
                 'text': self.crossReference_text,
                 'book': self.cb,
@@ -571,8 +568,20 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderQAC(self, token):
         assert not token.value
         self.write('<i class="quote acrostic character">')
-
-    def renderQACE(self,token):
+    def renderQAC_E(self,token):
         assert not token.value
         self.write('</i>')
+
+
+    def renderText(self, token):
+        """
+        This is where unattached chunks of USFM text (e.g., contents of paragraphs)
+            are written out.
+        """
+        # if "the best copies" in token.value:
+        #     print(f"renderText({token.value})")
+        if self.footnoteFlag:
+            self.footnote_text += f' {self.escape(token.value)} '
+        else:
+            self.write(f' {token.value} ') # write function does escaping of non-break space
 # end of class SingleHTMLRenderer
