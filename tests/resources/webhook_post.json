@@ -43,11 +43,11 @@
       "id": 3068,
       "owner": {
         "id": 613,
-        "login": "Door43",
-        "full_name": "Door43",
+        "login": "unfoldingWord",
+        "full_name": "unfoldingWord",
         "email": "door43@noreply.door43.org",
         "avatar_url": "https://git.door43.org/img/avatar_default.png",
-        "username": "Door43"
+        "username": "unfoldingWord"
       },
       "name": "en_obs",
       "full_name": "Door43/en_obs",
@@ -58,9 +58,9 @@
       "parent": null,
       "mirror": false,
       "size": 2161,
-      "html_url": "https://git.door43.org/Door43/en_obs",
+      "html_url": "https://git.door43.org/unfoldingWord/en_obs",
       "ssh_url": "git@git.door43.org:Door43/en_obs.git",
-      "clone_url": "https://git.door43.org/Door43/en_obs.git",
+      "clone_url": "https://git.door43.org/unfoldingWord/en_obs.git",
       "website": "http://openbiblestories.com",
       "stars_count": 1,
       "forks_count": 8,
