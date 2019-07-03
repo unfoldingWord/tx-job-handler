@@ -366,7 +366,7 @@ class Md2HtmlConverter(Converter):
                     write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)
 
                 if '_index' in filepath:
-                    html = self.fix_markdown_urls(html)
+                    html = self.fix_lexicon_markdown_urls(html)
                     if prefix and debug_mode_flag:
                         write_file(os.path.join(self.debug_dir, base_name_part+'.3.html'), html)
 
@@ -400,12 +400,12 @@ class Md2HtmlConverter(Converter):
     # end of Md2HtmlConverter.convert_lexicon()
 
 
-    def fix_markdown_urls(self, content):
+    def fix_lexicon_markdown_urls(self, content):
         """
         Change lexicon links that point to .md URL to instead point to a default page
             with the xxx.md link added
         """
-        self.log.info("Md2HtmlConverter.fix_markdown_urls()…")
+        self.log.info("Md2HtmlConverter.fix_lexicon_markdown_urls()…")
         if 'href="https://git.door43.org/' not in content:
             self.log.error(f"Md2HtmlConverter.write_lexicon_view_entry_file() has unexpected links: {content}")
 

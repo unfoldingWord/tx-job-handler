@@ -59,7 +59,7 @@ class TestMarkdownLinter(LinterTestCase):
         commit_data = {
             "repository": {
                 "owner": {
-                    "username": "Door43"
+                    "username": "unfoldingWord"
                 },
                 "name": "en_ta"
             }
@@ -72,9 +72,9 @@ class TestMarkdownLinter(LinterTestCase):
             'identifier': identifier,
             'success': True,
             'warnings': [
-                '<a href="https://git.door43.org/Door43/en_ta/src/master/intro\\finding-answers\\01.md" target="_blank">intro\\finding-answers\\01.md</a> - Line 1: First line in file should be a top level header. See "Text on first line"',
-                '<a href="https://git.door43.org/Door43/en_ta/src/master/intro\\uw-intro\\01.md" target="_blank">intro\\uw-intro\\01.md</a> - Line 1: First line in file should be a top level header. See "Text on first line"',
-                '<a href="https://git.door43.org/Door43/en_ta/src/master/intro\\uw-intro\\01.md" target="_blank">intro\\uw-intro\\01.md</a> - Line 29: Unordered list indentation. ',
+                '<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/intro\\finding-answers\\01.md" target="_blank">intro\\finding-answers\\01.md</a> - Line 1: First line in file should be a top level header. See "Text on first line"',
+                '<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/intro\\uw-intro\\01.md" target="_blank">intro\\uw-intro\\01.md</a> - Line 1: First line in file should be a top level header. See "Text on first line"',
+                '<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/intro\\uw-intro\\01.md" target="_blank">intro\\uw-intro\\01.md</a> - Line 29: Unordered list indentation. ',
             ],
             #'s3_results_key': None
         }

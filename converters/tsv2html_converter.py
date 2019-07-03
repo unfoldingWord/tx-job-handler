@@ -182,8 +182,8 @@ class Tsv2HtmlConverter(Converter):
     def fix_links(self, source_text):
         """
         Change links from 'rc://en/ta/man/' and 'rc://en/tw/dict/'
-            to https://git.door43.org/Door43/en_ta/src/master/…
-            and https://git.door43.org/Door43/en_tw/src/master/…
+            to https://git.door43.org/unfoldingWord/en_ta/src/master/…
+            and https://git.door43.org/unfoldingWord/en_tw/src/master/…
         """
         # GlobalSettings.logger.debug(f"fix_links({source_text}) …")
         assert 'QQQQ' not in source_text and 'ZZZZ' not in source_text
@@ -196,12 +196,12 @@ class Tsv2HtmlConverter(Converter):
             # GlobalSettings.logger.debug(f"fix_links found link_contents = '{link_contents}'")
             if link_contents.startswith('rc://en/ta/man/'):
                 link_contents = link_contents[15:] # Remove unwanted prefix
-                #adjusted_link = f'<a href="https://git.door43.org/Door43/en_ta/src/master/{link_contents}/01.md">Door43/en_ta/src/master/{link_contents}/01.md</a>'
-                adjusted_link = f'<a href="https://git.door43.org/Door43/en_ta/src/master/{link_contents}/01.md">translationAcademy:{link_contents}</a>'
+                #adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/{link_contents}/01.md">Door43/en_ta/src/master/{link_contents}/01.md</a>'
+                adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/{link_contents}/01.md">translationAcademy:{link_contents}</a>'
             elif link_contents.startswith('rc://en/tw/dict/'):
                 link_contents = link_contents[16:] # Remove unwanted prefix
-                #adjusted_link = f'<a href="https://git.door43.org/Door43/en_tw/src/master/{link_contents}.md">Door43/en_tw/src/master/{link_contents}.md</a>'
-                adjusted_link = f'<a href="https://git.door43.org/Door43/en_tw/src/master/{link_contents}.md">translationWords:{link_contents}</a>'
+                #adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_tw/src/master/{link_contents}.md">Door43/en_tw/src/master/{link_contents}.md</a>'
+                adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_tw/src/master/{link_contents}.md">translationWords:{link_contents}</a>'
             else:
                 self.log.error(f"Cannot convert link: '{link_contents.replace('QQQQ','[[').replace('ZZZZ',']]')}'")
                 adjusted_link = link_contents
