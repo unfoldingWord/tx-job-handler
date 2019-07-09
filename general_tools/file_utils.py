@@ -39,7 +39,7 @@ def add_contents_to_zip(zip_file, path, include_root=False):
     else:
         path_start_index = len(path)+1
     with zipfile.ZipFile(zip_file, 'a') as zf:
-        for root, dirs, files in os.walk(path):
+        for root, _dirs, files in os.walk(path):
             for f in files:
                 file_path = os.path.join(root, f)
                 zf.write(file_path, file_path[path_start_index:])
@@ -175,7 +175,7 @@ def get_files(directory, relative_paths=False, include_directories=False, topdow
 
 def get_subdirs(dir, relative_paths=False, topdown=False):
     dir_list = []
-    for root, dirs, files in os.walk(dir, topdown=topdown):
+    for root, dirs, _files in os.walk(dir, topdown=topdown):
         if relative_paths:
             path = os.path.relpath(root, dir)
         else:
