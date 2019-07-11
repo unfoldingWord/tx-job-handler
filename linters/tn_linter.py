@@ -178,8 +178,8 @@ class TnTsvLinter(Linter):
                     if successFlag:
                         self.log.warnings.append(f"Note: Using {url} for checking Greek quotes against.")
                         need_to_check_quotes = True
-        if need_to_check_quotes: # TEMP XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-            self.log.warnings.append("Note: Quote checking in Ruth & Esther is temporarily disabled!")
+        # if need_to_check_quotes: # TEMP XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        #     self.log.warnings.append("Note: Quote checking in Ruth & Esther is temporarily disabled!")
 
         # Now check tabs and C:V numbers
         for filename in sorted(file_list):
@@ -302,7 +302,7 @@ class TnTsvLinter(Linter):
         Check that the quoted portions can indeed be found in the original language versions.
         """
         # GlobalSettings.logger.debug(f"check_original_language_quotes({B},{C},{V}, {quoteField})…")
-        if B in ('RUT','EZR'): return # Skip checking of these books TEMP XXXXXXXXXXXXXXXXXXXXXXXXXX
+        # if B in ('RUT','EZR'): return # Skip checking of these books TEMP XXXXXXXXXXXXXXXXXXXXXXXXXX
 
         verse_text = self.get_passage(B,C,V)
         if not verse_text:
