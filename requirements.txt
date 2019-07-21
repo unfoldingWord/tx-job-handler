@@ -1,5 +1,5 @@
 # rq and statsd/Graphite and requests are used by the job handler
-rq==1.0
+rq==1.1.0
 statsd==3.3.0
 requests==2.22.0
 watchtower==0.6.0
@@ -15,10 +15,10 @@ sqlalchemy==1.3.5
 pymysql==0.9.3
 
 # boto3 is used by aws_tools
-boto3==1.9.184
+boto3==1.9.192
 
 # pyparsing is used by usfm_tools/parseUsfm.py
-pyparsing==2.4.0
+pyparsing==2.4.1
 
 # markdown is used by converters/md2html_converter.py
 markdown==3.1.1
@@ -29,4 +29,4 @@ markdown2==2.3.8
 #usfm-tools==0.0.22
 
 # BeautifulSoup is used by converters/md2html_converter.py
-beautifulsoup4==4.7.1
+beautifulsoup4==4.8.0
