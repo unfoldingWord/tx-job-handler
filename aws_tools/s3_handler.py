@@ -40,7 +40,6 @@ class S3Handler:
                                        aws_secret_access_key=self.aws_secret_access_key,
                                        region_name=self.aws_region_name)
 
-        self.bucket_name = self.bucket_name
         self.bucket = None
         if self.bucket_name:
             self.bucket = self.resource.Bucket(self.bucket_name)

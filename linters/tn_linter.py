@@ -164,7 +164,7 @@ class TnTsvLinter(Linter):
                         url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/uhb.zip"
                         successFlag = self.preload_original_text_archive('uhb', url)
                     if successFlag:
-                        self.log.warnings.append(f"Note: Using {url} for checking Hebrew quotes against.")
+                        # self.log.warnings.append(f"Note: Using {url} for checking Hebrew quotes against.")
                         need_to_check_quotes = True
                 if 'el-x-koine/ugnt' in rel:
                     if '?v=' not in rel:
@@ -176,10 +176,10 @@ class TnTsvLinter(Linter):
                         url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/ugnt.zip"
                         successFlag = self.preload_original_text_archive('ugnt', url)
                     if successFlag:
-                        self.log.warnings.append(f"Note: Using {url} for checking Greek quotes against.")
+                        # self.log.warnings.append(f"Note: Using {url} for checking Greek quotes against.")
                         need_to_check_quotes = True
-        # if need_to_check_quotes: # TEMP XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        #     self.log.warnings.append("Note: Quote checking in Ruth & Esther is temporarily disabled!")
+        if not need_to_check_quotes:
+            self.log.warnings.append("Unable to find/load original language (Heb/Grk) sources for comparing snippets against.")
 
         # Now check tabs and C:V numbers
         for filename in sorted(file_list):
@@ -302,21 +302,25 @@ class TnTsvLinter(Linter):
         Check that the quoted portions can indeed be found in the original language versions.
         """
         # GlobalSettings.logger.debug(f"check_original_language_quotes({B},{C},{V}, {quoteField})…")
-        # if B in ('RUT','EZR'): return # Skip checking of these books TEMP XXXXXXXXXXXXXXXXXXXXXXXXXX
 
         verse_text = self.get_passage(B,C,V)
         if not verse_text:
             return # nothing else we can do here
 
-        if '...' in quoteField and '…' in quoteField:
-            GlobalSettings.logger.debug(f"Mixed ellipses in {B} {C}:{V} '{quoteField}'")
-            self.log.warnings.append(f"Mixed ellipse characters in {B} {C}:{V} '{quoteField}'")
-            return # Don't check further
+        if '...' in quoteField:
+            GlobalSettings.logger.debug(f"Bad ellipse characters in {B} {C}:{V} '{quoteField}'")
+            self.log.warnings.append(f"Should use proper ellipse character in {B} {C}:{V} '{quoteField}'")
 
         if '…' in quoteField:
-            quoteBits = quoteField.split(' … ')
-        elif '...' in quoteField:
-            quoteBits = quoteField.split(' ... ')
+            quoteBits = quoteField.split('…')
+            if ' …' in quoteField or '… ' in quoteField:
+                GlobalSettings.logger.debug(f"Unexpected space(s) beside ellipse in {B} {C}:{V} '{quoteField}'")
+                self.log.warnings.append(f"Unexpected space(s) beside ellipse character in {B} {C}:{V} '{quoteField}'")
+        elif '...' in quoteField: # Yes, we still actually allow this
+            quoteBits = quoteField.split('...')
+            if ' ...' in quoteField or '... ' in quoteField:
+                GlobalSettings.logger.debug(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
+                self.log.warnings.append(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
         else:
             quoteBits = None
 
@@ -324,16 +328,15 @@ class TnTsvLinter(Linter):
             numQuoteBits = len(quoteBits)
             if numQuoteBits >= 2:
                 for index in range(numQuoteBits):
-                    if '...' in quoteBits[index] or '…' in quoteBits[index]:
-                        self.log.warnings.append(f"Ellipsis without surrounding spaces in {B} {C}:{V} '{quoteField}'")
-                    elif quoteBits[index] not in verse_text: # this is what we really want to catch
+                    if quoteBits[index] not in verse_text: # this is what we really want to catch
+                        # If the quote has multiple parts, create a description of the current part
                         if index == 0: description = 'beginning'
                         elif index == numQuoteBits-1: description = 'end'
                         else: description = f"middle{index if numQuoteBits>3 else ''}"
                         GlobalSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteBits[index]}' ({description}) in '{verse_text}'")
                         self.log.warnings.append(f"Unable to find {B} {C}:{V} {description} of '{quoteField}' in '{verse_text}'")
             else: # < 2
-                self.log.warnings.append(f"Ellipsis without surrounding spaces in {B} {C}:{V} '{quoteField}'")
+                self.log.warnings.append(f"Ellipsis without surrounding snippet in {B} {C}:{V} '{quoteField}'")
         elif quoteField not in verse_text:
             GlobalSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
             self.log.warnings.append(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
@@ -390,7 +393,7 @@ class TnTsvLinter(Linter):
                 if ix != -1:
                     book_line = book_line[:ix] # Remove k-s field right up to end of line
                 verseText += ' ' + book_line
-        verseText = verseText.replace('  ', ' ').rstrip('\\p').strip()
+        verseText = verseText.replace('\\p ', '').strip().replace('  ', ' ')
         # print(f"Got verse text1: '{verseText}'")
         # Remove \w fields (just leaving the word)
         ixW = verseText.find('\\w ')
