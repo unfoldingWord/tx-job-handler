@@ -18,7 +18,7 @@ pymysql==0.9.3
 boto3==1.9.192
 
 # pyparsing is used by usfm_tools/parseUsfm.py
-pyparsing==2.4.1
+pyparsing==2.4.1.1
 
 # markdown is used by converters/md2html_converter.py
 markdown==3.1.1
