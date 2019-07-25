@@ -10,12 +10,8 @@ pyyaml==5.1.1
 # dateutil is used by file_utils used by ResourceContainer
 py-dateutil==2.2
 
-# sqlalchemy is used by manifest
-sqlalchemy==1.3.5
-pymysql==0.9.3
-
 # boto3 is used by aws_tools
-boto3==1.9.192
+boto3==1.9.196
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==2.4.1.1
