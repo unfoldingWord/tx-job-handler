@@ -1,6 +1,5 @@
 import unittest
 
-from sqlalchemy import Column, Integer, String
 from moto import mock_dynamodb2, mock_s3
 
 from global_settings.global_settings import GlobalSettings
@@ -30,33 +29,9 @@ class TestGlobalSettings(unittest.TestCase):
     #     connection_str = GlobalSettings.construct_connection_string()
     #     self.assertEqual(connection_str, expected)
 
-    # def test_db(self):
-    #     GlobalSettings(db_connection_string='sqlite:///:memory:')
-    #     GlobalSettings.db_create_tables([User.__table__])
-    #     user = User(name='ed', fullname='Edward Scissorhands', password='12345')
-    #     user.insert()
-    #     user_from_db = User.get(name='ed')
-    #     self.assertIsNotNone(user_from_db)
-    #     self.assertEqual(user_from_db.password, '12345')
-
-    # def test_setup_db_with_connection_string_parts(self):
-    #     GlobalSettings(db_protocol='sqlite', db_user=None, db_pass=None, db_end_point=None, db_port=None, db_name=':memory:',
-    #         db_connection_string_params=None)
-    #     GlobalSettings.db_create_tables([User.__table__])
-    #     user = User(name='ed', fullname='Edward Scissorhands', password='12345')
-    #     user.insert()
-    #     user_from_db = User.get(name='ed')
-    #     self.assertIsNotNone(user_from_db)
-    #     self.assertEqual(user_from_db.password, '12345')
-    #     GlobalSettings.db_close()
-
     @mock_s3
     def test_s3_handler(self):
         self.assertIsNotNone(GlobalSettings.cdn_s3_handler())
-
-    # @mock_dynamodb2
-    # def test_dynamodb_handler(self):
-    #     self.assertIsNotNone(GlobalSettings.language_stats_db_handler())
 
     def test_prefix_vars(self):
         GlobalSettings(prefix='')

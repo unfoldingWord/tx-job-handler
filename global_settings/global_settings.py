@@ -3,11 +3,6 @@ import os
 import logging
 import re
 
-# from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
-
 from aws_tools.s3_handler import S3Handler
 from boto3 import Session
 from watchtower import CloudWatchLogHandler
@@ -82,26 +77,13 @@ class GlobalSettings:
     #                    'linter_messaging_name', 'db_name', 'db_user']
     prefixable_vars = ['name', 'cdn_bucket_name', 'linter_messaging_name',]
 
-    # DB related
-    Base = declarative_base()  # To be used in all model classes as the parent class: GlobalSettings.ModelBase
-    auto_setup_db = True
-    manifest_table_name = 'manifests'
-    # job_table_name = 'jobs'
-    db_echo = False  # Whether or not to echo DB queries to the debug log. Useful for debugging. Set before setup_db()
-    echo = False
-
     # Credentials -- get the secret ones from environment variables
     aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
     aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
     aws_region_name = 'us-west-2'
 
     # Handlers
-    # _db_engine = None
-    # _db_session = None
     _cdn_s3_handler = None
-    # _door43_s3_handler = None
-    # _pre_convert_s3_handler = None
-    # _language_stats_db_handler = None
 
     # Logger
     logger = logging.getLogger(name)
