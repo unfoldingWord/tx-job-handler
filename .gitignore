@@ -58,3 +58,7 @@ venv/
 
 # Scripts
 setENVs.sh
+
+# Sonar
+sonar-project.properties
+.scannerwork/
