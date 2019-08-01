@@ -5,16 +5,16 @@ requests==2.22.0
 watchtower==0.6.0
 
 # yaml is used by file_utils used by ResourceContainer
-pyyaml==5.1.1
+pyyaml==5.1.2
 
 # dateutil is used by file_utils used by ResourceContainer
 py-dateutil==2.2
 
 # boto3 is used by aws_tools
-boto3==1.9.196
+boto3==1.9.199
 
 # pyparsing is used by usfm_tools/parseUsfm.py
-pyparsing==2.4.1.1
+pyparsing==2.4.2
 
 # markdown is used by converters/md2html_converter.py
 markdown==3.1.1
