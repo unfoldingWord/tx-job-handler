@@ -234,8 +234,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
         options (dict)
         callback (url string)
     The following fields are included by the Door43 Job Handler but ignored here:
-        user_token
-        door43_webhook_received_at
+        user_token -- was already checked by tX enqueue job
 
     Conversion and linting are now initiated by sending a request to each.
 
@@ -254,8 +253,10 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Create a build log
     build_log_dict = queued_json_payload.copy()
-    # Delete unneeded fields from our response
-    for fieldname in ('callback',):
+    # Delete fields from our response which have already been used
+    #   or are unneeded in the build log and in our response
+    for fieldname in ('callback', 'source', 'input_format', 'user_token', 'queue_name',
+                                'tx_job_queued_at', 'eta', 'tx_retry_count'):
         if fieldname in build_log_dict:
             del build_log_dict[fieldname]
     build_log_dict['started_at'] = datetime.utcnow()

@@ -1,7 +1,8 @@
 import logging
+import re
 
 from tx_usfm_tools.abstractRenderer import AbstractRenderer
-from tx_usfm_tools.books import bookKeyForIdValue, bookNames
+from tx_usfm_tools.books import bookKeys, bookNames, silNames, readerNames, bookKeyForIdValue
 from tx_usfm_tools.parseUsfm import UsfmToken
 
 #
@@ -38,6 +39,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.crossReferences = {}
         self.crossReference_id = ''
         self.crossReference_num = 1
+        self.crossReference_origin = ''
         self.crossReference_text = ''
 
 
@@ -48,6 +50,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         with open(self.outputFilename, 'wt', encoding='utf-8') as self.f:
             warning_list = self.run()
             self.writeFootnotes()
+            self.writeCrossReferences()
             self.f.write('\n    </body>\n</html>\n')
         return warning_list
 
@@ -149,6 +152,7 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderID(self, token):
         self.writeFootnotes()
+        self.writeCrossReferences()
         self.cb = bookKeyForIdValue(token.value)
         self.chapterLabel = 'Chapter'
         self.closeParagraph()
@@ -269,6 +273,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.stopLI()
         self.closeParagraph()
         self.writeFootnotes()
+        self.writeCrossReferences()
         self.footnote_num = 1
         self.cc = token.value.zfill(3)
         self.write('\n\n<h2 id="{0}-ch-{1}" class="c-num">{2} {3}</h2>'
@@ -333,6 +338,13 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('<span class="tetragrammaton">')
     def renderND_E(self, token):
+        assert not token.value
+        self.write('</span>')
+
+    def render_bk_s(self, token):
+        assert not token.value
+        self.write('<span class="bookname">')
+    def render_bk_e(self, token):
         assert not token.value
         self.write('</span>')
 
@@ -469,7 +481,7 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderF_S(self, token):
         # print(f"renderF_S({token.value}) with {self.footnoteFlag} and '{self.footnote_text}'")
-        self.closeFootnote()
+        self.closeFootnote() # If there's one currently open
         self.footnote_id = 'fn-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.footnote_num)
         self.write('<span id="ref-{0}"><sup><i>[<a href="#{0}">{1}</a>]</i></sup></span>'.format(self.footnote_id, self.footnote_num))
         self.footnoteFlag = True
@@ -479,6 +491,9 @@ class SingleHTMLRenderer(AbstractRenderer):
         elif text.startswith('+'):
             text = text[1:]
         self.footnote_text = text
+
+    def renderFR(self, token):
+        pass # We don't need these footnote reference fields to be rendered
 
     def renderFT(self, token):
         # print(f"renderFT({token.value}) with '{self.footnote_text}'")
@@ -518,7 +533,7 @@ class SingleHTMLRenderer(AbstractRenderer):
                 'book': self.cb,
                 'chapter': self.cc,
                 'verse': self.cv,
-                'footnote': self.footnote_num
+                'fn_num': self.footnote_num
             }
             self.footnote_num += 1
             self.footnote_text = ''
@@ -531,12 +546,28 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.write('<hr class="footnotes-hr"/>')
             for fkey in sorted(fkeys):
                 footnote = self.footnotes[fkey]
-                self.write(f'<div id="{fkey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup><i>[<a href="#ref-{fkey}">{footnote["footnote"]}</a>]</i></sup><span class="text">{footnote["text"]}</span></div>')
+                self.write(f'<div id="{fkey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup><i>[<a href="#ref-{fkey}">{footnote["fn_num"]}</a>]</i></sup> <span class="text">{footnote["text"]}</span></div>')
             self.write('</div>')
         self.footnotes = {}
 
 
     # TODO: render other \x fields
+    def renderX_S(self, token):
+        assert token.value == '+'
+        self.closeCrossReference() # If there's one currently open
+        self.crossReference_id = 'xr-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.crossReference_num)
+        self.write('<span id="ref-{0}"><sup><i>[<a href="#{0}">{1}</a>]</i></sup></span>'.format(self.crossReference_id, self.crossReference_num))
+        self.crossReferenceFlag = True
+        text = token.value
+        if text.startswith('+ '):
+            text = text[2:]
+        elif text.startswith('+'):
+            text = text[1:]
+        self.crossReference_text = text
+
+    def renderXO(self, token):
+        self.crossReference_origin = token.value
+
     def renderXT(self, token):
         if self.crossReferenceFlag:
             self.crossReference_text += token.value
@@ -545,33 +576,92 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderXT_E(self, token):
         assert not token.value
 
+    def renderX_E(self, token):
+        assert not token.value
+        # self.write(')')
+        self.closeCrossReference()
 
-    # TODO: This isn't finished
+
     def closeCrossReference(self):
         if self.crossReferenceFlag:
             self.crossReferenceFlag = False
             # self.renderFQA_E(UsfmToken(''))
             self.crossReferences[self.crossReference_id] = {
+                'origin': self.crossReference_origin,
                 'text': self.crossReference_text,
                 'book': self.cb,
                 'chapter': self.cc,
                 'verse': self.cv,
-                'footnote': self.crossReference_num
+                'xr_num': self.crossReference_num
             }
             self.crossReference_num += 1
+            self.crossReference_origin = ''
             self.crossReference_text = ''
             self.crossReference_id = ''
 
     def writeCrossReferences(self):
         crKeys = self.crossReferences.keys()
         if crKeys:
-            self.write('<div class="footnotes">')
-            self.write('<hr class="footnotes-hr"/>')
+            self.write('<div class="crossreferences">')
+            self.write('<hr class="crossreferences-hr"/>')
             for crKey in sorted(crKeys):
-                footnote = self.crossReferences[crKey]
-                self.write(f'<div id="{crKey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup><i>[<a href="#ref-{crKey}">{footnote["footnote"]}</a>]</i></sup><span class="text">{footnote["text"]}</span></div>')
+                crossreference = self.crossReferences[crKey]
+                liveCrossReferences = self.livenCrossReferences(crossreference['text'])
+                origin_text = self.crossReference_origin if self.crossReference_origin \
+                                else f'{crossreference["chapter"].lstrip("0")}:{crossreference["verse"].lstrip("0")}'
+                self.write(f'<div id="{crKey}" class="crossreference">{origin_text} <sup><i>[<a href="#ref-{crKey}">{crossreference["xr_num"]}</a>]</i></sup> <span class="text">{liveCrossReferences}</span></div>')
             self.write('</div>')
         self.crossReferences = {}
+
+    def livenCrossReferences(self, xr_text):
+        """
+        Convert cross-references (\\x....\\x*) to live links
+        """
+        # print(f"livenCrossReferences({xr_text})…")
+        results = []
+        lastBookcode = lastBooknumber = None
+        for individualXR in xr_text.split(';'):
+            # print(f"  Processing '{individualXR}'…")
+            strippedXR = individualXR.strip()
+            xrBookcode = xrBooknumber = None
+            xrLink = ''
+            match = re.match(r'(\w{2,16}) (\d{1,3}):(\d{1,3})', strippedXR)
+            if match:
+                xrBookname, C, V = match.group(1), match.group(2), match.group(3)
+                # print(f"    Have match '{xrBookname}' '{C}':'{V}'")
+                try: ix = bookNames.index(xrBookname)
+                except ValueError: ix = -1
+                # print(f"      ix1={ix}")
+                if ix == -1:
+                    try: ix = readerNames.index(xrBookname)
+                    except ValueError: ix = -1
+                    # print(f"      ix2={ix}")
+                if ix == -1:
+                    for j,bookName in enumerate(bookNames):
+                        if xrBookname in bookName:
+                            ix = j; break
+                    # print(f"      ix3={ix}")
+                if ix == -1:
+                    for j,bookName in enumerate(readerNames):
+                        if xrBookname in bookName:
+                            ix = j; break
+                    # print(f"      ix4={ix}")
+                if ix != -1:
+                    xrBookcode = silNames[ix+1]
+                    xrBooknumber = bookKeys[xrBookcode]
+                    # print(f"      xrBookcode='{xrBookcode}'")
+                    # print(f"      xrBooknumber='{xrBooknumber}'")
+                    # TODO: This logic may not work for NT books (due to book numbering MAT=41)
+                    xrLink = f'{str(ix+1).zfill(2)}-{xrBookcode}.html#{xrBooknumber}-ch-{C.zfill(3)}-v-{V.zfill(3)}'
+                    lastBookcode, lastBooknumber = xrBookcode, xrBooknumber
+            # TODO: Handle other types of matches, e.g., book name not included, i.e., defaults to last book
+            # print(f"    Got '{xrLink}'…")
+            liveXR = f'<a href="{xrLink}">{individualXR}</a>'
+            results.append(liveXR)
+
+        live_text = ';'.join(results)
+        # print(f"Returning '{live_text}'")
+        return live_text
 
 
     def renderQA(self, token):

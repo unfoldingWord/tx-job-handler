@@ -254,8 +254,7 @@ element =  MatchFirst([ide, id,
                        r,
                        p,
                        pc,
-                       pi,
-                       pi2,
+                       pi, pi1, pi2,
                        mi,
                        b,
                        ca_s, ca_e,
@@ -267,15 +266,10 @@ element =  MatchFirst([ide, id,
                        qa,
                        qac,
                        qc,
-                       qm,
-                       qm1,
-                       qm2,
-                       qm3,
+                       qm, qm1, qm2, qm3,
                        qr,
-                       qs_s,
-                       qs_e,
-                       qt_s,
-                       qt_e,
+                       qs_s, qs_e,
+                       qt_s, qt_e,
                        nb,
                        m,
                        f_s,
@@ -569,6 +563,7 @@ class UsfmToken:
     def isP(self):      return False
     def isPC(self):     return False
     def isPI(self):     return False
+    def isPI1(self):     return False
     def isPI2(self):    return False
     def isS(self):      return False
     def isS1(self):     return False
@@ -1071,7 +1066,7 @@ class PBRToken(UsfmToken):
 
 # Cross References
 class XStartToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderXS(self)
+    def renderOn(self, printer): return printer.renderX_S(self)
     def isXS(self):      return True
 
 class XDCStartToken(UsfmToken):

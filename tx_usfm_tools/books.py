@@ -311,33 +311,33 @@ bookNames = [
     'Jude',
     'Revelation']
 
-books = bookNames
+# books = bookNames
 
 
-# noinspection PyPep8Naming
-def readerName(num):
-    return readerNames[int(num) - 1]
+# # noinspection PyPep8Naming
+# def readerName(num):
+#     return readerNames[int(num) - 1]
 
 
-# noinspection PyPep8Naming
-def fullName(num):
-    return bookNames[int(num) - 1]
+# # noinspection PyPep8Naming
+# def fullName(num):
+#     return bookNames[int(num) - 1]
 
 
-# noinspection PyPep8Naming,PyUnusedLocal
-def nextChapter(bookNumber, chapterNumber):
-    return 1, 1
+# # noinspection PyPep8Naming,PyUnusedLocal
+# def nextChapter(bookNumber, chapterNumber):
+#     return 1, 1
 
 
-# noinspection PyPep8Naming
-def previousChapter(bookNumber, chapterNumber):
-    if chapterNumber > 1:
-        return bookNumber, chapterNumber - 1
-    else:
-        if bookNumber > 1:
-            return bookNumber - 1, 50  # bookSize[bookNumber -1])
-        else:
-            return 1, 1
+# # noinspection PyPep8Naming
+# def previousChapter(bookNumber, chapterNumber):
+#     if chapterNumber > 1:
+#         return bookNumber, chapterNumber - 1
+#     else:
+#         if bookNumber > 1:
+#             return bookNumber - 1, 50  # bookSize[bookNumber -1])
+#         else:
+#             return 1, 1
 
 
 # noinspection PyPep8Naming
@@ -356,11 +356,11 @@ def bookID(usfm):
     return usfm[s:e].strip()
 
 
-# noinspection PyPep8Naming
-def bookName(usfm):
-    book_id = bookID(usfm)
-    index = silNames.index(book_id)
-    return bookNames[index]
+# # noinspection PyPep8Naming
+# def bookName(usfm):
+#     book_id = bookID(usfm)
+#     index = silNames.index(book_id)
+#     return bookNames[index]
 
 
 # noinspection PyPep8Naming
