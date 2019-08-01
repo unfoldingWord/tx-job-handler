@@ -312,29 +312,29 @@ def verifyChapterAndVerseMarkers(text, book):
     pos = 0
     last_ch = 1
     for chapter_current in chapter_marker_re.finditer(text):
-        start = chapter_current.start()
-        end = chapter_current.end()
-        char = text[end]
-        if (char >= 'a') and (char <= 'z'):
+        start_index = chapter_current.start()
+        end_index = chapter_current.end()
+        end_char = text[end_index]
+        if (end_char >= 'a') and (end_char <= 'z'):
             continue  #  skip non-chapter markers
-        has_space = char in SPACE
+        has_space = end_char in SPACE
         if has_space:
-            end += 1
-        char = text[start - 1]
-        newline_before = (char == '\n') or (char == '\r')
-        ch_num, has_space_after = get_chapter_number(text, end)
+            end_index += 1
+        previous_char = text[start_index - 1]
+        newline_before = (previous_char == '\n') or (previous_char == '\r')
+        ch_num, has_space_after = get_chapter_number(text, end_index)
         if ch_num >= 0:
             if not has_space:
-                add_error(text, book, "Missing space before chapter number: '{0}'", start, last_ch)
+                add_error(text, book, "Missing space before chapter number: '{0}'", start_index, last_ch)
             elif not has_space_after:
-                add_error(text, book, "Missing new line after chapter number: '{0}'", start, last_ch)
+                add_error(text, book, "Missing new line after chapter number: '{0}'", start_index, last_ch)
             elif not newline_before:
-                add_error(text, book, "Missing new line before chapter marker: '{0}'", start-4, last_ch)
-            check_chapter(text, book, last_ch, pos, start)
+                add_error(text, book, "Missing new line before chapter marker: '{0}'", start_index-4, last_ch)
+            check_chapter(text, book, last_ch, pos, start_index)
             last_ch = ch_num
-            pos = end
+            pos = end_index
         else:
-            add_error(text, book, "Invalid chapter number: '{0}'", start, last_ch)
+            add_error(text, book, "Invalid chapter number format: '{0}'", start_index, last_ch)
 
     check_chapter(text, book, last_ch, pos, len(text))  # check last chapter
 
@@ -401,14 +401,14 @@ def get_chapter_number(text, start):
     return -1, has_white_space
 
 
-def get_number(text, start):
+def get_number(text, start_index):
     """
     Called by get_verse_range() and get_chapter_number()
     """
     digits = ''
-    end = start
+    end_index = start_index
     c = ''
-    for pos in range(start, len(text)):
+    for pos in range(start_index, len(text)):
         c = text[pos]
         if c=='0' and not digits:
             state = State()
@@ -416,9 +416,9 @@ def get_number(text, start):
         if (c >= '0') and (c <= '9'):
             digits += c
             continue
-        end = pos
+        end_index = pos
         break
-    return digits, c, end
+    return digits, c, end_index
 
 def verifyChapterCount():
     state = State()
@@ -699,7 +699,9 @@ def take(token):
     elif token.isC():
         verifyVerseCount()  # for the preceding chapter
         takeC(token.value)
-    elif token.isP() or token.isPI() or token.isPC() or token.isNB():
+    elif token.isP() \
+    or token.isPI() or token.isPI1() or token.isPI2() \
+    or token.isPC() or token.isNB():
         takeP()
     elif token.isV():
         takeV(token.value)
