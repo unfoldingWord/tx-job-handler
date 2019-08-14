@@ -108,3 +108,5 @@ class Usfm2HtmlConverter(Converter):
             self.log.error(f"Conversion of all books failed!")
         self.log.info(f"Finished processing {num_successful_books} Bible USFM files.")
         return True
+    # end of convert()
+# end of Usfm2HtmlConverter class

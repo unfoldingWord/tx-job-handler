@@ -27,7 +27,7 @@ def reset_class(cls):
         try:
             if key != '_resetable_cache_':
                 setattr(cls, key, value)
-        except AttributeError: # When/Why would we get this
+        except AttributeError: # When/Why would we get this?
             pass
     cls.dirty = False
 

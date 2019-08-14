@@ -219,7 +219,7 @@ def download_source_file(source_url, destination_folder):
 #end of download_source_file function
 
 
-def process_tx_job(pj_prefix, queued_json_payload):
+def process_tx_job(pj_prefix:str, queued_json_payload) -> str:
     """
     pj_prefix is normally 'dev-' or ''
 
@@ -273,7 +273,8 @@ def process_tx_job(pj_prefix, queued_json_payload):
     GlobalSettings.logger.debug(f"base_temp_dir_name = {base_temp_dir_name}")
     try:
         os.makedirs(base_temp_dir_name)
-    except:
+    except Exception as e:
+        GlobalSettings.logger.critical(f"SetupTempFolder threw an exception: {e}: {traceback.format_exc()}")
         GlobalSettings.logger.critical(f"Oh, folder {base_temp_dir_name} already existed!")
         GlobalSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
 
