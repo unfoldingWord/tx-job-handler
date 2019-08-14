@@ -165,7 +165,7 @@ class S3Handler:
             content_type = get_mime_type(path)
         #GlobalSettings.logger.debug(f"content_type is {content_type}")
         #GlobalSettings.logger.debug(f"bucket is {self.bucket}")
-        put_response = self.bucket.put_object(
+        self.bucket.put_object(
             Key=key,
             Body=binary,
             ContentType=content_type,
