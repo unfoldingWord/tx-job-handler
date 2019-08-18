@@ -113,7 +113,7 @@ class Linter(metaclass=ABCMeta):
             message = f"Linting process ended abnormally: {e}"
             GlobalSettings.logger.error(message)
             self.log.warnings.append(message)
-            GlobalSettings.logger.error('{0}: {1}'.format(str(e), traceback.format_exc()))
+            GlobalSettings.logger.error(f'{e}: {traceback.format_exc()}')
         warnings = self.log.warnings
         if len(warnings) > 200:  # sanity check so we don't overflow callback size limits
             warnings = warnings[:190]
