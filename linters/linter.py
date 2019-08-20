@@ -10,7 +10,7 @@ from general_tools.url_utils import download_file
 from general_tools.file_utils import unzip, remove_tree
 from linters.lint_logger import LintLogger
 from resource_container.ResourceContainer import RC
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 from abc import ABCMeta, abstractmethod
 
 
@@ -32,7 +32,7 @@ class Linter(metaclass=ABCMeta):
         :param string s3_results_key:
         :params dict kwargs: Seem to be ignored
         """
-        GlobalSettings.logger.debug(f"Linter.__init__(subj={repo_subject}, url={source_url}, file={source_file},"
+        AppSettings.logger.debug(f"Linter.__init__(subj={repo_subject}, url={source_url}, file={source_file},"
                                     f" dir={source_dir}, cd={commit_data}" #, callback={lint_callback},"
                                     f" id={identifier}, s3k={s3_results_key}, kw={kwargs})")
         self.repo_subject = repo_subject
@@ -60,16 +60,16 @@ class Linter(metaclass=ABCMeta):
         self.callback_results = None
         self.identifier = identifier
         # if self.callback and not identifier:
-        #     GlobalSettings.logger.error("Identity not given for callback")
+        #     AppSettings.logger.error("Identity not given for callback")
         self.s3_results_key = s3_results_key
         # if self.callback and not s3_results_key:
-        #     GlobalSettings.logger.error("s3_results_key not given for callback")
+        #     AppSettings.logger.error("s3_results_key not given for callback")
 
     def close(self):
         """delete temp files"""
         # print("Linter close() was called!")
         if prefix and debug_mode_flag:
-            GlobalSettings.logger.debug(f"Linter temp folder '{self.temp_dir}' has been left on disk for debugging!")
+            AppSettings.logger.debug(f"Linter temp folder '{self.temp_dir}' has been left on disk for debugging!")
         else:
             remove_tree(self.temp_dir)
 
@@ -91,29 +91,29 @@ class Linter(metaclass=ABCMeta):
         """
         Run common handling for all linters,and then calls the lint() function
         """
-        #GlobalSettings.logger.debug("Linter.run()")
+        #AppSettings.logger.debug("Linter.run()")
         success = False
         try:
             # Download file if a source_zip_url was given
             if self.source_zip_url:
-                GlobalSettings.logger.debug("Linting url: " + self.source_zip_url)
+                AppSettings.logger.debug("Linting url: " + self.source_zip_url)
                 self.download_archive()
             # unzip the input archive if a source_zip_file exists
             if self.source_zip_file:
-                GlobalSettings.logger.debug("Linting zip: " + self.source_zip_file)
+                AppSettings.logger.debug("Linting zip: " + self.source_zip_file)
                 self.unzip_archive()
             # lint files
             if self.source_dir:
                 self.rc = RC(directory=self.source_dir)
-                #GlobalSettings.logger.debug(f"Got RC = {self.rc}")
-                GlobalSettings.logger.debug(f"Linting '{self.source_dir}' files…")
+                #AppSettings.logger.debug(f"Got RC = {self.rc}")
+                AppSettings.logger.debug(f"Linting '{self.source_dir}' files…")
                 success = self.lint()
-                # GlobalSettings.logger.debug("Linting finished.")
+                # AppSettings.logger.debug("Linting finished.")
         except Exception as e:
             message = f"Linting process ended abnormally: {e}"
-            GlobalSettings.logger.error(message)
+            AppSettings.logger.error(message)
             self.log.warnings.append(message)
-            GlobalSettings.logger.error(f'{e}: {traceback.format_exc()}')
+            AppSettings.logger.error(f'{e}: {traceback.format_exc()}')
         warnings = self.log.warnings
         if len(warnings) > 200:  # sanity check so we don't overflow callback size limits
             warnings = warnings[:190]
@@ -121,7 +121,7 @@ class Linter(metaclass=ABCMeta):
             warnings.extend(self.log.warnings[-9:])
             # msg = f"Warnings truncated (from {len(self.log.warnings)} to {len(warnings)})"
             msg = f"Warnings reduced from {len(self.log.warnings)} to {len(warnings)}"
-            GlobalSettings.logger.debug(f"Linter {msg}")
+            AppSettings.logger.debug(f"Linter {msg}")
             warnings.append(msg)
         results = {
             'identifier': self.identifier,
@@ -134,13 +134,13 @@ class Linter(metaclass=ABCMeta):
         #     self.callback_results = results
         #     self.do_callback(self.callback, self.callback_results)
 
-        GlobalSettings.logger.debug(f"Linter results: {results}")
+        AppSettings.logger.debug(f"Linter results: {results}")
         return results
 
     def download_archive(self):
         filename = self.source_zip_url.rpartition('/')[2]
         self.source_zip_file = os.path.join(self.temp_dir, filename)
-        GlobalSettings.logger.debug("Downloading {0} to {1}".format(self.source_zip_url, self.source_zip_file))
+        AppSettings.logger.debug("Downloading {0} to {1}".format(self.source_zip_url, self.source_zip_file))
         if not os.path.isfile(self.source_zip_file):
             try:
                 download_file(self.source_zip_url, self.source_zip_file)
@@ -149,7 +149,7 @@ class Linter(metaclass=ABCMeta):
                     raise Exception(f"Failed to download {self.source_zip_url}")
 
     def unzip_archive(self):
-        GlobalSettings.logger.debug(f"Unzipping {self.source_zip_file} to {self.temp_dir}")
+        AppSettings.logger.debug(f"Unzipping {self.source_zip_file} to {self.temp_dir}")
         unzip(self.source_zip_file, self.temp_dir)
         dirs = [d for d in os.listdir(self.temp_dir) if os.path.isdir(os.path.join(self.temp_dir, d))]
         if dirs:
@@ -160,13 +160,13 @@ class Linter(metaclass=ABCMeta):
     # def do_callback(self, url, payload):
     #     if url.startswith('http'):
     #         headers = {"content-type": "application/json"}
-    #         GlobalSettings.logger.debug('Making callback to {0} with payload:'.format(url))
-    #         GlobalSettings.logger.debug(json.dumps(payload)[:256])
+    #         AppSettings.logger.debug('Making callback to {0} with payload:'.format(url))
+    #         AppSettings.logger.debug(json.dumps(payload)[:256])
     #         response = requests.post(url, json=payload, headers=headers)
     #         self.callback_status = response.status_code
     #         if (self.callback_status >= 200) and (self.callback_status < 299):
-    #             GlobalSettings.logger.debug('Callback finished.')
+    #             AppSettings.logger.debug('Callback finished.')
     #         else:
-    #             GlobalSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
+    #             AppSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
     #     else:
-    #         GlobalSettings.logger.error(f"Invalid callback url: {url}")
+    #         AppSettings.logger.error(f"Invalid callback url: {url}")

@@ -12,7 +12,7 @@ from rq_settings import prefix, debug_mode_flag
 from general_tools.file_utils import read_file, write_file, get_files
 from converters.converter import Converter
 from converters.convert_naked_urls import fix_naked_urls
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 
@@ -177,7 +177,7 @@ class Md2HtmlConverter(Converter):
                 if convert_only_list and (filename not in convert_only_list):  # see if this is a file we are to convert
                     continue
                 html_filename = base_name_part + '.html'
-                GlobalSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
+                AppSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
 
                 # Convert files that are markdown files
                 try: md = read_file(filepath)
@@ -194,29 +194,29 @@ class Md2HtmlConverter(Converter):
                 #         'Wiki': False
                 #         }
                 #     # url = "http://bg.door43.org/api/v1/markdown/raw"
-                #     GlobalSettings.logger.debug(f"Making callback to {url} with payload:")
-                #     GlobalSettings.logger.debug(json.dumps(payload)[:256] + '…')
+                #     AppSettings.logger.debug(f"Making callback to {url} with payload:")
+                #     AppSettings.logger.debug(json.dumps(payload)[:256] + '…')
                 #     try:
                 #         response = requests.post(url, json=payload, headers=headers)
                 #         # response = requests.post(url, data=md, headers=headers)
                 #     except requests.exceptions.ConnectionError as e:
-                #         GlobalSettings.logger.critical(f"Markdown->HTML connection error: {e}")
+                #         AppSettings.logger.critical(f"Markdown->HTML connection error: {e}")
                 #         response = None
                 #     if response:
-                #         #GlobalSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
-                #         #GlobalSettings.logger.debug(f"response.headers = {response.headers}")
-                #         GlobalSettings.logger.debug(f"response.text = {response.text[:256] + '…'}")
+                #         #AppSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
+                #         #AppSettings.logger.debug(f"response.headers = {response.headers}")
+                #         AppSettings.logger.debug(f"response.text = {response.text[:256] + '…'}")
                 #         html1 = response.text
                 #         if response.status_code != 200:
-                #             GlobalSettings.logger.critical(f"Failed to submit Markdown->HTML job:"
+                #             AppSettings.logger.critical(f"Failed to submit Markdown->HTML job:"
                 #                                         f" {response.status_code}={response.reason}")
                 #         # callback_status = response.status_code
                 #         # if (callback_status >= 200) and (callback_status < 299):
-                #         #     GlobalSettings.logger.debug("Markdown->HTML callback finished.")
+                #         #     AppSettings.logger.debug("Markdown->HTML callback finished.")
                 #         # else:
-                #         #     GlobalSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
+                #         #     AppSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
                 #     else: # no response
-                #         GlobalSettings.logger.error("Submission of job to Markdown->HTML got no response")
+                #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
                 if 1: # old/existing code -- creates html2
                     if self.repo_subject in ['Translation_Academy',]:
                         html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
@@ -226,11 +226,11 @@ class Md2HtmlConverter(Converter):
                         html2 = markdown.markdown(md)
                 # if 0:
                 #     if html2 == html1:
-                #         GlobalSettings.logger.debug("HTML responses are identical.")
+                #         AppSettings.logger.debug("HTML responses are identical.")
                 #     else:
-                #         GlobalSettings.logger.error(f"HTML responses differ: {len(html1)} and {len(html2)}")
-                #         GlobalSettings.logger.debug(repr(html1)[:256] + ' …… ' + repr(html1)[-256:])
-                #         GlobalSettings.logger.debug(repr(html2)[:256] + ' …… ' + repr(html2)[-256:])
+                #         AppSettings.logger.error(f"HTML responses differ: {len(html1)} and {len(html2)}")
+                #         AppSettings.logger.debug(repr(html1)[:256] + ' …… ' + repr(html1)[-256:])
+                #         AppSettings.logger.debug(repr(html2)[:256] + ' …… ' + repr(html2)[-256:])
                 #     try: html = html1
                 #     except UnboundLocalError: html = html2
                 # else:
@@ -300,7 +300,7 @@ class Md2HtmlConverter(Converter):
                 if convert_only_list and (filename not in convert_only_list):  # see if this is a file we are to convert
                     continue
                 html_filename = base_name_part + '.html'
-                GlobalSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
+                AppSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
 
                 # Convert files that are markdown files
                 try: md = read_file(filepath)
@@ -317,29 +317,29 @@ class Md2HtmlConverter(Converter):
                 #         'Wiki': False
                 #         }
                 #     # url = "http://bg.door43.org/api/v1/markdown/raw"
-                #     GlobalSettings.logger.debug(f"Making callback to {url} with payload:")
-                #     GlobalSettings.logger.debug(json.dumps(payload)[:256] + '…')
+                #     AppSettings.logger.debug(f"Making callback to {url} with payload:")
+                #     AppSettings.logger.debug(json.dumps(payload)[:256] + '…')
                 #     try:
                 #         response = requests.post(url, json=payload, headers=headers)
                 #         # response = requests.post(url, data=md, headers=headers)
                 #     except requests.exceptions.ConnectionError as e:
-                #         GlobalSettings.logger.critical(f"Markdown->HTML connection error: {e}")
+                #         AppSettings.logger.critical(f"Markdown->HTML connection error: {e}")
                 #         response = None
                 #     if response:
-                #         #GlobalSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
-                #         #GlobalSettings.logger.debug(f"response.headers = {response.headers}")
-                #         GlobalSettings.logger.debug(f"response.text = {response.text[:256] + '…'}")
+                #         #AppSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
+                #         #AppSettings.logger.debug(f"response.headers = {response.headers}")
+                #         AppSettings.logger.debug(f"response.text = {response.text[:256] + '…'}")
                 #         html1 = response.text
                 #         if response.status_code != 200:
-                #             GlobalSettings.logger.critical(f"Failed to submit Markdown->HTML job:"
+                #             AppSettings.logger.critical(f"Failed to submit Markdown->HTML job:"
                 #                                         f" {response.status_code}={response.reason}")
                 #         # callback_status = response.status_code
                 #         # if (callback_status >= 200) and (callback_status < 299):
-                #         #     GlobalSettings.logger.debug("Markdown->HTML callback finished.")
+                #         #     AppSettings.logger.debug("Markdown->HTML callback finished.")
                 #         # else:
-                #         #     GlobalSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
+                #         #     AppSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
                 #     else: # no response
-                #         GlobalSettings.logger.error("Submission of job to Markdown->HTML got no response")
+                #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
                 if 1: # old/existing code -- creates html2
                     if self.repo_subject in ['Translation_Academy',]:
                         html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
@@ -349,11 +349,11 @@ class Md2HtmlConverter(Converter):
                         html2 = markdown.markdown(md)
                 # if 0:
                 #     if html2 == html1:
-                #         GlobalSettings.logger.debug("HTML responses are identical.")
+                #         AppSettings.logger.debug("HTML responses are identical.")
                 #     else:
-                #         GlobalSettings.logger.error(f"HTML responses differ: {len(html1)} and {len(html2)}")
-                #         GlobalSettings.logger.debug(repr(html1)[:256] + ' …… ' + repr(html1)[-256:])
-                #         GlobalSettings.logger.debug(repr(html2)[:256] + ' …… ' + repr(html2)[-256:])
+                #         AppSettings.logger.error(f"HTML responses differ: {len(html1)} and {len(html2)}")
+                #         AppSettings.logger.debug(repr(html1)[:256] + ' …… ' + repr(html1)[-256:])
+                #         AppSettings.logger.debug(repr(html2)[:256] + ' …… ' + repr(html2)[-256:])
                 #     try: html = html1
                 #     except UnboundLocalError: html = html2
                 # else:

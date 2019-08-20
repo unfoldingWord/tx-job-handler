@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import json
 
 from rq_settings import prefix, webhook_queue_name
-from webhook import job, GlobalSettings
+from webhook import job, AppSettings
 
 from rq import get_current_job
 
@@ -17,10 +17,10 @@ class TestWebhook(TestCase):
 
     def setUp(self):
         # Make sure that other tests didn't mess up our prefix
-        GlobalSettings(prefix=prefix)
+        AppSettings(prefix=prefix)
 
     def test_prefix(self):
-        self.assertEqual(prefix, GlobalSettings.prefix)
+        self.assertEqual(prefix, AppSettings.prefix)
 
     @skip("Not currently working")
     @patch('webhook.get_current_job', side_effect=my_get_current_job)

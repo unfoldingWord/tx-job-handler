@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from shutil import copyfile
 
 from rq_settings import prefix, debug_mode_flag
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 from general_tools.file_utils import write_file, remove_tree, get_files
 from converters.converter import Converter
 from tx_usfm_tools.transform import UsfmTransform
@@ -13,7 +13,7 @@ from tx_usfm_tools.transform import UsfmTransform
 class Usfm2HtmlConverter(Converter):
 
     def convert(self):
-        GlobalSettings.logger.debug("Processing the Bible USFM files …")
+        AppSettings.logger.debug("Processing the Bible USFM files …")
 
         # Find the first directory that has usfm files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -51,10 +51,10 @@ class Usfm2HtmlConverter(Converter):
                 with open(os.path.join(scratch_dir, html_filename), 'rt', encoding='utf-8') as html_file:
                     converted_html = html_file.read()
                 converted_html_length = len(converted_html)
-                # GlobalSettings.logger.debug(f"### Usfm2HtmlConverter got converted html of length {converted_html_length:,}")
-                # GlobalSettings.logger.debug(f"Got converted html: {converted_html[:500]}{' …' if len(converted_html)>500 else ''}")
+                # AppSettings.logger.debug(f"### Usfm2HtmlConverter got converted html of length {converted_html_length:,}")
+                # AppSettings.logger.debug(f"Got converted html: {converted_html[:500]}{' …' if len(converted_html)>500 else ''}")
                 if '</p></p></p>' in converted_html:
-                    GlobalSettings.logger.debug(f"Usfm2HtmlConverter got multiple consecutive paragraph closures in converted {html_filename}")
+                    AppSettings.logger.debug(f"Usfm2HtmlConverter got multiple consecutive paragraph closures in converted {html_filename}")
                 # Now what are we doing with the converted html ???
                 template_soup = BeautifulSoup(template_html, 'html.parser')
                 template_soup.head.title.string = self.repo_subject
@@ -68,11 +68,11 @@ class Usfm2HtmlConverter(Converter):
                 else:
                     content_div.append("ERROR! NOT CONVERTED!")
                     self.log.warning(f"USFM parsing or conversion error for {base_name}")
-                    GlobalSettings.logger.debug(f"Got converted html: {converted_html[:600]}{' …' if len(converted_html)>600 else ''}")
+                    AppSettings.logger.debug(f"Got converted html: {converted_html[:600]}{' …' if len(converted_html)>600 else ''}")
                     if not converted_soup:
-                        GlobalSettings.logger.debug(f"No converted_soup")
+                        AppSettings.logger.debug(f"No converted_soup")
                     elif not converted_soup.body:
-                        GlobalSettings.logger.debug(f"No converted_soup.body")
+                        AppSettings.logger.debug(f"No converted_soup.body")
                     # from bs4.diagnose import diagnose
                     # diagnose(converted_html)
                     num_failed_books += 1
@@ -81,14 +81,14 @@ class Usfm2HtmlConverter(Converter):
                 template_soup_string = str(template_soup)
                 write_file(output_filepath, template_soup_string)
                 template_soup_string_length = len(template_soup_string)
-                # GlobalSettings.logger.debug(f"### Usfm2HtmlConverter wrote souped-up html of length {template_soup_string_length:,} from {converted_html_length:,}")
+                # AppSettings.logger.debug(f"### Usfm2HtmlConverter wrote souped-up html of length {template_soup_string_length:,} from {converted_html_length:,}")
                 if '</p></p></p>' in template_soup_string:
-                    GlobalSettings.logger.warning(f"Usfm2HtmlConverter got multiple consecutive paragraph closures in {html_filename}")
+                    AppSettings.logger.warning(f"Usfm2HtmlConverter got multiple consecutive paragraph closures in {html_filename}")
                 if template_soup_string_length < converted_html_length * 0.70: # What is the 25% or so that's lost ???
-                    GlobalSettings.logger.debug(f"### Usfm2HtmlConverter wrote souped-up html of length {template_soup_string_length:,} from {converted_html_length:,} = {template_soup_string_length*100.0/converted_html_length}%")
+                    AppSettings.logger.debug(f"### Usfm2HtmlConverter wrote souped-up html of length {template_soup_string_length:,} from {converted_html_length:,} = {template_soup_string_length*100.0/converted_html_length}%")
                     self.log.error(f"Usfm2HtmlConverter lost converted html for {html_filename}")
-                    GlobalSettings.logger.debug(f"Usfm2HtmlConverter {html_filename} was {converted_html_length:,} now {template_soup_string_length:,}")
-                    # GlobalSettings.logger.debug(f"Usfm2HtmlConverter {html_filename} was: {converted_html}")
+                    AppSettings.logger.debug(f"Usfm2HtmlConverter {html_filename} was {converted_html_length:,} now {template_soup_string_length:,}")
+                    # AppSettings.logger.debug(f"Usfm2HtmlConverter {html_filename} was: {converted_html}")
                     write_file(os.path.join(scratch_dir,filebase+'.converted.html'), template_soup_string)
                     if prefix and debug_mode_flag:
                         delete_scratch_dir_flag = False

@@ -10,8 +10,8 @@ from boto3.session import Session
 class S3Handler:
     def __init__(self, bucket_name=None, aws_access_key_id=None, aws_secret_access_key=None,
                  aws_region_name='us-west-2') -> None:
-        #from global_settings.global_settings import GlobalSettings
-        #GlobalSettings.logger.debug(f"s3_handler.__init__({bucket_name}, {aws_access_key_id}, {aws_secret_access_key}, {aws_region_name})")
+        #from app_settings.app_settings import AppSettings
+        #AppSettings.logger.debug(f"s3_handler.__init__({bucket_name}, {aws_access_key_id}, {aws_secret_access_key}, {aws_region_name})")
 
         self.bucket_name = bucket_name
         self.aws_access_key_id = aws_access_key_id
@@ -155,23 +155,23 @@ class S3Handler:
         :param string key: name of the object in the bucket
         """
         from general_tools.file_utils import get_mime_type
-        #from global_settings.global_settings import GlobalSettings
-        #GlobalSettings.logger.debug(f"s3_handler.upload_file({path}, {key}, {cache_time}, {content_type})")
+        #from app_settings.app_settings import AppSettings
+        #AppSettings.logger.debug(f"s3_handler.upload_file({path}, {key}, {cache_time}, {content_type})")
         assert 'http' not in key
 
         with open(path, 'rb') as f:
             binary = f.read()
         if content_type is None:
             content_type = get_mime_type(path)
-        #GlobalSettings.logger.debug(f"content_type is {content_type}")
-        #GlobalSettings.logger.debug(f"bucket is {self.bucket}")
+        #AppSettings.logger.debug(f"content_type is {content_type}")
+        #AppSettings.logger.debug(f"bucket is {self.bucket}")
         self.bucket.put_object(
             Key=key,
             Body=binary,
             ContentType=content_type,
             CacheControl=f'max-age={cache_time}'
         )
-        #GlobalSettings.logger.debug(f"put_response is {put_response}")
+        #AppSettings.logger.debug(f"put_response is {put_response}")
 
 
     # def get_object(self, key):

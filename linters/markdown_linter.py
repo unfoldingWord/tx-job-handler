@@ -6,7 +6,7 @@ from rq_settings import prefix, debug_mode_flag
 from linters.linter import Linter
 from aws_tools.lambda_handler import LambdaHandler
 from general_tools.file_utils import read_file, get_files
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 from linters.py_markdown_linter.lint import MarkdownLinter as PyMarkdownLinter
 from linters.py_markdown_linter.config import LintConfig
@@ -26,7 +26,7 @@ class MarkdownLinter(Linter):
         self.source_dir is the directory of source files (.md)
         :return bool:
         """
-        GlobalSettings.logger.debug("MarkdownLinter.lint()")
+        AppSettings.logger.debug("MarkdownLinter.lint()")
 
         md_data = self.get_strings() # Used for AWS Lambda call
         # Determine approximate length of the payload data
@@ -34,15 +34,15 @@ class MarkdownLinter(Linter):
         if not isinstance(payloadString,str): # then it must be Python3 bytes
             payloadString = payloadString.decode()
         estimated_payload_length = len(payloadString) + 335 # Allow for 'config' strings (included later)
-        GlobalSettings.logger.debug(f"Approx length of Markdown Linter payload = {estimated_payload_length:,} characters.")
+        AppSettings.logger.debug(f"Approx length of Markdown Linter payload = {estimated_payload_length:,} characters.")
         payload_oversize_flag = estimated_payload_length > 6_291_456 # 6 MB -- AWS Lambda call will fail
         if payload_oversize_flag:
-            GlobalSettings.logger.warning(f"Oversize Markdown Linter payload = {estimated_payload_length:,} characters.")
+            AppSettings.logger.warning(f"Oversize Markdown Linter payload = {estimated_payload_length:,} characters.")
 
         test_pyLinter = prefix and debug_mode_flag # True: always use new Python linter; False: mostly use AWS Lambda call
         if test_pyLinter or payload_oversize_flag:
             # New code using unfinished PyMarkdownLinter
-            GlobalSettings.logger.info("Invoking (unfinished) PyMarkdownLinter…")
+            AppSettings.logger.info("Invoking (unfinished) PyMarkdownLinter…")
             lint_config = LintConfig()
             for rule_id in ('MD009', 'MD010', 'MD013'): # Ignore
                 lint_config.disable_rule_by_id(rule_id)
@@ -51,14 +51,14 @@ class MarkdownLinter(Linter):
                 with open( os.path.join(self.source_dir, filename), 'rt') as md_file:
                     linter_warnings = linter.lint(md_file.read())
                 if linter_warnings:
-                    GlobalSettings.logger.debug(f"Markdown linter result count for {filename} = {len(linter_warnings):,}.")
+                    AppSettings.logger.debug(f"Markdown linter result count for {filename} = {len(linter_warnings):,}.")
                     for rule_violation in linter_warnings:
                         self.log.warning(f"{filename.replace('.md','')} line {rule_violation.line_nr}: {rule_violation.message}")
 
         else: # old (tx-Manager) code using AWS Lambda node.js call
-            GlobalSettings.logger.info("Invoking Node.js linter via AWS Lambda call…")
+            AppSettings.logger.info("Invoking Node.js linter via AWS Lambda call…")
             # print(len(md_data), md_data)
-            # GlobalSettings.logger.debug(f"Size of markdown data = {len(md_data)}") # Useless -- always shows 1
+            # AppSettings.logger.debug(f"Size of markdown data = {len(md_data)}") # Useless -- always shows 1
             lint_data = self.invoke_markdown_linter(self.get_invoke_payload(md_data))
             if not lint_data:
                 return False
@@ -127,14 +127,14 @@ class MarkdownLinter(Linter):
         }
 
     def invoke_markdown_linter(self, payload):
-        #GlobalSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload.keys()}/{len(payload['options'])}/{payload['options'].keys()} )")
-        GlobalSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload['options'].keys()}/{payload['options']['config']}/{len(payload['options']['strings'])} )")
+        #AppSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload.keys()}/{len(payload['options'])}/{payload['options'].keys()} )")
+        AppSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload['options'].keys()}/{payload['options']['config']}/{len(payload['options']['strings'])} )")
         lambda_handler = LambdaHandler()
-        lint_function = f'{GlobalSettings.prefix}tx_markdown_linter'
-        # GlobalSettings.logger.debug(f"Size of {self.s3_results_key} lint data={len(payload)}") # Useless data -- always shows None/1
+        lint_function = f'{AppSettings.prefix}tx_markdown_linter'
+        # AppSettings.logger.debug(f"Size of {self.s3_results_key} lint data={len(payload)}") # Useless data -- always shows None/1
         response = lambda_handler.invoke(lint_function, payload)
         if 'errorMessage' in response:
-            GlobalSettings.logger.error(response['errorMessage'])
+            AppSettings.logger.error(response['errorMessage'])
             return None
         elif 'Payload' in response:
             return json.loads(response['Payload'].read())

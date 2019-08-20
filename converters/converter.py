@@ -11,7 +11,7 @@ from datetime import datetime
 from rq_settings import prefix, debug_mode_flag
 from general_tools.url_utils import download_file
 from general_tools.file_utils import unzip, add_contents_to_zip, remove_tree, remove
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 from converters.convert_logger import ConvertLogger
 
 
@@ -32,7 +32,7 @@ class Converter(metaclass=ABCMeta):
         :param dict options:
         :param string identifier:
         """
-        GlobalSettings.logger.debug(f"Converter.__init__(rs={repo_subject}, source_dir={source_dir}, cdn_file_key={cdn_file_key}, options={options}, id={identifier})")
+        AppSettings.logger.debug(f"Converter.__init__(rs={repo_subject}, source_dir={source_dir}, cdn_file_key={cdn_file_key}, options={options}, id={identifier})")
         # self.source_zip = source_zip
         self.repo_subject = repo_subject
         assert self.repo_subject # Programming error if not
@@ -64,7 +64,7 @@ class Converter(metaclass=ABCMeta):
         # self.callback_status = 0
         # self.callback_results = None
         # if self.callback and not identifier:
-        #     GlobalSettings.logger.error("Identity not given for callback")
+        #     AppSettings.logger.error("Identity not given for callback")
 
 
     def close(self):
@@ -73,7 +73,7 @@ class Converter(metaclass=ABCMeta):
         """
         # print("Converter close() was called!")
         if prefix and debug_mode_flag:
-            GlobalSettings.logger.debug(f"Converter temp folder '{self.converter_dir}' has been left on disk for debugging!")
+            AppSettings.logger.debug(f"Converter temp folder '{self.converter_dir}' has been left on disk for debugging!")
         else:
             try: remove_tree(self.converter_dir)
             except AttributeError: pass # no such variable
@@ -108,31 +108,31 @@ class Converter(metaclass=ABCMeta):
                 #     # No input zip file yet, so we need to download the archive
                 #     self.download_archive()
                 # # unzip the input archive
-                # GlobalSettings.logger.debug(f"Converter unzipping {self.input_zip_file} to {self.files_dir}")
+                # AppSettings.logger.debug(f"Converter unzipping {self.input_zip_file} to {self.files_dir}")
                 # unzip(self.input_zip_file, self.files_dir)
 
                 # convert method called
-                GlobalSettings.logger.debug(f"Converting files from {self.files_dir}…")
+                AppSettings.logger.debug(f"Converting files from {self.files_dir}…")
                 if self.convert():
-                    #GlobalSettings.logger.debug(f"Was able to convert {self.resource}")
+                    #AppSettings.logger.debug(f"Was able to convert {self.resource}")
                     # Zip the output dir to the output archive
-                    #GlobalSettings.logger.debug(f"Converter adding files in {self.output_dir} to {self.output_zip_file}")
+                    #AppSettings.logger.debug(f"Converter adding files in {self.output_dir} to {self.output_zip_file}")
                     add_contents_to_zip(self.output_zip_file, self.output_dir)
                     # remove_tree(self.output_dir) # Done in converter.close()
                     # Upload the output archive either to cdn_bucket or to a file (no cdn_bucket)
-                    GlobalSettings.logger.info(f"Converter uploading output archive to {self.cdn_file_key} …")
+                    AppSettings.logger.info(f"Converter uploading output archive to {self.cdn_file_key} …")
                     if self.cdn_file_key:
                         self.upload_archive()
-                        GlobalSettings.logger.debug(f"Uploaded converted files (using '{self.cdn_file_key}').")
+                        AppSettings.logger.debug(f"Uploaded converted files (using '{self.cdn_file_key}').")
                     else:
-                        GlobalSettings.logger.debug("No converted file upload requested.")
+                        AppSettings.logger.debug("No converted file upload requested.")
                     remove(self.output_zip_file)
                     success = True
                 else:
                     self.log.error(f"Resource type '{self.repo_subject}' currently not supported.")
             except Exception as e:
                 self.log.error(f"Conversion process ended abnormally: {e}")
-                GlobalSettings.logger.debug(f"Converter failure: {traceback.format_exc()}")
+                AppSettings.logger.debug(f"Converter failure: {traceback.format_exc()}")
 
         results = {
             'identifier': self.identifier,
@@ -146,7 +146,7 @@ class Converter(metaclass=ABCMeta):
         #     self.callback_results = results
         #     self.do_callback(self.callback, self.callback_results)
 
-        # GlobalSettings.logger.debug(results)
+        # AppSettings.logger.debug(results)
         return results
 
 
@@ -166,28 +166,28 @@ class Converter(metaclass=ABCMeta):
         """
         Uploads self.output_zip_file
         """
-        #GlobalSettings.logger.debug("converter.upload_archive()")
+        #AppSettings.logger.debug("converter.upload_archive()")
         if self.cdn_file_key and os.path.isdir(os.path.dirname(self.cdn_file_key)):
-            #GlobalSettings.logger.debug("converter.upload_archive() doing copy")
+            #AppSettings.logger.debug("converter.upload_archive() doing copy")
             copy(self.output_zip_file, self.cdn_file_key)
-        elif GlobalSettings.cdn_s3_handler():
-            #GlobalSettings.logger.debug("converter.upload_archive() using S3 handler")
-            GlobalSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file_key, cache_time=0)
+        elif AppSettings.cdn_s3_handler():
+            #AppSettings.logger.debug("converter.upload_archive() using S3 handler")
+            AppSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file_key, cache_time=0)
 
 
     # def do_callback(self, url, payload):
     #     if url.startswith('http'):
     #         headers = {"content-type": "application/json"}
-    #         GlobalSettings.logger.debug(f"Making callback to {url} with payload:")
-    #         GlobalSettings.logger.debug(json.dumps(payload)[:256])
+    #         AppSettings.logger.debug(f"Making callback to {url} with payload:")
+    #         AppSettings.logger.debug(json.dumps(payload)[:256])
     #         response = requests.post(url, json=payload, headers=headers)
     #         self.callback_status = response.status_code
     #         if (self.callback_status >= 200) and (self.callback_status < 299):
-    #             GlobalSettings.logger.debug("Callback finished.")
+    #             AppSettings.logger.debug("Callback finished.")
     #         else:
-    #             GlobalSettings.logger.error(f"Error calling callback code {self.callback_status}: {response.reason}")
+    #             AppSettings.logger.error(f"Error calling callback code {self.callback_status}: {response.reason}")
     #     else:
-    #         GlobalSettings.logger.error(f"Invalid callback url: {url}")
+    #         AppSettings.logger.error(f"Invalid callback url: {url}")
 
 
     # def check_for_exclusive_convert(self):
@@ -208,9 +208,9 @@ class Converter(metaclass=ABCMeta):
     #                 item = params[i]
     #                 if item[0] == 'convert_only':
     #                     convert_only_list = item[1].split(',')
-    #                     GlobalSettings.logger.debug(f"Converting only: {convert_only_list}")
+    #                     AppSettings.logger.debug(f"Converting only: {convert_only_list}")
     #                     self.source = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
     #                     break
     #     if convert_only_list:
-    #         GlobalSettings.logger.debug(f"converter:check_for_exclusive_convert() returned a list of {len(convert_only_list)} files: {convert_only_list}")
+    #         AppSettings.logger.debug(f"converter:check_for_exclusive_convert() returned a list of {len(convert_only_list)} files: {convert_only_list}")
     #     return convert_only_list

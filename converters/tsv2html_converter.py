@@ -5,7 +5,7 @@ from shutil import copyfile
 import yaml
 import re
 
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 from general_tools.file_utils import write_file, remove_tree, get_files
 from converters.converter import Converter
 from tx_usfm_tools.books import bookNames
@@ -21,7 +21,7 @@ class Tsv2HtmlConverter(Converter):
         """
         Main function to convert info in TSV files into HTML files.
         """
-        GlobalSettings.logger.debug("Tsv2HtmlConverter processing the TSV files …")
+        AppSettings.logger.debug("Tsv2HtmlConverter processing the TSV files …")
 
         # Find the first directory that has usfm files.
         filepaths = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -53,7 +53,7 @@ class Tsv2HtmlConverter(Converter):
                 filebase = os.path.splitext(os.path.basename(source_filepath))[0]
                 # Do the actual TSV -> HTML conversion
                 converted_html = self.buildSingleHtml(source_filepath)
-                # GlobalSettings.logger.debug(f"Got converted html: {converted_html[:5000]}{' …' if len(converted_html)>5000 else ''}")
+                # AppSettings.logger.debug(f"Got converted html: {converted_html[:5000]}{' …' if len(converted_html)>5000 else ''}")
                 # Now what are we doing with the converted html ???
                 template_soup = BeautifulSoup(template_html, 'html.parser')
                 template_soup.head.title.string = self.repo_subject
@@ -67,11 +67,11 @@ class Tsv2HtmlConverter(Converter):
                 else:
                     content_div.append('ERROR! NOT CONVERTED!')
                     self.log.warning(f"TSV parsing or conversion error for {base_name}")
-                    # GlobalSettings.logger.debug(f"Got converted html: {converted_html[:600]}{' …' if len(converted_html)>600 else ''}")
+                    # AppSettings.logger.debug(f"Got converted html: {converted_html[:600]}{' …' if len(converted_html)>600 else ''}")
                     if not converted_soup:
-                        GlobalSettings.logger.debug(f"No converted_soup")
+                        AppSettings.logger.debug(f"No converted_soup")
                     elif not converted_soup.body:
-                        GlobalSettings.logger.debug(f"No converted_soup.body")
+                        AppSettings.logger.debug(f"No converted_soup.body")
                     # from bs4.diagnose import diagnose
                     # diagnose(converted_html)
                     num_failed_books += 1
@@ -111,13 +111,13 @@ class Tsv2HtmlConverter(Converter):
         """
         Load the yaml manifest from the given file path.
         """
-        # GlobalSettings.logger.debug(f"process_manifest({manifest_file_path}) …")
+        # AppSettings.logger.debug(f"process_manifest({manifest_file_path}) …")
         with open(manifest_file_path, 'rt') as manifest_file:
             # TODO: Check if full_load (less safe for untrusted input) is required
             #       See https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation
             self.manifest_dict = yaml.safe_load(manifest_file)
-        GlobalSettings.logger.info(f"Loaded {len(self.manifest_dict)} manifest_dict main entries: {self.manifest_dict.keys()}")
-        # GlobalSettings.logger.debug(f"Got manifest_dict: {self.manifest_dict}")
+        AppSettings.logger.info(f"Loaded {len(self.manifest_dict)} manifest_dict main entries: {self.manifest_dict.keys()}")
+        # AppSettings.logger.debug(f"Got manifest_dict: {self.manifest_dict}")
 
 
     def get_book_names(self, filename):
@@ -134,22 +134,22 @@ class Tsv2HtmlConverter(Converter):
         self.current_book_title = self.current_book_name = self.current_book_code = None
         if self.manifest_dict:
             for project_dict in self.manifest_dict['projects']:
-                # GlobalSettings.logger.debug(f"get_book_names looking for '{filename}' in {project_dict} …")
+                # AppSettings.logger.debug(f"get_book_names looking for '{filename}' in {project_dict} …")
                 if filename in project_dict['path']:
                     self.current_book_title = project_dict['title']
-                    # GlobalSettings.logger.debug(f"Got book_title: '{self.current_book_title}'")
+                    # AppSettings.logger.debug(f"Got book_title: '{self.current_book_title}'")
                     break
 
         book_number_string, book_code = int(filename[-10:-8]), filename[-7:-4]
-        # GlobalSettings.logger.debug(f"Got book_number_string: '{book_number_string}'")
-        # GlobalSettings.logger.debug(f"Got book_code: '{book_code}'")
+        # AppSettings.logger.debug(f"Got book_number_string: '{book_number_string}'")
+        # AppSettings.logger.debug(f"Got book_code: '{book_code}'")
         self.current_book_code = book_code.lower()
         try:
             book_number = int(book_number_string)
             book_index = book_number-1 if book_number <=39 else book_number-2 # Mat-Rev are books 41-67 (not 40-66)
             english_bookname = bookNames[book_index]
         except IndexError: english_bookname = book_code
-        # GlobalSettings.logger.debug(f"Got english_bookname: '{english_bookname}'")
+        # AppSettings.logger.debug(f"Got english_bookname: '{english_bookname}'")
         self.current_book_name = english_bookname
         if not self.current_book_title:
             self.current_book_title = self.current_book_name
@@ -168,15 +168,15 @@ class Tsv2HtmlConverter(Converter):
                 tsv_line = tsv_line.rstrip('\n')
                 tab_count = tsv_line.count('\t')
                 if not started:
-                    # GlobalSettings.logger.debug(f"TSV header line is '{tsv_line}")
+                    # AppSettings.logger.debug(f"TSV header line is '{tsv_line}")
                     if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
                         self.log.warning(f"Unexpected TSV header line: '{tsv_line}' in {os.path.basename(tsv_filepath)}")
                     started = True
                 elif tab_count != Tsv2HtmlConverter.expected_tab_count:
                     # NOTE: This is not added to warnings because that will be done at convert time (don't want double warnings)
-                    GlobalSettings.logger.debug(f"Unexpected {self.current_book_code.upper()} line with {tab_count} tabs (expected {Tsv2HtmlConverter.expected_tab_count}): '{tsv_line}'")
+                    AppSettings.logger.debug(f"Unexpected {self.current_book_code.upper()} line with {tab_count} tabs (expected {Tsv2HtmlConverter.expected_tab_count}): '{tsv_line}'")
                 self.tsv_lines.append(tsv_line.split('\t'))
-        GlobalSettings.logger.info(f"Preloaded {len(self.tsv_lines):,} TSV lines from {os.path.basename(tsv_filepath)}.")
+        AppSettings.logger.info(f"Preloaded {len(self.tsv_lines):,} TSV lines from {os.path.basename(tsv_filepath)}.")
 
 
     def fix_links(self, source_text):
@@ -185,7 +185,7 @@ class Tsv2HtmlConverter(Converter):
             to https://git.door43.org/unfoldingWord/en_ta/src/master/…
             and https://git.door43.org/unfoldingWord/en_tw/src/master/…
         """
-        # GlobalSettings.logger.debug(f"fix_links({source_text}) …")
+        # AppSettings.logger.debug(f"fix_links({source_text}) …")
         assert 'QQQQ' not in source_text and 'ZZZZ' not in source_text
         # Hide [[ and ]]
         adjusted_text = source_text.replace('[[','QQQQ').replace(']]','ZZZZ')
@@ -193,7 +193,7 @@ class Tsv2HtmlConverter(Converter):
             match = re.search( 'QQQQ(.+?)ZZZZ', adjusted_text)
             if not match: break
             link_contents = adjusted_text[match.start()+4:match.end()-4]
-            # GlobalSettings.logger.debug(f"fix_links found link_contents = '{link_contents}'")
+            # AppSettings.logger.debug(f"fix_links found link_contents = '{link_contents}'")
             if link_contents.startswith('rc://en/ta/man/'):
                 link_contents = link_contents[15:] # Remove unwanted prefix
                 #adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/{link_contents}/01.md">Door43/en_ta/src/master/{link_contents}/01.md</a>'
@@ -206,7 +206,7 @@ class Tsv2HtmlConverter(Converter):
                 self.log.error(f"Cannot convert link: '{link_contents.replace('QQQQ','[[').replace('ZZZZ',']]')}'")
                 adjusted_link = link_contents
             adjusted_text = adjusted_text[:match.start()] + adjusted_link + adjusted_text[match.end():]
-        # GlobalSettings.logger.debug(f"fix_links is returning '{adjusted_text}'")
+        # AppSettings.logger.debug(f"fix_links is returning '{adjusted_text}'")
         # Check we left it tidy (no un-matched double square brackets)
         if 'QQQQ' in adjusted_text or 'ZZZZ' in adjusted_text:
             adjusted_text = adjusted_text.replace('QQQQ','[[').replace('ZZZZ',']]')
@@ -220,9 +220,9 @@ class Tsv2HtmlConverter(Converter):
 
         Returns the HTML page.
         """
-        # GlobalSettings.logger.debug(f"buildSingleHtml({tsv_filepath}) …")
+        # AppSettings.logger.debug(f"buildSingleHtml({tsv_filepath}) …")
         self.get_book_names(os.path.basename(tsv_filepath))
-        # GlobalSettings.logger.debug(f"Got current_book_title: '{self.current_book_title}'")
+        # AppSettings.logger.debug(f"Got current_book_title: '{self.current_book_title}'")
 
         output_html = """
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -280,7 +280,7 @@ class Tsv2HtmlConverter(Converter):
         B = C = V = None # In case we get an error on the first line
         lastC = lastV = None
         for tsv_line in self.tsv_lines[1:]: # Skip the header line
-            # GlobalSettings.logger.debug(f"Processing {tsv_line} …")
+            # AppSettings.logger.debug(f"Processing {tsv_line} …")
             try:
                 B, C, V, ID, SupportReference, OrigQuote, Occurrence, GLQuote, OccurrenceNote = tsv_line
             except ValueError:

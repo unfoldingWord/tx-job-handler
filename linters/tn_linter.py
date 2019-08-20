@@ -3,7 +3,7 @@ import re
 import tempfile
 
 from rq_settings import prefix, debug_mode_flag
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 from door43_tools.bible_books import BOOK_NUMBERS
 from general_tools import file_utils, url_utils
 from tx_usfm_tools.usfm_verses import verses
@@ -21,12 +21,12 @@ class TnLinter(MarkdownLinter):
         super(TnLinter, self).__init__(*args, **kwargs)
 
         self.single_file = single_file
-        GlobalSettings.logger.debug(f"Convert single '{self.single_file}'")
+        AppSettings.logger.debug(f"Convert single '{self.single_file}'")
         self.single_dir = None
         if self.single_file:
             parts = os.path.splitext(self.single_file)
             self.single_dir = self.get_dir_for_book(parts[0])
-            GlobalSettings.logger.debug(f"Single source dir '{self.single_dir}'")
+            AppSettings.logger.debug(f"Single source dir '{self.single_dir}'")
 
 
     def lint(self):
@@ -51,7 +51,7 @@ class TnLinter(MarkdownLinter):
             found_files = False
             if self.single_dir and (dir != self.single_dir):
                 continue
-            GlobalSettings.logger.debug(f"Processing folder {dir}")
+            AppSettings.logger.debug(f"Processing folder {dir}")
             file_path = os.path.join(self.source_dir, dir)
             for root, _dirs, files in os.walk(file_path):
                 if root == file_path:
@@ -65,12 +65,12 @@ class TnLinter(MarkdownLinter):
             and 'OBS' not in self.repo_subject \
             and len(self.rc.projects) != 1: # Many repos are intentionally just one book
                 msg = f"Missing tN book: '{dir}'"
-                GlobalSettings.logger.debug(msg)
+                AppSettings.logger.debug(msg)
                 self.log.warnings.append(msg)
 
         results = super(TnLinter, self).lint()  # Runs checks on Markdown, using the markdown linter
         if not results:
-            GlobalSettings.logger.debug(f"Error running MD linter on {self.s3_results_key}")
+            AppSettings.logger.debug(f"Error running MD linter on {self.s3_results_key}")
         return results
 
 
@@ -90,7 +90,7 @@ class TnLinter(MarkdownLinter):
                     a = self.get_file_link(f, folder)
                     msg = f"{a}: contains invalid link: ({link})"
                     self.log.warnings.append(msg)
-                    GlobalSettings.logger.debug(msg)
+                    AppSettings.logger.debug(msg)
 
     def get_file_link(self, f, folder):
         parts = folder.split(self.source_dir)
@@ -144,7 +144,7 @@ class TnTsvLinter(Linter):
             if not found_file:
                 msg = f"Missing tN tsv book: '{dir}'"
                 self.log.warnings.append(msg)
-                GlobalSettings.logger.debug(msg)
+                AppSettings.logger.debug(msg)
 
         # See if manifest has relationships back to original language versions
         # Compares with the unfoldingWord version if possible
@@ -184,7 +184,7 @@ class TnTsvLinter(Linter):
         # Now check tabs and C:V numbers
         for filename in sorted(file_list):
             if not filename.endswith('.tsv'): continue # Skip other files
-            GlobalSettings.logger.info(f"Linting {filename}…")
+            AppSettings.logger.info(f"Linting {filename}…")
             tsv_filepath = os.path.join(source_dir, filename)
             started = False
             expectedB = filename[-7:-4]
@@ -194,7 +194,7 @@ class TnTsvLinter(Linter):
                     tsv_line = tsv_line.rstrip('\n')
                     tab_count = tsv_line.count('\t')
                     if not started:
-                        # GlobalSettings.logger.debug(f"TSV header line is '{tsv_line}'")
+                        # AppSettings.logger.debug(f"TSV header line is '{tsv_line}'")
                         if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
                             self.log.warnings.append(f"Unexpected TSV header line: '{tsv_line}' in {filename}")
                         started = True
@@ -240,7 +240,7 @@ class TnTsvLinter(Linter):
                         elif lastC == 'back': lastC = '999'
 
         if prefix and debug_mode_flag:
-            GlobalSettings.logger.debug(f"Temp folder '{self.preload_dir}' has been left on disk for debugging!")
+            AppSettings.logger.debug(f"Temp folder '{self.preload_dir}' has been left on disk for debugging!")
         else:
             file_utils.remove_tree(self.preload_dir)
         return True
@@ -282,17 +282,17 @@ class TnTsvLinter(Linter):
 
         Returns a True/False success flag
         """
-        GlobalSettings.logger.info(f"preload_original_text_archive({name}, {zip_url})…")
+        AppSettings.logger.info(f"preload_original_text_archive({name}, {zip_url})…")
         zip_path = os.path.join(self.preload_dir, f'{name}.zip')
         try:
             url_utils.download_file(zip_url, zip_path)
             file_utils.unzip(zip_path, self.preload_dir)
             file_utils.remove(zip_path)
         except Exception as e:
-            GlobalSettings.logger.error(f"Unable to download {zip_url}: {e}")
+            AppSettings.logger.error(f"Unable to download {zip_url}: {e}")
             self.log.warnings.append(f"Unable to download '{name}' from {zip_url}")
             return False
-        # GlobalSettings.logger.debug(f"Got {name} files:", os.listdir(self.preload_dir))
+        # AppSettings.logger.debug(f"Got {name} files:", os.listdir(self.preload_dir))
         return True
     # end of TnTsvLinter.preload_original_text_archive function
 
@@ -301,25 +301,25 @@ class TnTsvLinter(Linter):
         """
         Check that the quoted portions can indeed be found in the original language versions.
         """
-        # GlobalSettings.logger.debug(f"check_original_language_quotes({B},{C},{V}, {quoteField})…")
+        # AppSettings.logger.debug(f"check_original_language_quotes({B},{C},{V}, {quoteField})…")
 
         verse_text = self.get_passage(B,C,V)
         if not verse_text:
             return # nothing else we can do here
 
         if '...' in quoteField:
-            GlobalSettings.logger.debug(f"Bad ellipse characters in {B} {C}:{V} '{quoteField}'")
+            AppSettings.logger.debug(f"Bad ellipse characters in {B} {C}:{V} '{quoteField}'")
             self.log.warnings.append(f"Should use proper ellipse character in {B} {C}:{V} '{quoteField}'")
 
         if '…' in quoteField:
             quoteBits = quoteField.split('…')
             if ' …' in quoteField or '… ' in quoteField:
-                GlobalSettings.logger.debug(f"Unexpected space(s) beside ellipse in {B} {C}:{V} '{quoteField}'")
+                AppSettings.logger.debug(f"Unexpected space(s) beside ellipse in {B} {C}:{V} '{quoteField}'")
                 self.log.warnings.append(f"Unexpected space(s) beside ellipse character in {B} {C}:{V} '{quoteField}'")
         elif '...' in quoteField: # Yes, we still actually allow this
             quoteBits = quoteField.split('...')
             if ' ...' in quoteField or '... ' in quoteField:
-                GlobalSettings.logger.debug(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
+                AppSettings.logger.debug(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
                 self.log.warnings.append(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
         else:
             quoteBits = None
@@ -333,12 +333,12 @@ class TnTsvLinter(Linter):
                         if index == 0: description = 'beginning'
                         elif index == numQuoteBits-1: description = 'end'
                         else: description = f"middle{index if numQuoteBits>3 else ''}"
-                        GlobalSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteBits[index]}' ({description}) in '{verse_text}'")
+                        AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteBits[index]}' ({description}) in '{verse_text}'")
                         self.log.warnings.append(f"Unable to find {B} {C}:{V} {description} of '{quoteField}' in '{verse_text}'")
             else: # < 2
                 self.log.warnings.append(f"Ellipsis without surrounding snippet in {B} {C}:{V} '{quoteField}'")
         elif quoteField not in verse_text:
-            GlobalSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
+            AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
             self.log.warnings.append(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
     # end of TnTsvLinter.check_original_language_quotes function
 
@@ -349,7 +349,7 @@ class TnTsvLinter(Linter):
 
         Also removes milestones and extra word (\\w) information
         """
-        # GlobalSettings.logger.debug(f"get_passage({B}, {C},{V})…")
+        # AppSettings.logger.debug(f"get_passage({B}, {C},{V})…")
         book_number = verses[B]['usfm_number']
         # Look for OT book first -- if not found, look for NT book
         #   NOTE: Lazy way to determine which testament/folder the book is in
@@ -367,7 +367,7 @@ class TnTsvLinter(Linter):
             return None
         if self.loaded_file_path != book_path:
             # It's not cached already
-            GlobalSettings.logger.info(f"Reading {book_path}…")
+            AppSettings.logger.info(f"Reading {book_path}…")
             with open(book_path, 'rt') as book_file:
                 self.loaded_file_contents = book_file.read()
             self.loaded_file_path = book_path
@@ -405,7 +405,7 @@ class TnTsvLinter(Linter):
                 adjusted_field = bits[0]
                 verseText = verseText[:ixW] + adjusted_field + verseText[ixEnd+3:]
             else:
-                GlobalSettings.logger.error(f"Missing \\w* in {B} {C}:{V} verseText: '{verseText}'")
+                AppSettings.logger.error(f"Missing \\w* in {B} {C}:{V} verseText: '{verseText}'")
                 verseText = verseText.replace('\\w ', '', 1) # Attempt to limp on
             ixW = verseText.find('\\w ', ixW+1) # Might be another one
         # print(f"Got verse text2: '{verseText}'")
@@ -414,7 +414,7 @@ class TnTsvLinter(Linter):
 
 
     def find_invalid_links(self, folder, f, contents):
-        # GlobalSettings.logger.debug(f"TnTsvLinter.find_invalid_links( {folder}, {f}, {contents} ) …")
+        # AppSettings.logger.debug(f"TnTsvLinter.find_invalid_links( {folder}, {f}, {contents} ) …")
         for link_match in TnLinter.link_marker_re.finditer(contents):
             link = link_match.group(1)
             if link:
@@ -430,7 +430,7 @@ class TnTsvLinter(Linter):
                     a = self.get_file_link(f, folder)
                     msg = f"{a}: contains invalid link: ({link})"
                     self.log.warnings.append(msg)
-                    GlobalSettings.logger.debug(msg)
+                    AppSettings.logger.debug(msg)
     # end of TnTsvLinter.find_invalid_links function
 
     def get_file_link(self, f, folder):
