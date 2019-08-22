@@ -270,7 +270,7 @@ class RC:
             file_path = os.path.join(self.path, p.path, 'config.yaml')
             try:
                 p.config_yaml = load_yaml_object(file_path)
-            except ParserError as e:
+            except (ParserError, ScannerError) as e:
                 AppSettings.logger.error(f"Badly formed 'config.yaml' in {self.repo_name}: {e}")
         return p.config_yaml
 
@@ -282,7 +282,7 @@ class RC:
             file_path = os.path.join(self.path, p.path, 'toc.yaml')
             try:
                 p.toc_yaml = load_yaml_object(file_path)
-            except ParserError as e:
+            except (ParserError, ScannerError) as e:
                 AppSettings.logger.error(f"Badly formed 'toc.yaml' in {self.repo_name}: {e}")
         return p.toc_yaml
 
