@@ -27,6 +27,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+.mypy_cache/
 .coverage
 .coverage.*
 .cache
@@ -52,6 +53,7 @@ target/
 # virtualenv
 .venv
 venv/
+myVenv/
 
 # mkdocs documentation
 /site
