@@ -4,6 +4,7 @@ from datetime import datetime, date
 from glob import glob
 from json.decoder import JSONDecodeError
 from yaml.parser import ParserError, ScannerError
+from typing import Optional
 
 from door43_tools.td_language import TdLanguage
 from door43_tools.bible_books import BOOK_NAMES
@@ -14,7 +15,7 @@ from app_settings.app_settings import AppSettings
 class RC:
     current_version = '0.2'
 
-    def __init__(self, directory=None, repo_name=None, manifest=None):
+    def __init__(self, directory=None, repo_name=None, manifest=None) -> None:
         """
         :param string directory:
         :param string repo_name:
@@ -27,6 +28,7 @@ class RC:
         self._resource = None
         self.loadeded_manifest_file = False
         self._projects = []
+        self.error_messages = set() # Don't want duplicates
 
     @property
     def manifest(self):
@@ -42,35 +44,45 @@ class RC:
         try:
             manifest = load_yaml_object(os.path.join(self.path, 'manifest.yaml'))
         except (ParserError, ScannerError) as e:
-            AppSettings.logger.error(f"Badly formed 'manifest.yaml' in {self.repo_name}: {e}")
+            err_msg = f"Badly formed 'manifest.yaml' in {self.repo_name}: {e}"
+            AppSettings.logger.error(err_msg)
+            self.error_messages.add(err_msg)
         if manifest:
             self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'manifest.json'))
         except JSONDecodeError as e:
-                AppSettings.logger.error(f"Badly formed 'manifest.json' in {self.repo_name}: {e}")
+                err_msg = f"Badly formed 'manifest.json' in {self.repo_name}: {e}"
+                AppSettings.logger.error(err_msg)
+                self.error_messages.add(err_msg)
         if manifest:
             self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'package.json'))
         except JSONDecodeError as e:
-                AppSettings.logger.error(f"Badly formed 'package.json' in {self.repo_name}: {e}")
+                err_msg = f"Badly formed 'package.json' in {self.repo_name}: {e}"
+                AppSettings.logger.error(err_msg)
+                self.error_messages.add(err_msg)
         if manifest:
             self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'project.json'))
         except JSONDecodeError as e:
-                AppSettings.logger.error(f"Badly formed 'project.json' in {self.repo_name}: {e}")
+                err_msg = f"Badly formed 'project.json' in {self.repo_name}: {e}"
+                AppSettings.logger.error(err_msg)
+                self.error_messages.add(err_msg)
         if manifest:
             self.loadeded_manifest_file = True
             return manifest
         try:
             manifest = load_json_object(os.path.join(self.path, 'meta.json'))
         except JSONDecodeError as e:
-                AppSettings.logger.error(f"Badly formed 'meta.json' in {self.repo_name}: {e}")
+                err_msg = f"Badly formed 'meta.json' in {self.repo_name}: {e}"
+                AppSettings.logger.error(err_msg)
+                self.error_messages.add(err_msg)
         if manifest:
             self.loadeded_manifest_file = True
             return manifest
@@ -227,7 +239,7 @@ class RC:
                             key=lambda path: os.path.basename(path).zfill(3)):
                 chapter = os.path.basename(d)
                 if os.path.isdir(d) and not chapter.startswith('.'):
-                    if len(self.chunks(identifier, chapter)):
+                    if self.chunks(identifier, chapter):
                         chapters.append(chapter)
             return chapters
 
@@ -271,7 +283,9 @@ class RC:
             try:
                 p.config_yaml = load_yaml_object(file_path)
             except (ParserError, ScannerError) as e:
-                AppSettings.logger.error(f"Badly formed 'config.yaml' in {self.repo_name}: {e}")
+                err_msg = f"Badly formed 'config.yaml' in {self.repo_name}: {e}"
+                AppSettings.logger.error(err_msg)
+                self.error_messages.add(err_msg)
         return p.config_yaml
 
     def toc(self, project_identifier=None):
@@ -283,12 +297,15 @@ class RC:
             try:
                 p.toc_yaml = load_yaml_object(file_path)
             except (ParserError, ScannerError) as e:
-                AppSettings.logger.error(f"Badly formed 'toc.yaml' in {self.repo_name}: {e}")
+                err_msg = f"Badly formed 'toc.yaml' in {self.repo_name}: {e}"
+                AppSettings.logger.error(err_msg)
+                self.error_messages.add(err_msg)
         return p.toc_yaml
+# end of class RC
 
 
 class Resource:
-    def __init__(self, rc, resource):
+    def __init__(self, rc, resource:dict) -> None:
         """
         :param RC rc:
         :param dict resource:
@@ -308,8 +325,8 @@ class Resource:
 
 
     @property
-    def format(self):
-        AppSettings.logger.debug("Resource.format()…")
+    def format(self) -> Optional[str]:
+        # AppSettings.logger.debug("Resource.format()…")
         if 'format' in self.resource and self.resource['format']:
             old_format = self.resource['format']
             if '/' not in old_format:
@@ -325,13 +342,7 @@ class Resource:
             return self.rc.manifest['format']
         elif self.rc.usfm_files(): # e.g., a plain USFM bundle (with no manifest, etc.)
             return 'text/usfm'
-        if self.identifier:
-            AppSettings.logger.critical(f"Returning format=None for {self.identifier}.")
-        # else:
-        #     AppSettings.logger.critical(f"Checking for {self.identifier} format in resource_map…")
-        #     if self.identifier in resource_map:
-        #         AppSettings.logger.critical(f"Found {self.identifier} format = '{resource_map[self.identifier]['format']}' in resource_map.")
-        #         return resource_map[self.identifier]['format']
+        AppSettings.logger.critical(f"Returning Resource format=None{' for '+self.identifier if self.identifier else ''}.")
     # end of Resource.format() property
 
 
@@ -341,7 +352,7 @@ class Resource:
         File extension of this type of resource, such as md or usfm
         :return string:
         """
-        AppSettings.logger.debug("RC.file_ext()…")
+        # AppSettings.logger.debug("RC.file_ext()…")
         result = {
                 'text/usx': 'usx',
                 'text/usfm': 'usfm',
@@ -352,29 +363,32 @@ class Resource:
         if not self.format and self.identifier=='bible':
             AppSettings.logger.debug(f"Forcing file_ext='usfm' from identifier='{self.identifier}'")
             result = 'usfm'
-        AppSettings.logger.debug(f"RC.file_ext() returning '{result}'.")
+        # AppSettings.logger.debug(f"Returning Resource file_ext='{result}' from format={self.format} for identifier={self.identifier}")
         return result
     # end of Resource.file_ext() property
 
 
     @property
     def type(self):
-        AppSettings.logger.debug("Resource.type()…")
-        # AppSettings.logger.critical(f"Type is in RC: {'type' in self.resource}")
-        # if 'type' in self.resource: AppSettings.logger.critical(f"RC type is: {self.resource['type']}")
+        # AppSettings.logger.debug("Resource.type()…")
+        # print(f"Getting resource type for {self.resource}…")
+        # print(f"file_ext = {self.file_ext}")
+        # AppSettings.logger.debug(f"Type is in RC: {'type' in self.resource}")
+        # if 'type' in self.resource: AppSettings.logger.debug(f"RC type is: {self.resource['type']}")
         # NOTE: Seems that type can also be a dict, e.g., {'id': 'text', 'name': 'Text'} for OBS manifest.json
         if 'type' in self.resource and isinstance(self.resource['type'], str):
             return self.resource['type'].lower()
         elif self.file_ext == 'usfm':
+            # print(f"rc files = {self.rc.usfm_files()}")
             if self.rc.usfm_files():
                 return 'bundle'
             else:
                 return 'book'
         # elif self.identifier in resource_map:
-        #     AppSettings.logger.critical(f"Found Resource.type() = '{resource_map[self.identifier]['type']}' in resource_map.")
+        #     AppSettings.logger.critical(f"Found {self.identifier} Resource.type() = '{resource_map[self.identifier]['type']}' in resource_map.")
         #     return resource_map[self.identifier]['type']
         else:
-            # AppSettings.logger.critical("Searched unsuccessfully for Resource.type() in resource_map. (Returning 'book'.)")
+            # AppSettings.logger.critical(f"Searched unsuccessfully for {self.identifier} Resource.type() in resource_map. (Returning 'book'.)")
             return 'book'
     # end of Resource.type() property
 
@@ -382,12 +396,16 @@ class Resource:
     @property
     def identifier(self):
         if 'identifier' in self.resource and self.resource['identifier']:
+            # AppSettings.logger.debug(f"Returning Resource identifier='{self.resource['identifier'].lower()}' from self.resource['identifier']")
             return self.resource['identifier'].lower()
         elif 'id' in self.resource and self.resource['id']:
+            # AppSettings.logger.debug(f"Returning Resource identifier='{self.resource['id'].lower()}' from self.resource['id']")
             return self.resource['id'].lower()
         elif 'type' in self.resource and 'id' in self.resource['type'] and self.resource['type']['id']:
+            # AppSettings.logger.debug(f"Returning Resource identifier='{self.resource['type']['id']}' from self.resource['type']['id']")
             return self.resource['type']['id']
         elif 'slug' in self.resource and self.resource['slug']:
+            # AppSettings.logger.debug(f"Returning Resource identifier='{self.resource['slug'].lower()}' from self.resource['slug']")
             return self.resource['slug'].lower()
         AppSettings.logger.critical(f"Returning Resource identifier=None.")
     # end of Resource.identifier() property
@@ -395,7 +413,7 @@ class Resource:
 
     @property
     def title(self):
-        AppSettings.logger.debug("Resource.title()…")
+        # AppSettings.logger.debug("Resource.title()…")
         if 'title' in self.resource and self.resource['title']:
             #print(f"RESOURCE.title returning1 resource title {self.resource['title']!r}")
             return self.resource['title']
@@ -404,11 +422,11 @@ class Resource:
             return self.resource['name']
         # elif self.identifier in resource_map:
         #     #print(f"RESOURCE.title returning3 resource_map title {resource_map[self.identifier]['title']!r}")
-        #     AppSettings.logger.critical(f"Found Resource.title() = '{resource_map[self.identifier]['title']}' in resource_map.")
+        #     AppSettings.logger.critical(f"Found {self.identifier} Resource.title() = '{resource_map[self.identifier]['title']}' in resource_map.")
         #     return resource_map[self.identifier]['title']
         else:
             #print(f"RESOURCE.title (final ELSE) returning4 resource identifier {self.identifier!r}")
-            # AppSettings.logger.critical(f"Searched unsuccessfully for Resource.title() in resource_map. (Returning '{self.identifier}'.)")
+            # AppSettings.logger.critical(f"Searched unsuccessfully for {self.identifier} Resource.title() in resource_map. (Returning '{self.identifier}'.)")
             return self.identifier
     # end of Resource.title() property
 
@@ -541,6 +559,7 @@ class Resource:
     @property
     def version(self):
         return self.resource.get('version', '1')
+# end of class Resource
 
 
 class Language:
@@ -585,6 +604,7 @@ class Language:
         else:
             AppSettings.logger.warning(f"Language '{self.language}' is assuming 'English' title")
             return 'English'
+# end of Language class
 
 
 class Project:
@@ -674,6 +694,7 @@ class Project:
             'title': self.title,
             'versification': self.versification
         }
+# end of Project class
 
 
 def get_manifest_from_repo_name(repo_name):
@@ -684,7 +705,6 @@ def get_manifest_from_repo_name(repo_name):
     manifest = {
         'dublin_core': {},
     }
-
     if not repo_name:
         return manifest
 
@@ -739,3 +759,4 @@ def get_manifest_from_repo_name(repo_name):
         manifest['dublin_core']['identifier'] = repo_name
 
     return manifest
+# end of get_manifest_from_repo_name(repo_name)
