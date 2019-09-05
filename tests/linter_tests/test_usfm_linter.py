@@ -8,7 +8,7 @@ from general_tools import file_utils
 from linters.usfm_linter import UsfmLinter
 from general_tools.file_utils import write_file, read_file, unzip
 from resource_container.ResourceContainer import RC
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 class TestUsfmLinter(LinterTestCase):
@@ -502,7 +502,7 @@ class TestUsfmLinter(LinterTestCase):
         linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir, rc=rc)
         linter.run()
         elapsed_seconds = int(time.time() - start)
-        GlobalSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
+        AppSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
         self.verify_results_counts(expected_warnings, linter)
 
     def test_EnUlbValidSubset(self):
@@ -514,7 +514,7 @@ class TestUsfmLinter(LinterTestCase):
         linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir, rc=rc)
         linter.run()
         elapsed_seconds = int(time.time() - start)
-        GlobalSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
+        AppSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
         self.verify_results_counts(expected_warnings, linter)
 
     def test_EnUlbValidConvertSingle(self):
@@ -526,7 +526,7 @@ class TestUsfmLinter(LinterTestCase):
         linter = UsfmLinter(repo_subject='Bible', source_dir=out_dir, rc=rc, single_file=convert_only)
         linter.run()
         elapsed_seconds = int(time.time() - start)
-        GlobalSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
+        AppSettings.logger.debug("Checking time was " + str(elapsed_seconds) + " seconds")
         self.verify_results_counts(expected_warnings, linter)
 
     #
@@ -621,9 +621,9 @@ class TestUsfmLinter(LinterTestCase):
         if len(warnings) != expected_warnings:
             have_warnings = len(warnings) > 0
             if have_warnings:
-                GlobalSettings.logger.debug("\nReported Warnings:")
+                AppSettings.logger.debug("\nReported Warnings:")
                 for warning in warnings:
-                    GlobalSettings.logger.debug(warning)
+                    AppSettings.logger.debug(warning)
         # print("usfm warnings", warnings)
         self.assertEqual(len(warnings), expected_warnings)
 
@@ -632,7 +632,7 @@ class TestUsfmLinter(LinterTestCase):
         have_warnings = len(warnings) > 0
         if have_warnings != expected_warnings:
             if have_warnings:
-                GlobalSettings.logger.debug("\nReported Warnings:")
+                AppSettings.logger.debug("\nReported Warnings:")
                 for warning in warnings:
-                    GlobalSettings.logger.debug(warning)
+                    AppSettings.logger.debug(warning)
         self.assertEqual(have_warnings, expected_warnings)

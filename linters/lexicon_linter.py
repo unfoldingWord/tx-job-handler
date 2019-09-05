@@ -2,7 +2,7 @@ import os
 import re
 from linters.markdown_linter import MarkdownLinter
 from general_tools.file_utils import read_file
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 class LexiconLinter(MarkdownLinter):
@@ -15,10 +15,10 @@ class LexiconLinter(MarkdownLinter):
         self.source_dir is the directory of .md files
         :return bool:
         """
-        GlobalSettings.logger.debug("LexiconLinter.lint()…")
+        AppSettings.logger.debug("LexiconLinter.lint()…")
 
         project_dir = os.path.join(self.source_dir, self.rc.project().path)
-        GlobalSettings.logger.debug(f"project_dir = {project_dir}")
+        AppSettings.logger.debug(f"project_dir = {project_dir}")
 
         # # Check front and back matter
         # for book_end in ['front', 'back']:

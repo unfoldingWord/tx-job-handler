@@ -2,7 +2,7 @@
 from unittest import TestCase, skip
 from unittest.mock import Mock, patch
 
-from webhook import job, GlobalSettings, get_linter_module, get_converter_module
+from webhook import job, AppSettings, get_linter_module, get_converter_module
 
 class TestLookups(TestCase):
 

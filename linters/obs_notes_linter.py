@@ -3,7 +3,7 @@ import re
 from linters.markdown_linter import MarkdownLinter
 from linters.obs_data import obs_data
 from general_tools.file_utils import read_file
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 class ObsNotesLinter(MarkdownLinter):
@@ -16,15 +16,15 @@ class ObsNotesLinter(MarkdownLinter):
         self.source_dir is the directory of .md files
         :return bool:
         """
-        #GlobalSettings.logger.debug("ObsNotesLinter.lint()")
+        #AppSettings.logger.debug("ObsNotesLinter.lint()")
 
         # chapter check
         project_dir = os.path.join(self.source_dir, self.rc.project().path)
-        GlobalSettings.logger.debug(f"project_dir1 = {project_dir}")
+        AppSettings.logger.debug(f"project_dir1 = {project_dir}")
         if not os.path.isdir(project_dir):
             project_dir = self.source_dir
-            GlobalSettings.logger.debug(f"project_dir2 = {project_dir}")
-        GlobalSettings.logger.debug(f"project_dir contains {os.listdir(project_dir)}")
+            AppSettings.logger.debug(f"project_dir2 = {project_dir}")
+        AppSettings.logger.debug(f"project_dir contains {os.listdir(project_dir)}")
 
         # reference_re = re.compile(r'^_.*_ *$', re.M | re.U)
         # for story_number in range(1, 50+1):

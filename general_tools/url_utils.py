@@ -5,7 +5,8 @@ import ssl
 from contextlib import closing
 
 import urllib.request as urllib2
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
+
 
 
 def get_url(url, catch_exception=False):
@@ -50,9 +51,9 @@ def _download_file(url, outfile, urlopen):
         with closing(urlopen(url)) as request:
             with open(outfile, 'wb') as fp:
                 shutil.copyfileobj(request, fp)
-    except IOError as err:
-        error_message = f"Error retrieving {url}: {err}"
-        GlobalSettings.logger.critical(error_message)
+    except IOError as e:
+        error_message = f"Error retrieving {url}: {e}"
+        AppSettings.logger.critical(error_message)
         raise IOError(error_message)
 
 

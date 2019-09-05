@@ -6,7 +6,7 @@ from contextlib import closing
 
 from converters.usfm2html_converter import Usfm2HtmlConverter
 from general_tools.file_utils import remove_tree, unzip, remove
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 class TestUsfmHtmlConverter(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
 
     def setUp(self):
         """Runs before each test."""
-        GlobalSettings(prefix='{0}-'.format(self._testMethodName))
+        AppSettings(prefix='{0}-'.format(self._testMethodName))
         self.temp_dir = tempfile.mkdtemp(prefix='tX_test_Usfm2HtmlConverter')
 
     def tearDown(self):

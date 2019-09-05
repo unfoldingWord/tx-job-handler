@@ -22,7 +22,7 @@ from statsd import StatsClient # Graphite front-end
 from rq_settings import prefix, debug_mode_flag
 from general_tools.file_utils import unzip, remove_tree
 from general_tools.url_utils import download_file
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 from linters.obs_linter import ObsLinter
 from linters.obs_notes_linter import ObsNotesLinter
@@ -77,9 +77,9 @@ CONVERTER_TABLE = (
     )
 
 
-GlobalSettings(prefix=prefix)
+AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
-    GlobalSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
+    AppSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
 stats_prefix = f"tx.{'dev' if prefix else 'prod'}.job-handler"
 
 
@@ -100,7 +100,7 @@ def get_linter_module(glm_job):
             if glm_job['resource_type'] in resource_types:
                 return linter_name, linter_class
             if 'other' in resource_types:
-                GlobalSettings.logger.warning(f"Got linter from 'other' for input_format='{glm_job['input_format']}' and resource_type='{glm_job['resource_type']}'")
+                AppSettings.logger.warning(f"Got linter from 'other' for input_format='{glm_job['input_format']}' and resource_type='{glm_job['resource_type']}'")
                 return linter_name, linter_class
     #linters = TxModule.query().filter(TxModule.type == 'linter') \
         #.filter(TxModule.input_format.contains(glm_job['input_format']))
@@ -116,7 +116,7 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     :param dict param_dict: Will be updated for build log!
     :param str linter_name:
     """
-    GlobalSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
+    AppSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
     param_dict['status'] = 'linting'
 
     linter = linter_class(repo_subject=param_dict['resource_type'], source_dir=source_dir)
@@ -125,7 +125,7 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     param_dict['linter_success'] = lint_result['success']
     param_dict['linter_warnings'] = lint_result['warnings']
     param_dict['status'] = 'linted'
-    # GlobalSettings.logger.debug(f"do_linting is returning with {param_dict}")
+    # AppSettings.logger.debug(f"do_linting is returning with {param_dict}")
     #return param_dict
 # end of do_linting function
 
@@ -140,7 +140,7 @@ def get_converter_module(gcm_job):
             if gcm_job['resource_type'] in resource_types:
                 return converter_name, converter_class
             if 'other' in resource_types:
-                GlobalSettings.logger.warning(f"Got converter from 'other' for input_format='{gcm_job['input_format']}' and resource_type='{gcm_job['resource_type']}'")
+                AppSettings.logger.warning(f"Got converter from 'other' for input_format='{gcm_job['input_format']}' and resource_type='{gcm_job['resource_type']}'")
                 return converter_name, converter_class
     #converters = TxModule.query().filter(TxModule.type == 'converter') \
         #.filter(TxModule.input_format.contains(gcm_job['input_format'])) \
@@ -157,7 +157,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     :param dict param_dict: Will be updated for build log!
     :param str converter_name:
     """
-    GlobalSettings.logger.debug(f"do_converting( {len(param_dict)} fields, {source_dir}, {converter_name}, {converter_class} )")
+    AppSettings.logger.debug(f"do_converting( {len(param_dict)} fields, {source_dir}, {converter_name}, {converter_class} )")
     param_dict['status'] = 'converting'
 
     cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
@@ -171,7 +171,7 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     param_dict['converter_warnings'] = convert_result_dict['warnings']
     param_dict['converter_errors'] = convert_result_dict['errors']
     param_dict['status'] = 'converted'
-    # GlobalSettings.logger.debug(f"do_converting is returning with {param_dict}")
+    # AppSettings.logger.debug(f"do_converting is returning with {param_dict}")
     #return param_dict
 # end of do_converting function
 
@@ -185,12 +185,12 @@ def download_source_file(source_url, destination_folder):
     :param str destination_folder:   The directory where the downloaded file should be unzipped
     :return: None
     """
-    GlobalSettings.logger.debug(f"download_source_file( {source_url}, {destination_folder} )")
+    AppSettings.logger.debug(f"download_source_file( {source_url}, {destination_folder} )")
     source_filepath = os.path.join(destination_folder, source_url.rpartition(os.path.sep)[2])
-    GlobalSettings.logger.debug(f"source_filepath: {source_filepath}")
+    AppSettings.logger.debug(f"source_filepath: {source_filepath}")
 
     try:
-        GlobalSettings.logger.info(f"Downloading {source_url} …")
+        AppSettings.logger.info(f"Downloading {source_url} …")
 
         # if the file already exists, remove it, we want a fresh copy
         if os.path.isfile(source_filepath):
@@ -198,15 +198,15 @@ def download_source_file(source_url, destination_folder):
 
         download_file(source_url, source_filepath)
     finally:
-        GlobalSettings.logger.debug("Downloading finished.")
+        AppSettings.logger.debug("Downloading finished.")
 
     if source_url.lower().endswith('.zip'):
         try:
-            GlobalSettings.logger.debug(f"Unzipping {source_filepath} …")
+            AppSettings.logger.debug(f"Unzipping {source_filepath} …")
             # TODO: This is unsafe if the zipfile comes from an untrusted source
             unzip(source_filepath, destination_folder)
         finally:
-            GlobalSettings.logger.debug("Unzipping finished.")
+            AppSettings.logger.debug("Unzipping finished.")
 
         # clean up the downloaded zip file
         if os.path.isfile(source_filepath):
@@ -215,11 +215,11 @@ def download_source_file(source_url, destination_folder):
     str_filelist = str(os.listdir(destination_folder))
     str_filelist_adjusted = str_filelist if len(str_filelist)<1500 \
                             else f'{str_filelist[:1000]} …… {str_filelist[-500:]}'
-    GlobalSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {str_filelist_adjusted}")
+    AppSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {str_filelist_adjusted}")
 #end of download_source_file function
 
 
-def process_tx_job(pj_prefix, queued_json_payload):
+def process_tx_job(pj_prefix:str, queued_json_payload) -> str:
     """
     pj_prefix is normally 'dev-' or ''
 
@@ -245,7 +245,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     The given payload will be appended to the 'failed' queue
         if an exception is thrown in this module.
     """
-    GlobalSettings.logger.debug(f"Processing {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
+    AppSettings.logger.debug(f"Processing {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
     job_descriptive_name = f"{queued_json_payload['resource_type']}({queued_json_payload['input_format']})"
     if 'identifier' in queued_json_payload and queued_json_payload['identifier'] \
     and queued_json_payload['identifier'] != queued_json_payload['job_id']:
@@ -270,15 +270,16 @@ def process_tx_job(pj_prefix, queued_json_payload):
     # Setup a temp folder to use
     # Move everything down one directory level for simple delete
     base_temp_dir_name = os.path.join(tempfile.gettempdir(), f"tX_job_{queued_json_payload['job_id']}")
-    GlobalSettings.logger.debug(f"base_temp_dir_name = {base_temp_dir_name}")
+    AppSettings.logger.debug(f"base_temp_dir_name = {base_temp_dir_name}")
     try:
         os.makedirs(base_temp_dir_name)
-    except:
-        GlobalSettings.logger.critical(f"Oh, folder {base_temp_dir_name} already existed!")
-        GlobalSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
+    except Exception as e:
+        AppSettings.logger.critical(f"SetupTempFolder threw an exception: {e}: {traceback.format_exc()}")
+        AppSettings.logger.critical(f"Oh, folder {base_temp_dir_name} already existed!")
+        AppSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
 
     # Download and unzip the specified source file
-    GlobalSettings.logger.debug(f"Getting source file from {queued_json_payload['source']} …")
+    AppSettings.logger.debug(f"Getting source file from {queued_json_payload['source']} …")
     download_source_file(queued_json_payload['source'], base_temp_dir_name)
 
     # Find correct source folder
@@ -287,15 +288,15 @@ def process_tx_job(pj_prefix, queued_json_payload):
     str_dirList = str(dirList)
     str_dirList_adjusted = str_dirList if len(str_dirList)<1500 \
                             else f'{str_dirList[:1000]} …… {str_dirList[-500:]}'
-    GlobalSettings.logger.debug(f"Discovering source folder from"
+    AppSettings.logger.debug(f"Discovering source folder from"
                                 f" '{base_temp_dir_name}' with {str_dirList_adjusted} …")
     if len(dirList) == 1:
         tryFolder = os.path.join(base_temp_dir_name, dirList[0])
         if os.path.isdir(tryFolder):
-            GlobalSettings.logger.debug(f"Switching source folder to {tryFolder}")
+            AppSettings.logger.debug(f"Switching source folder to {tryFolder}")
             source_folder_path = tryFolder
     if source_folder_path != base_temp_dir_name:
-        GlobalSettings.logger.info(f"Source folder '{source_folder_path}'"
+        AppSettings.logger.info(f"Source folder '{source_folder_path}'"
                                    f" contains {os.listdir(source_folder_path)}")
 
     # Save some stats
@@ -304,12 +305,12 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
 
     # Find the correct linter and converter
-    GlobalSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
+    AppSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
                                 f" '{queued_json_payload['resource_type']}'")
     linter_name, linter = get_linter_module(queued_json_payload)
-    GlobalSettings.logger.info(f"Got linter = {linter_name}")
+    AppSettings.logger.info(f"Got linter = {linter_name}")
     converter_name, converter = get_converter_module(queued_json_payload)
-    GlobalSettings.logger.info(f"Got converter = {converter_name}")
+    AppSettings.logger.info(f"Got converter = {converter_name}")
 
     # Run the linter first
     if linter:
@@ -321,7 +322,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     else:
         warning_message = f"No linter was found to lint {queued_json_payload['input_format']}" \
                           f" {queued_json_payload['resource_type']}"
-        GlobalSettings.logger.warning(warning_message)
+        AppSettings.logger.warning(warning_message)
         build_log_dict['lint_module'] = 'NO LINTER'
         build_log_dict['linter_success'] = 'false'
         build_log_dict['linter_warnings'] = [warning_message]
@@ -336,7 +337,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
     else:
         error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
                         f" from {queued_json_payload['input_format']} to {queued_json_payload['output_format']}"
-        GlobalSettings.logger.error(error_message)
+        AppSettings.logger.error(error_message)
         build_log_dict['convert_module'] = 'NO CONVERTER'
         build_log_dict['converter_success'] = 'false'
         build_log_dict['converter_info'] = []
@@ -349,7 +350,7 @@ def process_tx_job(pj_prefix, queued_json_payload):
 
     # Do the callback (if requested) to advise the caller of our results
     if 'callback' in queued_json_payload:
-        GlobalSettings.logger.info(f"tX JobHandler about to do callback to {queued_json_payload['callback']} …")
+        AppSettings.logger.info(f"tX JobHandler about to do callback to {queued_json_payload['callback']} …")
         # Copy the build log but convert times to strings
         callback_payload = build_log_dict
         for key, value in callback_payload.items():
@@ -360,34 +361,34 @@ def process_tx_job(pj_prefix, queued_json_payload):
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
         except requests.exceptions.ConnectionError as e:
-            GlobalSettings.logger.critical(f"Callback connection error: {e}")
+            AppSettings.logger.critical(f"Callback connection error: {e}")
             response = None
         if response:
-            #GlobalSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
-            #GlobalSettings.logger.debug(f"response.headers = {response.headers}")
+            #AppSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
+            #AppSettings.logger.debug(f"response.headers = {response.headers}")
             try:
-                GlobalSettings.logger.info(f"response.json = {response.json()}")
+                AppSettings.logger.info(f"response.json = {response.json()}")
             except json.decoder.JSONDecodeError:
-                GlobalSettings.logger.info("No valid response JSON found")
-                GlobalSettings.logger.debug(f"response.text = {response.text}")
+                AppSettings.logger.info("No valid response JSON found")
+                AppSettings.logger.debug(f"response.text = {response.text}")
             if response.status_code != 200:
-                GlobalSettings.logger.critical(f"Failed to submit callback to Door43:"
+                AppSettings.logger.critical(f"Failed to submit callback to Door43:"
                                                f" {response.status_code}={response.reason}")
         else: # no response
             error_msg = "Submission of callback job to Door43 system got no response"
-            GlobalSettings.logger.critical(error_msg)
+            AppSettings.logger.critical(error_msg)
             #raise Exception(error_msg) # Is this the best thing to do here?
     else:
-        GlobalSettings.logger.info("No callback requested.")
+        AppSettings.logger.info("No callback requested.")
 
     if prefix and debug_mode_flag:
-        GlobalSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
+        AppSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
     else:
         remove_tree(base_temp_dir_name)  # cleanup
     str_build_log = str(build_log_dict)
     str_build_log_adjusted = str_build_log if len(str_build_log)<1500 \
                             else f'{str_build_log[:1000]} …… {str_build_log[-500:]}'
-    GlobalSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {str_build_log_adjusted}")
+    AppSettings.logger.info(f"{prefix}process_tx_job() for {job_descriptive_name} is returning with {str_build_log_adjusted}")
     return job_descriptive_name
 #end of process_tx_job function
 
@@ -400,7 +401,7 @@ def job(queued_json_payload):
         but if the job throws an exception or times out (timeout specified in enqueue process)
             then the job gets added to the 'failed' queue.
     """
-    GlobalSettings.logger.info("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
+    AppSettings.logger.info("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
     stats_client.incr('jobs.attempted')
 
@@ -420,9 +421,9 @@ def job(queued_json_payload):
     except Exception as e:
         # Catch most exceptions here so we can log them to CloudWatch
         prefixed_name = f"{prefix}tX_JobHandler"
-        GlobalSettings.logger.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
-        GlobalSettings.logger.critical(f"{e}: {traceback.format_exc()}")
-        GlobalSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
+        AppSettings.logger.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
+        AppSettings.logger.critical(f"{e}: {traceback.format_exc()}")
+        AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
         # Now attempt to log it to an additional, separate FAILED log
         import logging
         from boto3 import Session
@@ -453,12 +454,12 @@ def job(queued_json_payload):
     elapsed_milliseconds = round((time() - start_time) * 1000)
     stats_client.timing('job.duration', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
-        GlobalSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
+        AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
-        GlobalSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
+        AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
     stats_client.incr('jobs.completed')
-    GlobalSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
+    AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
 # end of webhook.py

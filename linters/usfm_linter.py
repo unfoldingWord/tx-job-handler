@@ -3,7 +3,7 @@ import traceback
 from linters.linter import Linter
 from door43_tools.page_metrics import PageMetrics
 from tx_usfm_tools import verifyUSFM, books
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 
@@ -38,7 +38,7 @@ class UsfmLinter(Linter):
                 if self.single_file and (filename != self.single_file):
                     continue
 
-                GlobalSettings.logger.debug(f"Linting {filename} …")
+                AppSettings.logger.debug(f"Linting {filename} …")
                 file_path = os.path.join(root, filename)
                 sub_path = '.' + file_path[len(self.source_dir):]
                 self.parse_file(file_path, sub_path, filename)
@@ -83,26 +83,26 @@ class UsfmLinter(Linter):
         # Expected method is above -- the code below tries to cope with human variations
         if book_code not in books.silNames:
             book_code = None
-            GlobalSettings.logger.debug(f"get_book_ids({usfm_filename}) try1 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try1 seemed to fail with book_code='{book_code}'")
             for book_code in book_name_parts:
                 if book_code in books.silNames:
                     break
         if book_code not in books.silNames:
             book_code = None
-            GlobalSettings.logger.debug(f"get_book_ids({usfm_filename}) try2 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try2 seemed to fail with book_code='{book_code}'")
             for book_code in book_full_name.split('_'):
                 if book_code in books.silNames:
                     break
         if book_code not in books.silNames:
             book_code = None
-            GlobalSettings.logger.debug(f"get_book_ids({usfm_filename}) try3 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try3 seemed to fail with book_code='{book_code}'")
             for book_code in book_full_name.replace('-','_').split('_'):
                 if book_code in books.silNames:
                     break
         if book_code is None:
             book_code = book_full_name # again
         if book_code not in books.silNames:
-            GlobalSettings.logger.warning(f"get_book_ids({usfm_filename}) try4 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.warning(f"get_book_ids({usfm_filename}) try4 seemed to fail with book_code='{book_code}'")
 
         return book_code, book_full_name
     # end of get_book_ids function

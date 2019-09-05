@@ -43,13 +43,13 @@ We recommend you create a Python virtual environment to help manage Python packa
 .. code-block:: bash
 
     cd tx-job-handler
-    python3 -m venv venv
+    python3 -m venv myVenv
 
 Now load that virtual environment and install dependencies:
 
 .. code-block:: bash
 
-    source venv/bin/activate
+    source myVenv/bin/activate
     make dependencies
 
 Deployment

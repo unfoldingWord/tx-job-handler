@@ -1,4 +1,4 @@
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 class LintLogger:
@@ -7,4 +7,4 @@ class LintLogger:
 
     def warning(self, msg):
         self.warnings.append(msg)
-        GlobalSettings.logger.debug(f"LINT ISSUE: {msg}")
+        AppSettings.logger.debug(f"LINT ISSUE: {msg}")

@@ -7,7 +7,7 @@ from converters.md2html_converter import Md2HtmlConverter
 from general_tools.file_utils import remove_tree, unzip, remove
 from door43_tools.bible_books import BOOK_NUMBERS
 from bs4 import BeautifulSoup
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 
 
 class TestMd2HtmlConverter(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
 
     def setUp(self):
         """Runs before each test."""
-        GlobalSettings(prefix='{0}-'.format(self._testMethodName))
+        AppSettings(prefix='{0}-'.format(self._testMethodName))
         self.temp_dir = tempfile.mkdtemp(prefix='tX_test_Md2HtmlConverter')
         self.out_dir = ''
         self.out_zip_file = ''
@@ -346,9 +346,9 @@ class TestMd2HtmlConverter(unittest.TestCase):
         self.assertEqual(self.return_val['success'], self.expected_success, "Mismatch in for success boolean")
         self.assertEqual(len(self.return_val['info']) == 0, self.expected_info_empty, "Mismatch in expected info empty")
         for warning in self.return_val['warnings']:
-            GlobalSettings.logger.debug("Warning: " + warning)
+            AppSettings.logger.debug("Warning: " + warning)
         for error in self.return_val['errors']:
-            GlobalSettings.logger.debug("Error: " + error)
+            AppSettings.logger.debug("Error: " + error)
         self.assertEqual(len(self.return_val['warnings']), self.expected_warnings, "Mismatch in expected warnings")
         self.assertEqual(len(self.return_val['errors']), self.expected_errors, "Mismatch in expected errors")
 

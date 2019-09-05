@@ -1,6 +1,6 @@
 import os
 import re
-from global_settings.global_settings import GlobalSettings
+from app_settings.app_settings import AppSettings
 from general_tools import file_utils
 from linters.markdown_linter import MarkdownLinter
 
@@ -45,7 +45,7 @@ class TwLinter(MarkdownLinter):
                     a = self.get_file_link(f, folder)
                     msg = "{0}: contains invalid link: ({1})".format(a, link)
                     self.log.warnings.append(msg)
-                    GlobalSettings.logger.debug(msg)
+                    AppSettings.logger.debug(msg)
 
     def get_file_link(self, f, folder):
         parts = folder.split(self.source_dir)
