@@ -11,7 +11,7 @@ pyyaml==5.1.2
 py-dateutil==2.2
 
 # boto3 is used by aws_tools
-boto3==1.9.220
+boto3==1.9.233
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==2.4.2
