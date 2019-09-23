@@ -21,7 +21,7 @@ class Linter(metaclass=ABCMeta):
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
 
     def __init__(self, repo_subject=None, source_url=None, source_file=None, source_dir=None, commit_data=None,
-                 identifier=None, s3_results_key=None, **kwargs):
+                 identifier=None, s3_results_key=None, **kwargs) -> None:
         """
         :param string source_url: The main way to give Linter the files
         :param string source_file: If set, will just unzip this local file
@@ -64,18 +64,23 @@ class Linter(metaclass=ABCMeta):
         self.s3_results_key = s3_results_key
         # if self.callback and not s3_results_key:
         #     AppSettings.logger.error("s3_results_key not given for callback")
+    # end of __init__ function
 
-    def close(self):
+
+    def close(self) -> None:
         """delete temp files"""
         # print("Linter close() was called!")
         if prefix and debug_mode_flag:
             AppSettings.logger.debug(f"Linter temp folder '{self.temp_dir}' has been left on disk for debugging!")
         else:
             remove_tree(self.temp_dir)
+    # end of close()
+
 
     # def __del__(self):
     #     print("Linter __del__() was called!")
     #     self.close()
+
 
     @abstractmethod
     def lint(self):
@@ -86,10 +91,14 @@ class Linter(metaclass=ABCMeta):
         :return bool:
         """
         raise NotImplementedError()
+    # end of lint()
 
-    def run(self):
+
+    def run(self) -> dict:
         """
-        Run common handling for all linters,and then calls the lint() function
+        Run common handling for all linters:
+            downloads and unzips the source url (if given)
+            and then calls the lint() function
         """
         #AppSettings.logger.debug("Linter.run()")
         success = False
@@ -136,8 +145,10 @@ class Linter(metaclass=ABCMeta):
 
         AppSettings.logger.debug(f"Linter results: {results}")
         return results
+    # end of run()
 
-    def download_archive(self):
+
+    def download_archive(self) -> None:
         filename = self.source_zip_url.rpartition('/')[2]
         self.source_zip_file = os.path.join(self.temp_dir, filename)
         AppSettings.logger.debug("Downloading {0} to {1}".format(self.source_zip_url, self.source_zip_file))
@@ -147,8 +158,10 @@ class Linter(metaclass=ABCMeta):
             finally:
                 if not os.path.isfile(self.source_zip_file):
                     raise Exception(f"Failed to download {self.source_zip_url}")
+    # end of download_archive()
 
-    def unzip_archive(self):
+
+    def unzip_archive(self) -> None:
         AppSettings.logger.debug(f"Unzipping {self.source_zip_file} to {self.temp_dir}")
         unzip(self.source_zip_file, self.temp_dir)
         dirs = [d for d in os.listdir(self.temp_dir) if os.path.isdir(os.path.join(self.temp_dir, d))]
@@ -156,17 +169,5 @@ class Linter(metaclass=ABCMeta):
             self.source_dir = os.path.join(self.temp_dir, dirs[0])
         else:
             self.source_dir = self.temp_dir
-
-    # def do_callback(self, url, payload):
-    #     if url.startswith('http'):
-    #         headers = {"content-type": "application/json"}
-    #         AppSettings.logger.debug('Making callback to {0} with payload:'.format(url))
-    #         AppSettings.logger.debug(json.dumps(payload)[:256])
-    #         response = requests.post(url, json=payload, headers=headers)
-    #         self.callback_status = response.status_code
-    #         if (self.callback_status >= 200) and (self.callback_status < 299):
-    #             AppSettings.logger.debug('Callback finished.')
-    #         else:
-    #             AppSettings.logger.error('Error calling callback code {0}: {1}'.format(self.callback_status, response.reason))
-    #     else:
-    #         AppSettings.logger.error(f"Invalid callback url: {url}")
+    # end of unzip_archive()
+#end of linter.py
