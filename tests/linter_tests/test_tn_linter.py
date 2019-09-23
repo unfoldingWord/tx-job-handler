@@ -34,7 +34,7 @@ class TestTnLinter(LinterTestCase):
     def test_lint(self, mock_invoke_markdown_linter):
         # given
         mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tn linting
-        expected_warnings = 0
+        expected_warnings = 0 + 216 # + nested warnings
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.zip')
         linter = TnLinter(repo_subject='Translation_Notes', source_file=zip_file, commit_data=self.commit_data, single_file='01-GEN.md')
         linter.download_archive = self.mock_download_archive
@@ -58,7 +58,7 @@ class TestTnLinter(LinterTestCase):
                     }
                 ]
         }
-        expected_warnings = 64 + 1  # 64 missing books + 1 markdown warning
+        expected_warnings = 64 + 1 + 216 # 64 missing books + 1 markdown warning + nesting warnings
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.zip')
         out_dir = self.unzip_resource(zip_file)
 
@@ -100,7 +100,7 @@ class TestTnLinter(LinterTestCase):
         mock_invoke_markdown_linter.return_value = {  # Don't care about markdown linting here, just specific tw linting
             '/tmp/tmp_lint_EYZ5zV/en_tn/2th/front/intro.md': warnings
         }
-        expected_warnings = 200+1  # should be limited
+        expected_warnings_count = 200+1  # should be limited
         zip_file = os.path.join(self.resources_dir, 'tn_linter', 'en_tn.zip')
         out_dir = self.unzip_resource(zip_file)
 
@@ -120,15 +120,16 @@ class TestTnLinter(LinterTestCase):
         results = linter.run()
 
         # then
-        self.assertEqual(len(results['warnings']), expected_warnings)
+        self.assertEqual(len(results['warnings']), expected_warnings_count)
 
 
     #
     # helpers
     #
 
-    def verify_results_warnings_count(self, expected_warnings, linter):
-        self.assertEqual(len(linter.log.warnings), expected_warnings)
+    def verify_results_warnings_count(self, expected_warnings_count, linter):
+        # print( "warnings2", len(linter.log.warnings), linter.log.warnings)
+        self.assertEqual(len(linter.log.warnings), expected_warnings_count)
 
     def create_new_zip(self, out_dir):
         new_zip = tempfile.NamedTemporaryFile(prefix='linter', suffix='.zip', dir=self.temp_dir, delete=False).name

@@ -40,6 +40,11 @@ checkEnvVariables:
 
 test:
 	# You should have already installed the testDependencies before this
+	# To do individual tests:
+	#		discover -s = start directory
+	#		discover -p = filename pattern
+	#	TEST_MODE="TEST" python3 -m unittest discover -s tests/linter_tests
+	#	TEST_MODE="TEST" python3 -m unittest discover -p testXXX.py
 	TEST_MODE="TEST" python3 -m unittest discover -s tests/
 
 info:

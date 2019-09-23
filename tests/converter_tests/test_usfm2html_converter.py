@@ -75,7 +75,7 @@ class TestUsfmHtmlConverter(unittest.TestCase):
         #     file_name = os.path.join(self.out_dir, file_to_verify)
         #     self.assertTrue(os.path.isfile(file_name), 'UDB HTML file not found: {0}'.format(file_name))
         self.assertTrue(isinstance(results,dict))
-        print("results1", results)
+        # print("results1", results)
         self.assertTrue(results['success'])
 
     def test_convert_only_jas(self):
