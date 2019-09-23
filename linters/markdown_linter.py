@@ -35,7 +35,8 @@ class MarkdownLinter(Linter):
         for filename in self.get_files(relative_paths=True):
             with open( os.path.join(self.source_dir, filename), 'rt') as md_file:
                 file_contents = md_file.read()
-            found_any = found_mismatch = False
+            found_any = False
+            # found_mismatch = False
             for pairStart,pairEnd in (('(',')'), ('[',']'), ('{','}')):
                 pairStartCount = file_contents.count(pairStart)
                 pairEndCount   = file_contents.count(pairEnd)
@@ -43,14 +44,15 @@ class MarkdownLinter(Linter):
                     found_any = True
                 if pairStartCount > pairEndCount:
                     self.log.warning(f"{filename.replace('.md','')}: Possible missing closing '{pairEnd}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
-                    found_mismatch = True
+                    # found_mismatch = True
                 elif pairEndCount > pairStartCount:
                     self.log.warning(f"{filename.replace('.md','')}: Possible missing opening '{pairStart}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
-                    found_mismatch = True
+                    # found_mismatch = True
             if found_any: # and not found_mismatch:
                 # double-check the nesting
                 nestingString = ''
-                for char in file_contents:
+                line_number = 1
+                for ix, char in enumerate(file_contents):
                     if char in '({[':
                         nestingString += char
                     elif char in ')}]':
@@ -58,11 +60,19 @@ class MarkdownLinter(Linter):
                         elif char == '}': wanted_start_char = '{'
                         elif char == ']': wanted_start_char = '['
                         if nestingString and nestingString[-1] == wanted_start_char:
-                            nestingString = nestingString[:-1]
-                        else:
-                            locateString = f" after recent '{nestingString[-1]}'" if nestingString else ''
-                            self.log.warning(f"{filename.replace('.md','')}: Possible nesting error -- found unexpected '{char}'{locateString}")
-                if nestingString:
+                            nestingString = nestingString[:-1] # Close off successful match
+                        else: # not the closing that we expected
+                            if char==')' \
+                            and ix>0 and file_contents[ix-1].isdigit() \
+                            and ix<len(file_contents)-1 and file_contents[ix+1] in ' \t':
+                                # This could be part of a list like 1) ... 2) ...
+                                pass # Just ignore this -- at least they'll still get the above mismatched count message
+                            else:
+                                locateString = f" after recent '{nestingString[-1]}'" if nestingString else ''
+                                self.log.warning(f"{filename.replace('.md','')} line {line_number}: Possible nesting error -- found unexpected '{char}'{locateString}")
+                    elif char == '\n':
+                        line_number += 1
+                if nestingString: # handle left-overs
                     reformatted_nesting_string = "'" + "', '".join(nestingString) + "'"
                     self.log.warning(f"{filename.replace('.md','')}: Seem to have the following unclosed field(s): {reformatted_nesting_string}")
         # NOTE: Notifying all those is probably overkill, but never mind (it might help detect multiple errors)
