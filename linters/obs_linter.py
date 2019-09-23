@@ -47,10 +47,14 @@ class ObsLinter(MarkdownLinter):
 
             for frame_idx in range(1, expected_frame_count):
                 frame_index = str(frame_idx).zfill(2)
-                pattern = '-{0}-{1}.'.format(chapter_number, frame_index)
-
-                if chapter_md.find(pattern) < 0:
-                    self.log.warning('Missing frame: {0}-{1}'.format(chapter_number, frame_index))
+                pattern_strict = '-{0}-{1}.jpg)\n'.format(chapter_number, frame_index)
+                strict_find_result = chapter_md.find(pattern_strict)
+                if strict_find_result < 0: # not found
+                    pattern_loose = '-{0}-{1}.'.format(chapter_number, frame_index)
+                    if chapter_md.find(pattern_loose) < 0:
+                        self.log.warning('Missing frame: {0}-{1}'.format(chapter_number, frame_index))
+                    else: # failed the strict one, but found the loose one
+                        self.log.warning('Bad frame formatting: {0}-{1}'.format(chapter_number, frame_index))
 
             # look for verse reference
             if not reference_re.search(chapter_md):
