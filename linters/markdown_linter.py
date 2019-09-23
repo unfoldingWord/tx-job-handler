@@ -11,14 +11,17 @@ from app_settings.app_settings import AppSettings
 from linters.py_markdown_linter.lint import MarkdownLinter as PyMarkdownLinter
 from linters.py_markdown_linter.config import LintConfig
 
+
+
 class MarkdownLinter(Linter):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(MarkdownLinter, self).__init__(*args, **kwargs)
         self.single_file = None
         self.single_dir = None
 
-    def lint(self):
+
+    def lint(self) -> bool:
         """
         Checks for issues with all Markdown project, such as bad use of headers, bullets, etc.
 
@@ -28,10 +31,48 @@ class MarkdownLinter(Linter):
         """
         AppSettings.logger.debug("MarkdownLinter.lint()")
 
+        # Do some preliminary checks on the files
+        for filename in self.get_files(relative_paths=True):
+            with open( os.path.join(self.source_dir, filename), 'rt') as md_file:
+                file_contents = md_file.read()
+            found_any = found_mismatch = False
+            for pairStart,pairEnd in (('(',')'), ('[',']'), ('{','}')):
+                pairStartCount = file_contents.count(pairStart)
+                pairEndCount   = file_contents.count(pairEnd)
+                if pairStartCount or pairEndCount:
+                    found_any = True
+                if pairStartCount > pairEndCount:
+                    self.log.warning(f"{filename.replace('.md','')}: Possible missing closing '{pairEnd}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
+                    found_mismatch = True
+                elif pairEndCount > pairStartCount:
+                    self.log.warning(f"{filename.replace('.md','')}: Possible missing opening '{pairStart}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
+                    found_mismatch = True
+            if found_any: # and not found_mismatch:
+                # double-check the nesting
+                nestingString = ''
+                for char in file_contents:
+                    if char in '({[':
+                        nestingString += char
+                    elif char in ')}]':
+                        if char == ')': wanted_start_char = '('
+                        elif char == '}': wanted_start_char = '{'
+                        elif char == ']': wanted_start_char = '['
+                        if nestingString and nestingString[-1] == wanted_start_char:
+                            nestingString = nestingString[:-1]
+                        else:
+                            locateString = f" after recent '{nestingString[-1]}'" if nestingString else ''
+                            self.log.warning(f"{filename.replace('.md','')}: Possible nesting error -- found unexpected '{char}'{locateString}")
+                if nestingString:
+                    reformatted_nesting_string = "'" + "', '".join(nestingString) + "'"
+                    self.log.warning(f"{filename.replace('.md','')}: Seem to have the following unclosed field(s): {reformatted_nesting_string}")
+        # NOTE: Notifying all those is probably overkill, but never mind (it might help detect multiple errors)
+
+
+
         md_data = self.get_strings() # Used for AWS Lambda call
         # Determine approximate length of the payload data
         payloadString = json.dumps(md_data) # (it doesn't include 'config' yet)
-        if not isinstance(payloadString,str): # then it must be Python3 bytes
+        if not isinstance(payloadString, str): # then it must be Python3 bytes
             payloadString = payloadString.decode()
         estimated_payload_length = len(payloadString) + 335 # Allow for 'config' strings (included later)
         AppSettings.logger.debug(f"Approx length of Markdown Linter payload = {estimated_payload_length:,} characters.")
@@ -46,10 +87,10 @@ class MarkdownLinter(Linter):
             lint_config = LintConfig()
             for rule_id in ('MD009', 'MD010', 'MD013'): # Ignore
                 lint_config.disable_rule_by_id(rule_id)
-            linter = PyMarkdownLinter(lint_config)
+            py_markdown_linter = PyMarkdownLinter(lint_config)
             for filename in self.get_files(relative_paths=True):
                 with open( os.path.join(self.source_dir, filename), 'rt') as md_file:
-                    linter_warnings = linter.lint(md_file.read())
+                    linter_warnings = py_markdown_linter.lint(md_file.read())
                 if linter_warnings:
                     AppSettings.logger.debug(f"Markdown linter result count for {filename} = {len(linter_warnings):,}.")
                     for rule_violation in linter_warnings:
@@ -75,7 +116,7 @@ class MarkdownLinter(Linter):
         return True
 
 
-    def get_files(self, relative_paths):
+    def get_files(self, relative_paths: bool) -> list:
         """
         relative_paths can be True or False
 
@@ -94,7 +135,7 @@ class MarkdownLinter(Linter):
         return files
 
 
-    def get_strings(self):
+    def get_strings(self) -> dict:
         strings = {}
         for filename in self.get_files(relative_paths=True):
             filepath = os.path.join(self.source_dir, filename)
@@ -105,7 +146,7 @@ class MarkdownLinter(Linter):
         return strings
 
 
-    def get_invoke_payload(self, strings):
+    def get_invoke_payload(self, strings: dict) -> dict:
         return {
             'options': {
                 'strings': strings,
@@ -126,7 +167,7 @@ class MarkdownLinter(Linter):
             }
         }
 
-    def invoke_markdown_linter(self, payload):
+    def invoke_markdown_linter(self, payload: dict):
         #AppSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload.keys()}/{len(payload['options'])}/{payload['options'].keys()} )")
         AppSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload['options'].keys()}/{payload['options']['config']}/{len(payload['options']['strings'])} )")
         lambda_handler = LambdaHandler()
@@ -139,7 +180,7 @@ class MarkdownLinter(Linter):
         elif 'Payload' in response:
             return json.loads(response['Payload'].read())
 
-    def get_dir_for_book(self, book):
+    def get_dir_for_book(self, book: str) -> str:
         parts = book.split('-')
         link = book
         if len(parts) > 1:
@@ -147,7 +188,7 @@ class MarkdownLinter(Linter):
         return link
 
     @staticmethod
-    def strip_tags(html):
+    def strip_tags(html: str) -> str:
         ts = TagStripper()
         ts.feed(html)
         return ts.get_data()
@@ -155,13 +196,13 @@ class MarkdownLinter(Linter):
 
 class TagStripper(HTMLParser):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
-        self.fed = []
+        self.fed: list = []
         super().__init__(convert_charrefs=True) # See https://stackoverflow.com/questions/48203228/python-3-4-deprecationwarning-convert-charrefs
 
-    def handle_data(self, d):
+    def handle_data(self, d: str) -> None:
         self.fed.append(d)
 
-    def get_data(self):
+    def get_data(self) -> str:
         return ''.join(self.fed)

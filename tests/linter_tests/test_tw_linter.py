@@ -32,7 +32,7 @@ class TestTwLinter(LinterTestCase):
     def test_lint(self, mock_invoke_markdown_linter):
         # given
         mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tw linting
-        expected_warnings = 18
+        expected_warnings_count = 18 + 27
         zip_file = os.path.join(self.resources_dir, 'tw_linter', 'en_tw.zip')
         linter = TwLinter(repo_subject='Translation_Words', source_file=zip_file, commit_data=self.commit_data)
 
@@ -40,13 +40,13 @@ class TestTwLinter(LinterTestCase):
         linter.run()
 
         # then
-        self.verify_results_warnings_count(expected_warnings, linter)
+        self.verify_results_warnings_count(expected_warnings_count, linter)
 
     @mock.patch('linters.markdown_linter.MarkdownLinter.invoke_markdown_linter')
     def test_lint_broken_links(self, mock_invoke_markdown_linter):
         # given
         mock_invoke_markdown_linter.return_value = {}  # Don't care about markdown linting here, just specific tw linting
-        expected_warnings = 18+4
+        expected_warnings_count = 18 + 4 + 27
         zip_file = os.path.join(self.resources_dir, 'tw_linter', 'en_tw.zip')
         out_dir = self.unzip_resource(zip_file)
         self.replace_text(out_dir, 'en_tw/bible/names/aaron.md', '(../names/moses.md)', '(../moses.md)')
@@ -60,17 +60,18 @@ class TestTwLinter(LinterTestCase):
         linter.run()
 
         # then
-        self.verify_results_warnings_count(expected_warnings, linter)
+        self.verify_results_warnings_count(expected_warnings_count, linter)
 
     #
     # helpers
     #
 
-    def verify_results(self, expected_warnings, linter):
-        self.assertEqual(len(linter.log.warnings) > 0, expected_warnings)
+    # def verify_results(self, expected_warnings, linter):
+    #     self.assertEqual(len(linter.log.warnings) > 0, expected_warnings)
 
-    def verify_results_warnings_count(self, expected_warnings, linter):
-        self.assertEqual(len(linter.log.warnings), expected_warnings)
+    def verify_results_warnings_count(self, expected_warnings_count, linter):
+        # print( "warnings3,", len(linter.log.warnings), linter.log.warnings)
+        self.assertEqual(len(linter.log.warnings), expected_warnings_count)
 
     def replace_text(self, out_dir, file_name, match, replace):
         file_path = os.path.join(out_dir, file_name)
