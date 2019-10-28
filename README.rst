@@ -106,6 +106,14 @@ Running containers can be viewed with (or append --all to see all containers):
 The output log can be viewed on the (AWS EC2) host machine at:
     /var/lib/docker/containers/<containerID>/<containerID>-json.log
 
+You can connect to a shell inside the container with commands like:
+
+.. code-block:: bash
+
+	# Gives a shell on the running container -- Note: no bash shell available
+	docker exec -it `docker inspect --format="{{.Id}}" tx_job_handler` sh
+	docker exec -it `docker inspect --format="{{.Id}}" dev-tx_job_handler` sh
+
 The container can be stopped with a command like:
 
 .. code-block:: bash
