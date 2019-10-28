@@ -245,7 +245,7 @@ def process_tx_job(pj_prefix:str, queued_json_payload) -> str:
     The given payload will be appended to the 'failed' queue
         if an exception is thrown in this module.
     """
-    AppSettings.logger.debug(f"Processing {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
+    AppSettings.logger.info(f"PROCESSING {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
     job_descriptive_name = f"{queued_json_payload['resource_type']}({queued_json_payload['input_format']})"
     if 'identifier' in queued_json_payload and queued_json_payload['identifier'] \
     and queued_json_payload['identifier'] != queued_json_payload['job_id']:
@@ -401,7 +401,7 @@ def job(queued_json_payload):
         but if the job throws an exception or times out (timeout specified in enqueue process)
             then the job gets added to the 'failed' queue.
     """
-    AppSettings.logger.info("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
+    AppSettings.logger.debug("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
     stats_client.incr('jobs.attempted')
 
