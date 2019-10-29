@@ -498,6 +498,8 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderFT(self, token):
         # print(f"renderFT({token.value}) with '{self.footnote_text}'")
         self.footnote_text += token.value
+    def renderFT_E(self, token):
+        assert not token.value
 
     def renderF_E(self, token):
         # print(f"renderF_E({token.value}) with '{self.footnote_text}'")
@@ -514,7 +516,6 @@ class SingleHTMLRenderer(AbstractRenderer):
         # print(f"renderFQA({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
         self.footnote_text += '<i>' + token.value
         self.fqaFlag = True
-
     def renderFQA_E(self, token):
         # print(f"renderFQA_E({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
         if self.fqaFlag:
@@ -619,7 +620,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         """
         # print(f"livenCrossReferences({xr_text})…")
         results = []
-        lastBookcode = lastBooknumber = None
+        # lastBookcode = lastBooknumber = None
         for individualXR in xr_text.split(';'):
             # print(f"  Processing '{individualXR}'…")
             strippedXR = individualXR.strip()
@@ -653,7 +654,7 @@ class SingleHTMLRenderer(AbstractRenderer):
                     # print(f"      xrBooknumber='{xrBooknumber}'")
                     # TODO: This logic may not work for NT books (due to book numbering MAT=41)
                     xrLink = f'{str(ix+1).zfill(2)}-{xrBookcode}.html#{xrBooknumber}-ch-{C.zfill(3)}-v-{V.zfill(3)}'
-                    lastBookcode, lastBooknumber = xrBookcode, xrBooknumber
+                    # lastBookcode, lastBooknumber = xrBookcode, xrBooknumber
             # TODO: Handle other types of matches, e.g., book name not included, i.e., defaults to last book
             # print(f"    Got '{xrLink}'…")
             liveXR = f'<a href="{xrLink}">{individualXR}</a>'

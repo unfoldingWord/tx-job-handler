@@ -88,7 +88,7 @@ class TestUsfmLinter(LinterTestCase):
         self.replace_tag(out_dir, self.php_file_name, 'id', '\\id')
         expected_warnings = True
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], 'PHP - Unknown USFM Token: \'\\id\'')
+        self.assertEqual(linter.log.warnings[0], 'PHP - Unknown USFM token: \'\\id\'')
         self.assertEqual(linter.log.warnings[1], 'PHP 1 - Missing ID before chapter')
         self.verify_results(expected_warnings, linter)
 
