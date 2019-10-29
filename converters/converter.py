@@ -10,7 +10,7 @@ from datetime import datetime
 
 from rq_settings import prefix, debug_mode_flag
 from general_tools.url_utils import download_file
-from general_tools.file_utils import unzip, add_contents_to_zip, remove_tree, remove
+from general_tools.file_utils import unzip, add_contents_to_zip, remove_tree, remove_file
 from app_settings.app_settings import AppSettings
 from converters.convert_logger import ConvertLogger
 
@@ -77,7 +77,7 @@ class Converter(metaclass=ABCMeta):
         else:
             try: remove_tree(self.converter_dir)
             except AttributeError: pass # no such variable
-        try: remove(self.output_zip_file)
+        try: remove_file(self.output_zip_file)
         except AttributeError: pass # no such variable
 
     # def __del__(self):
@@ -126,7 +126,7 @@ class Converter(metaclass=ABCMeta):
                         AppSettings.logger.debug(f"Uploaded converted files (using '{self.cdn_file_key}').")
                     else:
                         AppSettings.logger.debug("No converted file upload requested.")
-                    remove(self.output_zip_file)
+                    remove_file(self.output_zip_file)
                     success = True
                 else:
                     self.log.error(f"Resource type '{self.repo_subject}' currently not supported.")

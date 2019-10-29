@@ -20,7 +20,7 @@ from statsd import StatsClient # Graphite front-end
 
 # Local imports
 from rq_settings import prefix, debug_mode_flag
-from general_tools.file_utils import unzip, remove_tree
+from general_tools.file_utils import unzip, remove_tree, empty_folder
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
 
@@ -405,17 +405,9 @@ def job(queued_json_payload):
     start_time = time()
     stats_client.incr('jobs.attempted')
 
-    #current_job = get_current_job()
-    #print(f"Current job: {current_job}") # Mostly just displays the job number and payload
-    #print("dir",dir(current_job))
-    #print("id",current_job.id) # Displays job number
-    #print("origin",current_job.origin) # Displays queue name
-    #print("meta",current_job.meta) # Empty dict
+    AppSettings.logger.info(f"Clearing /tmp folder…")
+    empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
 
-    #print(f"Got a job from {current_job.origin} queue: {queued_json_payload}")
-    #print(f"\nGot job {current_job.id} from {current_job.origin} queue")
-    #queue_prefix = 'dev-' if current_job.origin.startswith('dev-') else ''
-    #assert queue_prefix == prefix
     try:
         job_descriptive_name = process_tx_job(prefix, queued_json_payload)
     except Exception as e:
