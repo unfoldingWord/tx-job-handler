@@ -287,7 +287,7 @@ class TnTsvLinter(Linter):
         try:
             url_utils.download_file(zip_url, zip_path)
             file_utils.unzip(zip_path, self.preload_dir)
-            file_utils.remove(zip_path)
+            file_utils.remove_file(zip_path)
         except Exception as e:
             AppSettings.logger.error(f"Unable to download {zip_url}: {e}")
             self.log.warnings.append(f"Unable to download '{name}' from {zip_url}")

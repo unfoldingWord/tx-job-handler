@@ -127,7 +127,7 @@ class AppSettings:
                                                     stream_name=cls.name)
         setup_logger(cls.logger, cls.watchtower_log_handler,
                                 logging.DEBUG if debug_mode_flag else logging.INFO)
-        cls.logger.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{cls.aws_access_key_id[-2:]}'.")
+        cls.logger.debug(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{cls.aws_access_key_id[-2:]}'.")
 
 
     @classmethod

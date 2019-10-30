@@ -625,16 +625,22 @@ def takeUnknown(state, token):
     elif value == 'p':
         report_error(f"{state.referenceString} - Orphan paragraph marker follows")
     else:
-        report_error(f"{state.referenceString} - Unknown USFM Token: '\\{value}'")
+        report_error(f"{state.referenceString} - Unknown USFM token: '\\{value}'")
 
 
 # Returns True if token is part of a footnote
 def isFootnote(token):
-    return token.isFS() or token.isFE() or token.isFR() or token.isFRE() or token.isFT() or token.isFP() or token.isFES() or token.isFEE()
+    return token.isF_S() or token.isF_E() \
+        or token.isFR() or token.isFR_E() \
+        or token.isFT() or token.isFT_E() \
+        or token.isFP() \
+        or token.isFE_S() or token.isFE_E()
 
 # Returns true if token is part of a cross reference.
 def isCrossRef(token):
-    return token.isXS() or token.isXE() or token.isXO() or token.isXT()
+    return token.isX_S() or token.isX_E() \
+        or token.isXO() \
+        or token.isXT()
 
 
 # Returns True if the specified reference immediately FOLLOWS a verse that does not appear in some manuscripts.

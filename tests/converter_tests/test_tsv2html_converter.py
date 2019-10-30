@@ -5,7 +5,7 @@ import shutil
 from contextlib import closing
 
 from converters.tsv2html_converter import Tsv2HtmlConverter
-from general_tools.file_utils import remove_tree, unzip, remove
+from general_tools.file_utils import remove_tree, unzip, remove_file
 from door43_tools.bible_books import BOOK_NUMBERS
 from bs4 import BeautifulSoup
 from app_settings.app_settings import AppSettings
@@ -27,7 +27,7 @@ class TestTsv2HtmlConverter(unittest.TestCase):
         """Runs after each test."""
         # delete temp files
         remove_tree(self.out_dir)
-        remove(self.out_zip_file)
+        remove_file(self.out_zip_file)
 
     @classmethod
     def setUpClass(cls):

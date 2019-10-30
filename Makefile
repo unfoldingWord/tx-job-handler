@@ -87,3 +87,11 @@ pushMasterImage:
 
 # NOTE: To run the container in production use with the desired values:
 #     	docker run --env AWS_ACCESS_KEY_ID=<access_key> --env AWS_SECRET_ACCESS_KEY=<sa_key> --env GRAPHITE_HOSTNAME=<graphite_hostname> --env REDIS_URL=<redis_url> --net="host" --name tx_job_handler --rm tx_job_handler
+
+connect:
+	# Gives a shell on the running container -- Note: no bash shell available
+	docker exec -it `docker inspect --format="{{.Id}}" tx_job_handler` sh
+
+connectDev:
+	# Gives a shell on the running container -- Note: no bash shell available
+	docker exec -it `docker inspect --format="{{.Id}}" dev-tx_job_handler` sh

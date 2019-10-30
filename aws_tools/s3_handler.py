@@ -162,9 +162,13 @@ class S3Handler:
         with open(path, 'rb') as f:
             binary = f.read()
         if content_type is None:
-            content_type = get_mime_type(path)
-        #AppSettings.logger.debug(f"content_type is {content_type}")
-        #AppSettings.logger.debug(f"bucket is {self.bucket}")
+            mime_type = get_mime_type(path)
+            content_type = mime_type # Let browser figure out the encoding
+            # content_type = f'{mime_type}; charset=utf-8' if 'usfm' in mime_type \
+            #                 else mime_type # RJH added charset Oct2019
+        # from app_settings.app_settings import AppSettings
+        # AppSettings.logger.debug(f"Uploading {path} to S3 {key} with cache_time={cache_time} content_type='{content_type}'…")
+        # AppSettings.logger.debug(f"Bucket is {self.bucket}")
         self.bucket.put_object(
             Key=key,
             Body=binary,

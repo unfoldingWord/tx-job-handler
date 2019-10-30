@@ -4,7 +4,7 @@ import unittest
 import shutil
 from contextlib import closing
 from converters.md2html_converter import Md2HtmlConverter
-from general_tools.file_utils import remove_tree, unzip, remove
+from general_tools.file_utils import remove_tree, unzip, remove_file
 from door43_tools.bible_books import BOOK_NUMBERS
 from bs4 import BeautifulSoup
 from app_settings.app_settings import AppSettings
@@ -26,7 +26,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         """Runs after each test."""
         # delete temp files
         remove_tree(self.out_dir)
-        remove(self.out_zip_file)
+        remove_file(self.out_zip_file)
 
     @classmethod
     def setUpClass(cls):
@@ -322,7 +322,7 @@ class TestMd2HtmlConverter(unittest.TestCase):
         self.assertIsNotNone(self.return_val, "There was no return value.")
         self.out_dir = tempfile.mkdtemp(prefix='tX_test_obs_')
         unzip(self.out_zip_file, self.out_dir)
-        remove(self.out_zip_file)
+        remove_file(self.out_zip_file)
 
         files_to_verify = []
         files_missing = []

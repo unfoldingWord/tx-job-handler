@@ -20,7 +20,7 @@ from statsd import StatsClient # Graphite front-end
 
 # Local imports
 from rq_settings import prefix, debug_mode_flag
-from general_tools.file_utils import unzip, remove_tree
+from general_tools.file_utils import unzip, remove_tree, empty_folder
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
 
@@ -245,7 +245,7 @@ def process_tx_job(pj_prefix:str, queued_json_payload) -> str:
     The given payload will be appended to the 'failed' queue
         if an exception is thrown in this module.
     """
-    AppSettings.logger.debug(f"Processing {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
+    AppSettings.logger.info(f"PROCESSING {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
     job_descriptive_name = f"{queued_json_payload['resource_type']}({queued_json_payload['input_format']})"
     if 'identifier' in queued_json_payload and queued_json_payload['identifier'] \
     and queued_json_payload['identifier'] != queued_json_payload['job_id']:
@@ -401,21 +401,13 @@ def job(queued_json_payload):
         but if the job throws an exception or times out (timeout specified in enqueue process)
             then the job gets added to the 'failed' queue.
     """
-    AppSettings.logger.info("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
+    AppSettings.logger.debug("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
     stats_client.incr('jobs.attempted')
 
-    #current_job = get_current_job()
-    #print(f"Current job: {current_job}") # Mostly just displays the job number and payload
-    #print("dir",dir(current_job))
-    #print("id",current_job.id) # Displays job number
-    #print("origin",current_job.origin) # Displays queue name
-    #print("meta",current_job.meta) # Empty dict
+    AppSettings.logger.info(f"Clearing /tmp folder…")
+    empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
 
-    #print(f"Got a job from {current_job.origin} queue: {queued_json_payload}")
-    #print(f"\nGot job {current_job.id} from {current_job.origin} queue")
-    #queue_prefix = 'dev-' if current_job.origin.startswith('dev-') else ''
-    #assert queue_prefix == prefix
     try:
         job_descriptive_name = process_tx_job(prefix, queued_json_payload)
     except Exception as e:
