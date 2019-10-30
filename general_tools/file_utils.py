@@ -149,7 +149,8 @@ def get_mime_type(path:str) -> str:
 
     mime_type = mime.guess_type(path)[0]
     if not mime_type:
-        mime_type = f'text/{os.path.splitext(path)[1]}'
+        mime_type = f'text/{os.path.splitext(path)[1][1:]}' # Skip past the period
+    assert '.' not in mime_type
     return mime_type
 
 
