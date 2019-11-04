@@ -4,7 +4,7 @@ from datetime import datetime, date
 from glob import glob
 from json.decoder import JSONDecodeError
 from yaml.parser import ParserError, ScannerError
-from typing import Optional
+from typing import Dict, List, Set, Any, Optional, Union
 
 from door43_tools.td_language import TdLanguage
 from door43_tools.bible_books import BOOK_NAMES
@@ -12,10 +12,145 @@ from general_tools.file_utils import load_json_object, load_yaml_object, read_fi
 from app_settings.app_settings import AppSettings
 
 
+class Language:
+    def __init__(self, rc, language:Dict[str,str]) -> None:
+        """
+        :param RC rc:
+        :param dict language:
+        """
+        self.rc = rc
+        self.language = language
+        if not isinstance(self.language, dict):
+            raise Exception('Missing dict parameter: language')
+
+    @property
+    def identifier(self) -> str:
+        if 'identifier' in self.language and self.language['identifier']:
+            return self.language['identifier'].lower()
+        elif 'slug' in self.language and self.language['slug']:
+            return self.language['slug'].lower()
+        elif 'id' in self.language and self.language['id']:
+            return self.language['id'].lower()
+        else:
+            AppSettings.logger.warning(f"Language '{self.language}' is assuming 'en' identifier")
+            return 'en'
+
+    @property
+    def direction(self) -> str:
+        if 'direction'in self.language:
+            return self.language['direction']
+        if 'dir'in self.language:
+            return self.language['dir']
+        else:
+            AppSettings.logger.warning(f"Language '{self.language}' is assuming 'ltr' direction")
+            return 'ltr'
+
+    @property
+    def title(self) -> str:
+        if 'title'in self.language:
+            return self.language['title']
+        elif 'name'in self.language:
+            return self.language['name']
+        else:
+            AppSettings.logger.warning(f"Language '{self.language}' is assuming 'English' title")
+            return 'English'
+# end of Language class
+
+
+class Project:
+    def __init__(self, rc, project=None) -> None:
+        """
+        :param RC rc:
+        :param dict project:
+        """
+        self.rc = rc
+        self.project = project
+        if not self.project:
+            self.project = {}
+
+        if not isinstance(self.rc, RC):
+            raise Exception('Missing RC parameter: rc')
+        self.config_yaml = None
+        self.toc_yaml = None
+
+    @property
+    def identifier(self) -> str:
+        if 'identifier'in self.project:
+            return self.project['identifier'].lower()
+        elif 'id'in self.project:
+            return self.project['id'].lower()
+        elif 'project_id' in self.project and self.project['project_id']:
+            return self.project['project_id'].lower()
+        else:
+            return self.rc.resource.identifier
+
+    @property
+    def title(self) -> str:
+        if 'title'in self.project and self.project['title']:
+            return self.project['title']
+        elif 'name'in self.project and self.project['name']:
+            return self.project['name']
+        elif self.rc.path and os.path.isfile(os.path.join(self.rc.path, self.path, 'title.txt')):
+            self.project['title'] = read_file(os.path.join(self.rc.path, self.path, 'title.txt'))
+            return self.project['title']
+        elif self.rc.path and os.path.isfile(os.path.join(self.rc.path, 'title.txt')):
+            self.project['title'] = read_file(os.path.join(self.rc.path, 'title.txt'))
+            return self.project['title']
+        else:
+            return self.rc.resource.title
+
+    @property
+    def path(self) -> str:
+        if 'path' in self.project and self.project['path']:
+            return self.project['path']
+        elif self.rc.path and os.path.isdir(os.path.join(self.rc.path, './content')):
+                return './content'
+        else:
+            return './'
+
+    @property
+    def sort(self) -> str:
+        return self.project.get('sort', '1')
+
+    @property
+    def versification(self) -> str:
+        return self.project.get('versification', 'kjv')
+
+    @property
+    def categories(self) -> list:
+        return self.project.get('categories', [])
+
+    def toc(self) -> str:
+        return self.rc.toc(self.identifier)
+
+    def config(self) -> str:
+        return self.rc.config(self.identifier)
+
+    def chapters(self):
+        return self.rc.chapters(self.identifier)
+
+    def chunks(self, chapter_identifier=None):
+        return self.rc.chunks(self.identifier, chapter_identifier)
+
+    def usfm_files(self):
+        return self.rc.usfm_files(self.identifier)
+
+    def as_dict(self) -> Dict[str,Any]:
+        return {
+            'categories': self.categories,
+            'identifier': self.identifier,
+            'path': self.path,
+            'sort': self.sort,
+            'title': self.title,
+            'versification': self.versification
+        }
+# end of Project class
+
+
 class RC:
     current_version = '0.2'
 
-    def __init__(self, directory=None, repo_name=None, manifest=None) -> None:
+    def __init__(self, directory:Optional[str]=None, repo_name:Optional[str]=None, manifest:Optional[Dict[str,Any]]=None) -> None:
         """
         :param string directory:
         :param string repo_name:
@@ -27,16 +162,16 @@ class RC:
         self._repo_name = repo_name
         self._resource = None
         self.loadeded_manifest_file = False
-        self._projects = []
-        self.error_messages = set() # Don't want duplicates
+        self._projects:List[str] = []
+        self.error_messages:Set[str] = set() # Don't want duplicates
 
     @property
-    def manifest(self):
+    def manifest(self) -> Dict[str,Any]:
         if not self._manifest:
             self._manifest = self.get_manifest_from_dir()
         return self._manifest
 
-    def get_manifest_from_dir(self):
+    def get_manifest_from_dir(self) -> Dict[str,Any]:
         manifest = None
         self.loadeded_manifest_file = False
         if not self.path or not os.path.isdir(self.path):
@@ -88,7 +223,7 @@ class RC:
             return manifest
         return get_manifest_from_repo_name(self.repo_name)
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str,Any]:
         """
         Return a proper dict object of the manifest
         :return dict:
@@ -125,14 +260,14 @@ class RC:
         }
 
     @property
-    def path(self):
+    def path(self) -> str:
         if self._dir:
             return self._dir.rstrip('/')
         else:
             return ''
 
     @property
-    def repo_name(self):
+    def repo_name(self) -> str:
         if self._repo_name:
             return self._repo_name
         elif self.path:
@@ -158,12 +293,12 @@ class RC:
 
 
     @property
-    def checking_entity(self):
+    def checking_entity(self) -> str:
         return self.manifest.get('checking', {}).get('checking_entity', ['Wycliffe Associates'])
 
 
     @property
-    def checking_level(self):
+    def checking_level(self) -> str:
         return self.manifest.get('checking', {}).get('checking_level', '1')
 
 
@@ -183,14 +318,14 @@ class RC:
 
 
     @property
-    def projects_as_dict(self):
+    def projects_as_dict(self) -> List[Dict[str,Any]]:
         projects = []
         for project in self.projects:
             projects.append(project.as_dict())
         return projects
 
 
-    def project(self, identifier=None):
+    def project(self, identifier=None) -> Project:
         """
         Retrieves a project from the RC.
 
@@ -212,11 +347,11 @@ class RC:
                 return Project(self)
 
     @property
-    def project_count(self):
+    def project_count(self) -> int:
         return len(self.projects)
 
     @property
-    def project_ids(self):
+    def project_ids(self) -> List[str]:
         identifiers = []
         for p in self.projects:
             identifiers.append(p.identifier)
@@ -305,7 +440,7 @@ class RC:
 
 
 class Resource:
-    def __init__(self, rc, resource:dict) -> None:
+    def __init__(self, rc, resource: dict) -> None:
         """
         :param RC rc:
         :param dict resource:
@@ -316,11 +451,11 @@ class Resource:
         if not isinstance(self.resource, dict):
             raise Exception('Missing dict parameter: resource')
         # AppSettings.logger.debug(f"Created new RC Resource with: {resource}")
-        self._language = None
+        self._language:Optional[Union[Language, Dict[str,str]]] = None
 
 
     @property
-    def conformsto(self):
+    def conformsto(self) -> str:
         return self.resource.get('conformsto', 'pre-rc')
 
 
@@ -343,11 +478,12 @@ class Resource:
         elif self.rc.usfm_files(): # e.g., a plain USFM bundle (with no manifest, etc.)
             return 'text/usfm'
         AppSettings.logger.critical(f"Returning Resource format=None{' for '+self.identifier if self.identifier else ''}.")
+        return None
     # end of Resource.format() property
 
 
     @property
-    def file_ext(self):
+    def file_ext(self) -> str:
         """
         File extension of this type of resource, such as md or usfm
         :return string:
@@ -369,7 +505,7 @@ class Resource:
 
 
     @property
-    def type(self):
+    def type(self) -> str:
         # AppSettings.logger.debug("Resource.type()…")
         # print(f"Getting resource type for {self.resource}…")
         # print(f"file_ext = {self.file_ext}")
@@ -394,7 +530,7 @@ class Resource:
 
 
     @property
-    def identifier(self):
+    def identifier(self) -> Optional[str]:
         if 'identifier' in self.resource and self.resource['identifier']:
             # AppSettings.logger.debug(f"Returning Resource identifier='{self.resource['identifier'].lower()}' from self.resource['identifier']")
             return self.resource['identifier'].lower()
@@ -408,11 +544,12 @@ class Resource:
             # AppSettings.logger.debug(f"Returning Resource identifier='{self.resource['slug'].lower()}' from self.resource['slug']")
             return self.resource['slug'].lower()
         AppSettings.logger.critical(f"Returning Resource identifier=None.")
+        return None
     # end of Resource.identifier() property
 
 
     @property
-    def title(self):
+    def title(self) -> Optional[str]:
         # AppSettings.logger.debug("Resource.title()…")
         if 'title' in self.resource and self.resource['title']:
             #print(f"RESOURCE.title returning1 resource title {self.resource['title']!r}")
@@ -432,23 +569,23 @@ class Resource:
 
 
     @property
-    def subject(self):
+    def subject(self) -> str:
         return self.resource.get('subject', self.title)
 
     @property
-    def description(self):
+    def description(self) -> str:
         return self.resource.get('description', self.title)
 
     @property
-    def relation(self):
+    def relation(self) -> list:
         return self.resource.get('relation', [])
 
     @property
-    def publisher(self):
+    def publisher(self) -> str:
         return self.resource.get('publisher', 'Door43')
 
     @property
-    def issued(self):
+    def issued(self) -> str:
         # Make sure a string is returned -- not a date object
         if 'issued' in self.resource and self.resource['issued']:
             issued_result = self.resource.get('issued')
@@ -471,7 +608,7 @@ class Resource:
             return datetime.utcnow().strftime('%Y-%m-%d')
 
     @property
-    def modified(self):
+    def modified(self) -> str:
         # Make sure a string is returned -- not a date object
         if 'modified' in self.resource and self.resource['modified']:
             modified_result = self.resource.get('modified')
@@ -485,15 +622,15 @@ class Resource:
             return datetime.utcnow().strftime('%Y-%m-%d')
 
     @property
-    def rights(self):
+    def rights(self) -> str:
         return self.resource.get('rights', 'CC BY-SA 4.0')
 
     @property
-    def creator(self):
-        return self.resource.get('creator', 'Wycliffe Associates')
+    def creator(self) -> str:
+        return self.resource.get('creator', 'Unknown Creator')
 
     @property
-    def language(self):
+    def language(self) -> Union[Language, Dict[str,str]]:
         if not self._language:
             if 'language'in self.resource:
                 self._language = Language(self.rc, self.resource['language'])
@@ -512,7 +649,7 @@ class Resource:
         return self._language
 
     @property
-    def contributor(self):
+    def contributor(self) -> list:
         if 'contributor' in self.resource and self.resource['contributor']:
             return self.resource['contributor']
         elif 'translators' in self.resource and self.resource['translators']:
@@ -527,7 +664,7 @@ class Resource:
             return []
 
     @property
-    def source(self):
+    def source(self) -> list:
         if 'source' in self.resource and self.resource['source']:
             return self.resource['source']
         else:
@@ -557,152 +694,17 @@ class Resource:
                 return []
 
     @property
-    def version(self):
+    def version(self) -> str:
         return self.resource.get('version', '1')
 # end of class Resource
 
 
-class Language:
-    def __init__(self, rc, language):
-        """
-        :param RC rc:
-        :param dict language:
-        """
-        self.rc = rc
-        self.language = language
-        if not isinstance(self.language, dict):
-            raise Exception('Missing dict parameter: language')
-
-    @property
-    def identifier(self):
-        if 'identifier' in self.language and self.language['identifier']:
-            return self.language['identifier'].lower()
-        elif 'slug' in self.language and self.language['slug']:
-            return self.language['slug'].lower()
-        elif 'id' in self.language and self.language['id']:
-            return self.language['id'].lower()
-        else:
-            AppSettings.logger.warning(f"Language '{self.language}' is assuming 'en' identifier")
-            return 'en'
-
-    @property
-    def direction(self):
-        if 'direction'in self.language:
-            return self.language['direction']
-        if 'dir'in self.language:
-            return self.language['dir']
-        else:
-            AppSettings.logger.warning(f"Language '{self.language}' is assuming 'ltr' direction")
-            return 'ltr'
-
-    @property
-    def title(self):
-        if 'title'in self.language:
-            return self.language['title']
-        elif 'name'in self.language:
-            return self.language['name']
-        else:
-            AppSettings.logger.warning(f"Language '{self.language}' is assuming 'English' title")
-            return 'English'
-# end of Language class
-
-
-class Project:
-    def __init__(self, rc, project=None):
-        """
-        :param RC rc:
-        :param dict project:
-        """
-        self.rc = rc
-        self.project = project
-        if not self.project:
-            self.project = {}
-
-        if not isinstance(self.rc, RC):
-            raise Exception('Missing RC parameter: rc')
-        self.config_yaml = None
-        self.toc_yaml = None
-
-    @property
-    def identifier(self):
-        if 'identifier'in self.project:
-            return self.project['identifier'].lower()
-        elif 'id'in self.project:
-            return self.project['id'].lower()
-        elif 'project_id' in self.project and self.project['project_id']:
-            return self.project['project_id'].lower()
-        else:
-            return self.rc.resource.identifier
-
-    @property
-    def title(self):
-        if 'title'in self.project and self.project['title']:
-            return self.project['title']
-        elif 'name'in self.project and self.project['name']:
-            return self.project['name']
-        elif self.rc.path and os.path.isfile(os.path.join(self.rc.path, self.path, 'title.txt')):
-            self.project['title'] = read_file(os.path.join(self.rc.path, self.path, 'title.txt'))
-            return self.project['title']
-        elif self.rc.path and os.path.isfile(os.path.join(self.rc.path, 'title.txt')):
-            self.project['title'] = read_file(os.path.join(self.rc.path, 'title.txt'))
-            return self.project['title']
-        else:
-            return self.rc.resource.title
-
-    @property
-    def path(self):
-        if 'path' in self.project and self.project['path']:
-            return self.project['path']
-        elif self.rc.path and os.path.isdir(os.path.join(self.rc.path, './content')):
-                return './content'
-        else:
-            return './'
-
-    @property
-    def sort(self):
-        return self.project.get('sort', '1')
-
-    @property
-    def versification(self):
-        return self.project.get('versification', 'kjv')
-
-    @property
-    def categories(self):
-        return self.project.get('categories', [])
-
-    def toc(self):
-        return self.rc.toc(self.identifier)
-
-    def config(self):
-        return self.rc.config(self.identifier)
-
-    def chapters(self):
-        return self.rc.chapters(self.identifier)
-
-    def chunks(self, chapter_identifier=None):
-        return self.rc.chunks(self.identifier, chapter_identifier)
-
-    def usfm_files(self):
-        return self.rc.usfm_files(self.identifier)
-
-    def as_dict(self):
-        return {
-            'categories': self.categories,
-            'identifier': self.identifier,
-            'path': self.path,
-            'sort': self.sort,
-            'title': self.title,
-            'versification': self.versification
-        }
-# end of Project class
-
-
-def get_manifest_from_repo_name(repo_name):
+def get_manifest_from_repo_name(repo_name:str) -> Dict[str,Any]:
     """
     If no manifest file was given, try dissecting the repo name.
     """
     AppSettings.logger.warning(f"Getting manifest from repo name '{repo_name}'…")
-    manifest = {
+    manifest:Dict[str,Any] = {
         'dublin_core': {},
     }
     if not repo_name:
