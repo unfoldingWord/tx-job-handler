@@ -5,6 +5,7 @@ import zipfile
 import shutil
 import yaml
 from mimetypes import MimeTypes
+from typing import Dict, List, Any, Optional, Union
 
 from general_tools.data_utils import json_serial
 from app_settings.app_settings import AppSettings
@@ -45,7 +46,7 @@ def add_contents_to_zip(zip_file:str, path:str, include_root:bool=False) -> None
                 zf.write(file_path, file_path[path_start_index:])
 
 
-def add_file_to_zip(zip_file:str, file_name:str, arc_name=None, compress_type=None) -> None:
+def add_file_to_zip(zip_file:str, file_name:str, arc_name:Optional[str]=None, compress_type:Optional[str]=None) -> None:
     """
     Zip <file_name> into <zip_file> as <arc_name>.
 
@@ -76,7 +77,7 @@ def make_dir(dir_name:str, linux_mode:int=0o755, error_if_not_writable:bool=Fals
             raise IOError(f"Directory {dir_name} is not writable.")
 
 
-def load_json_object(file_name:str, default=None) -> dict:
+def load_json_object(file_name:str, default=None) -> Dict[str,Any]:
     """
     Deserialized JSON file <file_name> into a Python dict.
     :param str file_name: The name of the file to read
@@ -88,7 +89,7 @@ def load_json_object(file_name:str, default=None) -> dict:
     return json.loads(read_file(file_name))
 
 
-def load_yaml_object(file_name:str, default=None) -> dict:
+def load_yaml_object(file_name:str, default=None) -> Dict[str,Any]:
     """
     Deserialized YAML file <file_name> into a Python dict.
     :param str file_name: The name of the file to read
@@ -119,7 +120,7 @@ def read_file(filepath:str, encoding:str='utf-8') -> str:
 # end of read_file function
 
 
-def write_file(filepath:str, file_contents, indent=None) -> None:
+def write_file(filepath:str, file_contents:Union[str,Dict[str,Any]], indent=None) -> None:
     """
     Writes the <file_contents> to <filepath>.
 
@@ -155,7 +156,7 @@ def get_mime_type(path:str) -> str:
 
 
 def get_files(directory:str, relative_paths:bool=False, include_directories:bool=False,
-                                topdown:bool=False, extensions=None, exclude=None) -> list:
+                                topdown:bool=False, extensions=None, exclude=None) -> List[str]:
     file_list = []
     for root, dirs, files in os.walk(directory, topdown=topdown):
         if exclude and (os.path.basename(root) in exclude or os.path.basename(root).lower() in exclude):
@@ -175,7 +176,7 @@ def get_files(directory:str, relative_paths:bool=False, include_directories:bool
     return file_list
 
 
-def get_subdirs(dir:str, relative_paths:bool=False, topdown:bool=False) -> list:
+def get_subdirs(dir:str, relative_paths:bool=False, topdown:bool=False) -> List[str]:
     dir_list = []
     for root, dirs, _files in os.walk(dir, topdown=topdown):
         if relative_paths:
@@ -228,7 +229,7 @@ def remove_file(file_path:str, ignore_errors:bool=True) -> None:
         os.remove(file_path)
 
 
-def empty_folder(folder_path:str, only_prefix=None) -> None:
+def empty_folder(folder_path:str, only_prefix:Optional[str]=None) -> None:
     for filename in os.listdir(folder_path):
         if not only_prefix or filename.startswith(only_prefix):
             filepath = os.path.join(folder_path, filename)

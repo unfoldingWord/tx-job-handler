@@ -2,16 +2,16 @@ import json
 import os
 import tempfile
 import traceback
-# import requests
 from datetime import datetime
+from abc import ABCMeta, abstractmethod
+from typing import Any, Optional, Union
 
+from app_settings.app_settings import AppSettings
 from rq_settings import prefix, debug_mode_flag
 from general_tools.url_utils import download_file
 from general_tools.file_utils import unzip, remove_tree
 from linters.lint_logger import LintLogger
 from resource_container.ResourceContainer import RC
-from app_settings.app_settings import AppSettings
-from abc import ABCMeta, abstractmethod
 
 
 
@@ -20,8 +20,10 @@ class Linter(metaclass=ABCMeta):
     """
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json', 'readme.md']
 
-    def __init__(self, repo_subject=None, source_url=None, source_file=None, source_dir=None, commit_data=None,
-                 identifier=None, s3_results_key=None, **kwargs) -> None:
+    def __init__(self, repo_subject:Optional[str]=None, source_url:Optional[str]=None,
+                    source_file:Optional[str]=None, source_dir:Optional[str]=None,
+                    commit_data:Optional[str]=None, identifier:Optional[str]=None,
+                    s3_results_key:Optional[str]=None, **kwargs) -> None:
         """
         :param string source_url: The main way to give Linter the files
         :param string source_file: If set, will just unzip this local file
@@ -52,7 +54,7 @@ class Linter(metaclass=ABCMeta):
         if self.commit_data:
             self.repo_name = self.commit_data['repository']['name']
             self.repo_owner = self.commit_data['repository']['owner']['username']
-        self.rc = None   # Constructed later when we know we have a source_dir
+        self.rc:Optional[RC] = None   # Constructed later when we know we have a source_dir
 
         # assert link_callback is None # I don't think we're using this
         # self.callback = lint_callback

@@ -13,6 +13,7 @@ from time import time
 import sys
 sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
 import traceback
+from typing import Dict, Any, Optional
 
 # Library (PyPi) imports
 import requests
@@ -219,7 +220,7 @@ def download_source_file(source_url, destination_folder):
 #end of download_source_file function
 
 
-def process_tx_job(pj_prefix:str, queued_json_payload) -> str:
+def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     """
     pj_prefix is normally 'dev-' or ''
 
@@ -358,6 +359,7 @@ def process_tx_job(pj_prefix:str, queued_json_payload) -> str:
                 callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         stats_client.incr('callbacks.attempted')
+        response:Optional[requests.Response]
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
         except requests.exceptions.ConnectionError as e:
@@ -393,7 +395,7 @@ def process_tx_job(pj_prefix:str, queued_json_payload) -> str:
 #end of process_tx_job function
 
 
-def job(queued_json_payload):
+def job(queued_json_payload:Dict[str,Any]) -> None:
     """
     This function is called by the rq package to process a job in the queue(s).
 

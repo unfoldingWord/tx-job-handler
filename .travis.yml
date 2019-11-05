@@ -11,9 +11,9 @@ dist: xenial
 language: python
 # See available versions at https://docs.travis-ci.com/user/languages/python/
 python:
-  - '3.7'
-  - '3.8-dev'
-# NOTE: We only deploy on ONE of these tests being successful -- see condition below
+  - '3.8'
+  - 'nightly'
+# NOTE: We only deploy on THE FIRST of these tests being successful -- see condition below
 
 services:
   - docker
@@ -54,11 +54,11 @@ deploy:
     script: bash ./deploy.sh develop
     on:
       branch: develop
-      condition: $TRAVIS_PYTHON_VERSION == '3.7'
+      condition: $TRAVIS_PYTHON_VERSION == '3.8'
   - provider: script
     skip_cleanup: true
     script: bash ./deploy.sh master
     on:
       branch: master
-      condition: $TRAVIS_PYTHON_VERSION == '3.7'
+      condition: $TRAVIS_PYTHON_VERSION == '3.8'
 

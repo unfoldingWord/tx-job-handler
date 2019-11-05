@@ -1,6 +1,7 @@
 import os
 import json
 from html.parser import HTMLParser
+from typing import Dict, List, Any
 
 from rq_settings import prefix, debug_mode_flag
 from linters.linter import Linter
@@ -126,7 +127,7 @@ class MarkdownLinter(Linter):
         return True
 
 
-    def get_files(self, relative_paths: bool) -> list:
+    def get_files(self, relative_paths:bool) -> List[str]:
         """
         relative_paths can be True or False
 
@@ -145,7 +146,7 @@ class MarkdownLinter(Linter):
         return files
 
 
-    def get_strings(self) -> dict:
+    def get_strings(self) -> List[str]:
         strings = {}
         for filename in self.get_files(relative_paths=True):
             filepath = os.path.join(self.source_dir, filename)
@@ -156,7 +157,7 @@ class MarkdownLinter(Linter):
         return strings
 
 
-    def get_invoke_payload(self, strings: dict) -> dict:
+    def get_invoke_payload(self, strings:Dict[str,Any]) -> Dict[str,Any]:
         return {
             'options': {
                 'strings': strings,
@@ -177,7 +178,7 @@ class MarkdownLinter(Linter):
             }
         }
 
-    def invoke_markdown_linter(self, payload: dict):
+    def invoke_markdown_linter(self, payload:Dict[str,Any]):
         #AppSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload.keys()}/{len(payload['options'])}/{payload['options'].keys()} )")
         AppSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload['options'].keys()}/{payload['options']['config']}/{len(payload['options']['strings'])} )")
         lambda_handler = LambdaHandler()
