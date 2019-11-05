@@ -204,7 +204,7 @@ class TnTsvLinter(Linter):
                     else:
                         B, C, V, _ID, _SupportReference, OrigQuote, _Occurrence, _GLQuote, OccurrenceNote = tsv_line.split('\t')
                         if B != expectedB:
-                            self.log.warnings.append(f"Unexpected {B} line in {filename}")
+                            self.log.warnings.append(f"Unexpected '{tsv_line}' line in {filename}")
                         if not C:
                             self.log.warnings.append(f"Missing chapter number after {lastC}:{lastV} in {filename}")
                         elif not C.isdigit() and C not in ('front','back'):
@@ -229,7 +229,9 @@ class TnTsvLinter(Linter):
                             if not V.isdigit() and V != 'intro':
                                 self.log.warnings.append(f"Bad '{V}' verse number in start of chapter {C} in {filename}")
                         if OrigQuote and need_to_check_quotes:
-                            self.check_original_language_quotes(B,C,V,OrigQuote)
+                            try: self.check_original_language_quotes(B,C,V,OrigQuote)
+                            except Exception as e:
+                                self.log.warnings.append(f"{B} {C}:{V} Unable to check original language quotes: {e}")
                         if OccurrenceNote:
                             left_count, right_count = OccurrenceNote.count('['), OccurrenceNote.count(']')
                             if left_count != right_count:
@@ -350,19 +352,23 @@ class TnTsvLinter(Linter):
         Also removes milestones and extra word (\\w) information
         """
         # AppSettings.logger.debug(f"get_passage({B}, {C},{V})…")
-        book_number = verses[B]['usfm_number']
+        try: book_number = verses[B]['usfm_number']
+        except KeyError: # how can this happen?
+            AppSettings.logger.error(f"Unable to find book number for '{B} {C}:{V}' in get_passage()")
+            book_number = 0
+
         # Look for OT book first -- if not found, look for NT book
         #   NOTE: Lazy way to determine which testament/folder the book is in
         book_path = os.path.join(self.preload_dir, f'{book_number}-{B}.usfm')
         if not os.path.isfile(book_path):
-            # NOTE: uW UHB and UGNT repos don't have language code in path (as at 9 July 2019)
-            book_path = os.path.join(self.preload_dir, 'uhb/', f'{book_number}-{B}.usfm')
+            # NOTE: uW UHB and UGNT repos didn't use to have language code in repo name
+            book_path = os.path.join(self.preload_dir, 'hbo_uhb/', f'{book_number}-{B}.usfm')
             if not os.path.isfile(book_path):
-                book_path = os.path.join(self.preload_dir, 'hbo_uhb/', f'{book_number}-{B}.usfm')
-            if not os.path.isfile(book_path):
-                book_path = os.path.join(self.preload_dir, 'ugnt/', f'{book_number}-{B}.usfm')
+                book_path = os.path.join(self.preload_dir, 'uhb/', f'{book_number}-{B}.usfm')
             if not os.path.isfile(book_path):
                 book_path = os.path.join(self.preload_dir, 'el-x-koine_ugnt/', f'{book_number}-{B}.usfm')
+            if not os.path.isfile(book_path):
+                book_path = os.path.join(self.preload_dir, 'ugnt/', f'{book_number}-{B}.usfm')
         if not os.path.isfile(book_path):
             return None
         if self.loaded_file_path != book_path:
