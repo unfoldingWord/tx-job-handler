@@ -13,7 +13,7 @@ from time import time
 import sys
 sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
 import traceback
-from typing import Dict, Any, Optional
+from typing import Dict, Tuple, Any, Optional
 
 # Library (PyPi) imports
 import requests
@@ -90,7 +90,7 @@ stats_client = StatsClient(host=graphite_url, port=8125, prefix=stats_prefix)
 
 
 
-def get_linter_module(glm_job):
+def get_linter_module(glm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
     """
     :param dict glm_job:
     :return linter name and linter class:
@@ -103,19 +103,17 @@ def get_linter_module(glm_job):
             if 'other' in resource_types:
                 AppSettings.logger.warning(f"Got linter from 'other' for input_format='{glm_job['input_format']}' and resource_type='{glm_job['resource_type']}'")
                 return linter_name, linter_class
-    #linters = TxModule.query().filter(TxModule.type == 'linter') \
-        #.filter(TxModule.input_format.contains(glm_job['input_format']))
-    #linter = linters.filter(TxModule.resource_types.contains(glm_job['resource_type'])).first()
-    #if not linter:
-        #linter = linters.filter(TxModule.resource_types.contains('other')).first()
+    # Didn't find one
     return None, None
 # end of get_linter_module function
 
 
-def do_linting(param_dict, source_dir, linter_name, linter_class):
+def do_linting(param_dict:Dict[str,Any], source_dir:str, linter_name:str, linter_class) -> None:
     """
     :param dict param_dict: Will be updated for build log!
     :param str linter_name:
+
+    Updates param_dict as a side-effect.
     """
     AppSettings.logger.debug(f"do_linting( {param_dict}, {source_dir}, {linter_name}, {linter_class} )")
     param_dict['status'] = 'linting'
@@ -126,12 +124,10 @@ def do_linting(param_dict, source_dir, linter_name, linter_class):
     param_dict['linter_success'] = lint_result['success']
     param_dict['linter_warnings'] = lint_result['warnings']
     param_dict['status'] = 'linted'
-    # AppSettings.logger.debug(f"do_linting is returning with {param_dict}")
-    #return param_dict
 # end of do_linting function
 
 
-def get_converter_module(gcm_job):
+def get_converter_module(gcm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
     """
     :param dict gcm_job:
     :return TxModule:
@@ -143,20 +139,17 @@ def get_converter_module(gcm_job):
             if 'other' in resource_types:
                 AppSettings.logger.warning(f"Got converter from 'other' for input_format='{gcm_job['input_format']}' and resource_type='{gcm_job['resource_type']}'")
                 return converter_name, converter_class
-    #converters = TxModule.query().filter(TxModule.type == 'converter') \
-        #.filter(TxModule.input_format.contains(gcm_job['input_format'])) \
-        #.filter(TxModule.output_format.contains(gcm_job['output_format']))
-    #converter = converters.filter(TxModule.resource_types.contains(gcm_job['resource_type'])).first()
-    #if not converter:
-        #converter = converters.filter(TxModule.resource_types.contains('other')).first()
+    # Didn't find one
     return None, None
 # end if get_converter_module function
 
 
-def do_converting(param_dict, source_dir, converter_name, converter_class):
+def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, converter_class) -> None:
     """
     :param dict param_dict: Will be updated for build log!
     :param str converter_name:
+
+    Updates param_dict as a side-effect.
     """
     AppSettings.logger.debug(f"do_converting( {len(param_dict)} fields, {source_dir}, {converter_name}, {converter_class} )")
     param_dict['status'] = 'converting'
@@ -172,8 +165,6 @@ def do_converting(param_dict, source_dir, converter_name, converter_class):
     param_dict['converter_warnings'] = convert_result_dict['warnings']
     param_dict['converter_errors'] = convert_result_dict['errors']
     param_dict['status'] = 'converted'
-    # AppSettings.logger.debug(f"do_converting is returning with {param_dict}")
-    #return param_dict
 # end of do_converting function
 
 

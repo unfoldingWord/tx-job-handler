@@ -48,10 +48,12 @@ class TwLinter(MarkdownLinter):
                     AppSettings.logger.debug(msg)
 
     def get_file_link(self, f, folder):
+        # What is this doing and why?
         parts = folder.split(self.source_dir)
         sub_path = self.source_dir  # default
         if len(parts) == 2:
             sub_path = parts[1][1:]
+        self.repo_owner = self.repo_name = '' # WE DON'T KNOW THIS STUFF
         url = "https://git.door43.org/{0}/{1}/src/master/{2}/{3}".format(self.repo_owner, self.repo_name,
                                                                          sub_path, f)
         a = '<a href="{0}">{1}/{2}</a>'.format(url, sub_path, f)

@@ -10,11 +10,13 @@ pyyaml==5.1.2
 # dateutil is used by file_utils used by ResourceContainer
 py-dateutil==2.2
 
+# TEMP: Force next package to not upgrade to 2.8.1 for boto3 requirements Nov 2019
+python-dateutil==2.8.0
 # boto3 is used by aws_tools
-boto3==1.10.2
+boto3==1.10.14
 
 # pyparsing is used by usfm_tools/parseUsfm.py
-pyparsing==2.4.2
+pyparsing==2.4.5
 
 # markdown is used by converters/md2html_converter.py
 markdown==3.1.1
