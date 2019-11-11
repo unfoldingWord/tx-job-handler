@@ -15,7 +15,6 @@ class TnLinter(MarkdownLinter):
 
     # match links of form '](link)'
     link_marker_re = re.compile(r'\]\(([^\n()]+)\)')
-    expected_tab_count = 8
 
     def __init__(self, single_file=None, *args, **kwargs):
         super(TnLinter, self).__init__(*args, **kwargs)
@@ -70,11 +69,11 @@ class TnLinter(MarkdownLinter):
 
         results = super(TnLinter, self).lint()  # Runs checks on Markdown, using the markdown linter
         if not results:
-            AppSettings.logger.debug(f"Error running MD linter on {self.s3_results_key}")
+            AppSettings.logger.debug(f"Error running MD linter on {self.repo_subject}")
         return results
 
 
-    def find_invalid_links(self, folder, f, contents):
+    def find_invalid_links(self, folder:str, f:str, contents:str) -> None:
         for link_match in TnLinter.link_marker_re.finditer(contents):
             link = link_match.group(1)
             if link:
@@ -92,11 +91,12 @@ class TnLinter(MarkdownLinter):
                     self.log.warnings.append(msg)
                     AppSettings.logger.debug(msg)
 
-    def get_file_link(self, f, folder):
+    def get_file_link(self, f:str, folder:str):
         parts = folder.split(self.source_dir)
         sub_path = self.source_dir  # default
         if len(parts) == 2:
             sub_path = parts[1][1:]
+        self.repo_owner = self.repo_name = '' # WE DON'T KNOW THIS STUFF
         url = f"https://git.door43.org/{self.repo_owner}/{self.repo_name}/src/master/{sub_path}/{f}"
         a = f'<a href="{url}">{sub_path}/{f}</a>'
         return a
@@ -108,16 +108,18 @@ class TnTsvLinter(Linter):
 
     # match links of form '](link)'
     link_marker_re = re.compile(r'\]\(([^\n()]+)\)')
-    expected_tab_count = 8
+    EXPECTED_TAB_COUNT = 4 # So there's one more column than this
+        # NOTE: The preprocessor removes unneeded columns while fixing links
 
-    def __init__(self, *args, **kwargs):
+
+    def __init__(self, *args, **kwargs) -> None:
         self.loaded_file_path = None
         self.loaded_file_contents = None
         self.preload_dir = tempfile.mkdtemp(prefix='tX_tN_linter_preload_')
         super(TnTsvLinter, self).__init__(*args, **kwargs)
 
 
-    def lint(self):
+    def lint(self) -> bool:
         """
         Checks for issues with translationNotes
 
@@ -135,16 +137,17 @@ class TnTsvLinter(Linter):
                     self.find_invalid_links(root, f, contents)
 
         file_list = os.listdir(source_dir)
-        for dir in BOOK_NUMBERS:
-            found_file = False
-            for file_name in file_list:
-                if file_name.endswith('.tsv') and dir.upper() in file_name:
-                    found_file = True
-                    break
-            if not found_file:
-                msg = f"Missing tN tsv book: '{dir}'"
-                self.log.warnings.append(msg)
-                AppSettings.logger.debug(msg)
+        if  len(self.rc.projects) != 1: # Many repos are intentionally just one book
+            for dir in BOOK_NUMBERS:
+                found_file = False
+                for file_name in file_list:
+                    if file_name.endswith('.tsv') and dir.upper() in file_name:
+                        found_file = True
+                        break
+                if not found_file:
+                    msg = f"Missing tN tsv book: '{dir}'"
+                    self.log.warnings.append(msg)
+                    AppSettings.logger.debug(msg)
 
         # See if manifest has relationships back to original language versions
         # Compares with the unfoldingWord version if possible
@@ -182,8 +185,10 @@ class TnTsvLinter(Linter):
             self.log.warnings.append("Unable to find/load original language (Heb/Grk) sources for comparing snippets against.")
 
         # Now check tabs and C:V numbers
+        MAX_ERROR_COUNT = 20
         for filename in sorted(file_list):
             if not filename.endswith('.tsv'): continue # Skip other files
+            error_count = 0
             AppSettings.logger.info(f"Linting {filename}…")
             tsv_filepath = os.path.join(source_dir, filename)
             started = False
@@ -195,14 +200,16 @@ class TnTsvLinter(Linter):
                     tab_count = tsv_line.count('\t')
                     if not started:
                         # AppSettings.logger.debug(f"TSV header line is '{tsv_line}'")
-                        if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
+                        if tsv_line != 'Book	Chapter	Verse	OrigQuote	OccurrenceNote':
                             self.log.warnings.append(f"Unexpected TSV header line: '{tsv_line}' in {filename}")
+                            error_count += 1
                         started = True
-                    elif tab_count != TnTsvLinter.expected_tab_count:
-                        self.log.warnings.append(f"Bad {expectedB} line near {C}:{V} with {tab_count} tabs (expected {TnTsvLinter.expected_tab_count})")
-                        B = C = V = _ID = _SupportReference = OrigQuote = _Occurrence = _GLQuote = OccurrenceNote = None
+                    elif tab_count != TnTsvLinter.EXPECTED_TAB_COUNT:
+                        self.log.warnings.append(f"Bad {expectedB} line near {C}:{V} with {tab_count} tabs (expected {TnTsvLinter.EXPECTED_TAB_COUNT})")
+                        B = C = V = OrigQuote = OccurrenceNote = None
+                        error_count += 1
                     else:
-                        B, C, V, _ID, _SupportReference, OrigQuote, _Occurrence, _GLQuote, OccurrenceNote = tsv_line.split('\t')
+                        B, C, V, OrigQuote, OccurrenceNote = tsv_line.split('\t')
                         if B != expectedB:
                             self.log.warnings.append(f"Unexpected '{tsv_line}' line in {filename}")
                         if not C:
@@ -240,6 +247,9 @@ class TnTsvLinter(Linter):
                         lastC, lastV = C, V
                         if lastC == 'front': lastC = '0'
                         elif lastC == 'back': lastC = '999'
+                    if error_count > MAX_ERROR_COUNT:
+                        AppSettings.logger.critical("TnTsvLinter: Too many TSV count errors -- aborting!")
+                        break
 
         if prefix and debug_mode_flag:
             AppSettings.logger.debug(f"Temp folder '{self.preload_dir}' has been left on disk for debugging!")
@@ -345,7 +355,7 @@ class TnTsvLinter(Linter):
     # end of TnTsvLinter.check_original_language_quotes function
 
 
-    def get_passage(self, B, C,V):
+    def get_passage(self, B:str, C:str,V:str) -> str:
         """
         Get the information for the given verse out of the appropriate book file.
 
@@ -419,7 +429,7 @@ class TnTsvLinter(Linter):
     # end of TnTsvLinter.get_passage function
 
 
-    def find_invalid_links(self, folder, f, contents):
+    def find_invalid_links(self, folder:str, filename:str, contents:str) -> None:
         # AppSettings.logger.debug(f"TnTsvLinter.find_invalid_links( {folder}, {f}, {contents} ) …")
         for link_match in TnLinter.link_marker_re.finditer(contents):
             link = link_match.group(1)
@@ -433,19 +443,20 @@ class TnTsvLinter(Linter):
                 file_path_abs = os.path.abspath(file_path)
                 exists = os.path.exists(file_path_abs)
                 if not exists:
-                    a = self.get_file_link(f, folder)
+                    a = self.get_file_link(filename, folder)
                     msg = f"{a}: contains invalid link: ({link})"
                     self.log.warnings.append(msg)
                     AppSettings.logger.debug(msg)
     # end of TnTsvLinter.find_invalid_links function
 
-    def get_file_link(self, f, folder):
+    def get_file_link(self, filename:str, folder:str) -> str:
         parts = folder.split(self.source_dir)
         sub_path = self.source_dir  # default
         if len(parts) == 2:
             sub_path = parts[1][1:]
-        url = f"https://git.door43.org/{self.repo_owner}/{self.repo_name}/src/master/{sub_path}/{f}"
-        a = f'<a href="{url}">{sub_path}/{f}</a>'
+        self.repo_owner = self.repo_name = '' # WE DON'T KNOW THIS STUFF
+        url = f'https://git.door43.org/{self.repo_owner}/{self.repo_name}/src/master/{sub_path}/{filename}'
+        a = f'<a href="{url}">{sub_path}/{filename}</a>'
         return a
     # end of TnTsvLinter.get_file_link function
 # end of TnTsvLinter class
