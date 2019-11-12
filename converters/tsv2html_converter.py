@@ -6,6 +6,9 @@ import yaml
 import re
 from typing import List
 
+# import markdown
+import markdown2
+
 from app_settings.app_settings import AppSettings
 from general_tools.file_utils import write_file, remove_tree, get_files
 from converters.converter import Converter
@@ -192,45 +195,6 @@ class Tsv2HtmlConverter(Converter):
         AppSettings.logger.info(f"Preloaded {len(self.tsv_lines):,} TSV lines from {os.path.basename(tsv_filepath)}.")
 
 
-    # def fix_links(self, source_text:str) -> str:
-    #     """
-    #     """
-    #     # AppSettings.logger.debug(f"fix_links({source_text}) …")
-    #     assert 'QQQQ' not in source_text and 'ZZZZ' not in source_text
-
-    #     # Hide [[ and ]]
-    #     adjusted_text = source_text.replace('[[','QQQQ').replace(']]','ZZZZ')
-    #     while True:
-    #         match = re.search( 'QQQQ(.+?)ZZZZ', adjusted_text)
-    #         if not match: break
-    #         link_contents = adjusted_text[match.start()+4:match.end()-4]
-    #         # AppSettings.logger.debug(f"fix_links found link_contents = '{link_contents}'")
-    #         if link_contents.startswith('rc://*/ta/man/'):
-    #             link_contents = link_contents[14:] # Remove unwanted prefix
-    #             adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/{language_code}_ta/src/master/{link_contents}/01.md">translationAcademy:{link_contents}</a>'
-    #         elif link_contents.startswith('rc://en/ta/man/'):
-    #             link_contents = link_contents[15:] # Remove unwanted prefix
-    #             #adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/{link_contents}/01.md">Door43/en_ta/src/master/{link_contents}/01.md</a>'
-    #             adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/{link_contents}/01.md">translationAcademy:{link_contents}</a>'
-    #         elif link_contents.startswith('rc://*/tw/dict/'):
-    #             link_contents = link_contents[15:] # Remove unwanted prefix
-    #             adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/{language_code}_tw/src/master/{link_contents}.md">translationWords:{link_contents}</a>'
-    #         elif link_contents.startswith('rc://en/tw/dict/'):
-    #             link_contents = link_contents[16:] # Remove unwanted prefix
-    #             #adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_tw/src/master/{link_contents}.md">Door43/en_tw/src/master/{link_contents}.md</a>'
-    #             adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_tw/src/master/{link_contents}.md">translationWords:{link_contents}</a>'
-    #         else:
-    #             self.log.warning(f"Cannot convert TSV link: '{link_contents.replace('QQQQ','[[').replace('ZZZZ',']]')}'")
-    #             adjusted_link = link_contents
-    #         adjusted_text = adjusted_text[:match.start()] + adjusted_link + adjusted_text[match.end():]
-    #     # AppSettings.logger.debug(f"fix_links is returning '{adjusted_text}'")
-    #     # Check we left it tidy (no un-matched double square brackets)
-    #     if 'QQQQ' in adjusted_text or 'ZZZZ' in adjusted_text:
-    #         adjusted_text = adjusted_text.replace('QQQQ','[[').replace('ZZZZ',']]')
-    #         self.log.error(f"Have a problem with link(s) in '{adjusted_text}' from '{source_text}'")
-    #     return adjusted_text
-
-
     def buildSingleHtml(self, tsv_filepath:str) -> str:
         """
         Convert TSV info for one book to HTML.
@@ -312,23 +276,22 @@ class Tsv2HtmlConverter(Converter):
             if OrigQuote:
                 output_html += f'<p>{OrigQuote}</p>\n'
             if OccurrenceNote:
-                # if '[[' in OccurrenceNote or ']]' in OccurrenceNote:
-                #     OccurrenceNote = self.fix_links(OccurrenceNote)
-                for bit in OccurrenceNote.split('<br>'):
-                    if bit.startswith('# '):
-                        output_html += f'<h3>{bit[2:]}</h3>\n'
-                    elif bit.startswith('## '):
-                        output_html += f'<h4>{bit[3:]}</h4>\n'
-                    elif bit.startswith('### '):
-                        output_html += f'<h5>{bit[4:]}</h5>\n'
-                    elif bit.startswith('#### '):
-                        output_html += f'<h6>{bit[5:]}</h6>\n'
-                    elif bit.startswith('##### '):
-                        output_html += f'<h7>{bit[6:]}</h7>\n'
-                    elif bit:
-                        if bit.startswith('#'):
-                            self.log.warning(f"{B} {C}:{V} has unexpected bit: '{bit}'")
-                        output_html += f'<p>{bit}</p>\n'
+                output_html += markdown2.markdown(OccurrenceNote.replace('<br>','\n').replace('<br/>','\n'))
+                # for bit in OccurrenceNote.split('<br>'):
+                #     if bit.startswith('# '):
+                #         output_html += f'<h3>{bit[2:]}</h3>\n'
+                #     elif bit.startswith('## '):
+                #         output_html += f'<h4>{bit[3:]}</h4>\n'
+                #     elif bit.startswith('### '):
+                #         output_html += f'<h5>{bit[4:]}</h5>\n'
+                #     elif bit.startswith('#### '):
+                #         output_html += f'<h6>{bit[5:]}</h6>\n'
+                #     elif bit.startswith('##### '):
+                #         output_html += f'<h7>{bit[6:]}</h7>\n'
+                #     elif bit:
+                #         if bit.startswith('#'):
+                #             self.log.warning(f"{B} {C}:{V} has unexpected bit: '{bit}'")
+                #         output_html += f'<p>{bit}</p>\n'
             lastC, lastV = C, V
 
         return output_html + "</body></html>"
