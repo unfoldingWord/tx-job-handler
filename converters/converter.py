@@ -2,11 +2,11 @@ import json
 import os
 import tempfile
 import traceback
-# import requests
 from shutil import copy
 from urllib.parse import urlparse, urlunparse, parse_qsl
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
+from typing import Dict, Optional, Any
 
 from rq_settings import prefix, debug_mode_flag
 from general_tools.url_utils import download_file
@@ -23,7 +23,7 @@ class Converter(metaclass=ABCMeta):
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json'] #, 'readme.md']
 
 
-    def __init__(self, repo_subject, source_dir, cdn_file_key=None, options=None, identifier=None):
+    def __init__(self, repo_subject:str, source_dir:str, cdn_file_key:Optional[str]=None, options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None) -> None:
         """
         :param string source:
         :param string repo_subject:
@@ -67,7 +67,7 @@ class Converter(metaclass=ABCMeta):
         #     AppSettings.logger.error("Identity not given for callback")
 
 
-    def close(self):
+    def close(self) -> None:
         """
         Delete temp files (except in debug mode)
         """
@@ -86,7 +86,7 @@ class Converter(metaclass=ABCMeta):
 
 
     @abstractmethod
-    def convert(self):
+    def convert(self) -> None:
         """
         Dummy function for converters.
 
@@ -96,7 +96,7 @@ class Converter(metaclass=ABCMeta):
         raise NotImplementedError()
 
 
-    def run(self):
+    def run(self) -> Dict[str,Any]:
         """
         Call the converters
         """
@@ -150,19 +150,7 @@ class Converter(metaclass=ABCMeta):
         return results
 
 
-    # def download_archive(self):
-    #     archive_url = self.source
-    #     filename = self.source.rpartition('/')[2]
-    #     self.input_zip_file = os.path.join(self.download_dir, filename)
-    #     if not os.path.isfile(self.input_zip_file):
-    #         try:
-    #             download_file(archive_url, self.input_zip_file)
-    #         finally:
-    #             if not os.path.isfile(self.input_zip_file):
-    #                 raise Exception(f"Failed to download {archive_url}")
-
-
-    def upload_archive(self):
+    def upload_archive(self) -> None:
         """
         Uploads self.output_zip_file
         """
@@ -173,44 +161,3 @@ class Converter(metaclass=ABCMeta):
         elif AppSettings.cdn_s3_handler():
             #AppSettings.logger.debug("converter.upload_archive() using S3 handler")
             AppSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file_key, cache_time=0)
-
-
-    # def do_callback(self, url, payload):
-    #     if url.startswith('http'):
-    #         headers = {"content-type": "application/json"}
-    #         AppSettings.logger.debug(f"Making callback to {url} with payload:")
-    #         AppSettings.logger.debug(json.dumps(payload)[:256])
-    #         response = requests.post(url, json=payload, headers=headers)
-    #         self.callback_status = response.status_code
-    #         if (self.callback_status >= 200) and (self.callback_status < 299):
-    #             AppSettings.logger.debug("Callback finished.")
-    #         else:
-    #             AppSettings.logger.error(f"Error calling callback code {self.callback_status}: {response.reason}")
-    #     else:
-    #         AppSettings.logger.error(f"Invalid callback url: {url}")
-
-
-    # def check_for_exclusive_convert(self):
-    #     """
-    #     Not sure what this is used for???
-    #       Called by md2htmlConverter
-
-    #     Returns either:
-    #         an empty list (normally), or
-    #         a list of the files which should be converted
-    #     """
-    #     convert_only_list = []
-    #     if self.source and len(self.source) > 0:
-    #         parsed = urlparse(self.source)
-    #         params = parse_qsl(parsed.query)
-    #         if params and len(params) > 0:
-    #             for i in range(0, len(params)):
-    #                 item = params[i]
-    #                 if item[0] == 'convert_only':
-    #                     convert_only_list = item[1].split(',')
-    #                     AppSettings.logger.debug(f"Converting only: {convert_only_list}")
-    #                     self.source = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
-    #                     break
-    #     if convert_only_list:
-    #         AppSettings.logger.debug(f"converter:check_for_exclusive_convert() returned a list of {len(convert_only_list)} files: {convert_only_list}")
-    #     return convert_only_list

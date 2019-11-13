@@ -115,6 +115,7 @@ class MarkdownLinter(Linter):
             if not lint_data:
                 return False
             # RJH: What is this code doing? Why are warnings expressed as HTML segments here???
+            self.repo_owner = self.repo_name = '' # WE DON'T KNOW THIS STUFF
             for f in lint_data.keys():
                 file_url = f'https://git.door43.org/{self.repo_owner}/{self.rc.repo_name}/src/master/{f}'
                 for item in lint_data[f]:

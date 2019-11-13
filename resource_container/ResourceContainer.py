@@ -325,7 +325,7 @@ class RC:
         return projects
 
 
-    def project(self, identifier=None) -> Project:
+    def project(self, identifier:Optional[str]=None) -> Project:
         """
         Retrieves a project from the RC.
 

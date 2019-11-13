@@ -4,6 +4,10 @@ from bs4 import BeautifulSoup
 from shutil import copyfile
 import yaml
 import re
+from typing import List
+
+# import markdown
+import markdown2
 
 from app_settings.app_settings import AppSettings
 from general_tools.file_utils import write_file, remove_tree, get_files
@@ -15,9 +19,12 @@ class Tsv2HtmlConverter(Converter):
     """
     Class to convert TSV translationNotes into HTML pages.
     """
-    expected_tab_count = 8
+    # NOTE: Not all columns are passed from the preprocessor -- only the used ones
+    EXPECTED_TAB_COUNT = 4 # So there's one more column than this
+        # NOTE: The preprocessor removes unneeded columns while fixing links
 
-    def convert(self):
+
+    def convert(self) -> bool:
         """
         Main function to convert info in TSV files into HTML files.
         """
@@ -95,7 +102,7 @@ class Tsv2HtmlConverter(Converter):
         return True
 
 
-    def get_truncated_string(self, original_string, max_length=100):
+    def get_truncated_string(self, original_string:str, max_length:int=100) -> str:
         """
         If a string is longer than the max_length,
             return a truncated version.
@@ -107,9 +114,10 @@ class Tsv2HtmlConverter(Converter):
         return f"{original_string[:max_length*3//4]}…{original_string[-max_length//4:]}"
 
 
-    def process_manifest(self, manifest_file_path):
+    def process_manifest(self, manifest_file_path:str) -> None:
         """
-        Load the yaml manifest from the given file path.
+        Load the yaml manifest from the given file path
+            into self.manifest_dict
         """
         # AppSettings.logger.debug(f"process_manifest({manifest_file_path}) …")
         with open(manifest_file_path, 'rt') as manifest_file:
@@ -120,7 +128,7 @@ class Tsv2HtmlConverter(Converter):
         # AppSettings.logger.debug(f"Got manifest_dict: {self.manifest_dict}")
 
 
-    def get_book_names(self, filename):
+    def get_book_names(self, filename:str) -> None:
         """
         Given a filename, search the manifest and find the book title.
             If all else fails, uses the English name of the book.
@@ -155,13 +163,15 @@ class Tsv2HtmlConverter(Converter):
             self.current_book_title = self.current_book_name
 
 
-    def load_tsv_file(self, tsv_filepath):
+    def load_tsv_file(self, tsv_filepath:str) -> None:
         """
         Load the tab separate values from the given filepath.
 
         Sets self.tsv_lines
         """
-        self.tsv_lines = []
+        MAX_ERROR_COUNT = 20
+        error_count = 0
+        self.tsv_lines:List[str] = []
         started = False
         with open(tsv_filepath, 'rt') as tsv_file:
             for tsv_line in tsv_file:
@@ -169,52 +179,23 @@ class Tsv2HtmlConverter(Converter):
                 tab_count = tsv_line.count('\t')
                 if not started:
                     # AppSettings.logger.debug(f"TSV header line is '{tsv_line}")
-                    if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
+                    # if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
+                    if tsv_line != 'Book	Chapter	Verse	OrigQuote	OccurrenceNote':
                         self.log.warning(f"Unexpected TSV header line: '{tsv_line}' in {os.path.basename(tsv_filepath)}")
+                        error_count += 1
                     started = True
-                elif tab_count != Tsv2HtmlConverter.expected_tab_count:
+                elif tab_count != Tsv2HtmlConverter.EXPECTED_TAB_COUNT:
                     # NOTE: This is not added to warnings because that will be done at convert time (don't want double warnings)
-                    AppSettings.logger.debug(f"Unexpected {self.current_book_code.upper()} line with {tab_count} tabs (expected {Tsv2HtmlConverter.expected_tab_count}): '{tsv_line}'")
+                    AppSettings.logger.debug(f"Unexpected line with {tab_count} tabs (expected {Tsv2HtmlConverter.EXPECTED_TAB_COUNT}): '{tsv_line}'")
+                    error_count += 1
                 self.tsv_lines.append(tsv_line.split('\t'))
+                if error_count > MAX_ERROR_COUNT:
+                    AppSettings.logger.critical("Tsv2HtmlConverter: Too many TSV count errors -- aborting!")
+                    break
         AppSettings.logger.info(f"Preloaded {len(self.tsv_lines):,} TSV lines from {os.path.basename(tsv_filepath)}.")
 
 
-    def fix_links(self, source_text):
-        """
-        Change links from 'rc://en/ta/man/' and 'rc://en/tw/dict/'
-            to https://git.door43.org/unfoldingWord/en_ta/src/master/…
-            and https://git.door43.org/unfoldingWord/en_tw/src/master/…
-        """
-        # AppSettings.logger.debug(f"fix_links({source_text}) …")
-        assert 'QQQQ' not in source_text and 'ZZZZ' not in source_text
-        # Hide [[ and ]]
-        adjusted_text = source_text.replace('[[','QQQQ').replace(']]','ZZZZ')
-        while True:
-            match = re.search( 'QQQQ(.+?)ZZZZ', adjusted_text)
-            if not match: break
-            link_contents = adjusted_text[match.start()+4:match.end()-4]
-            # AppSettings.logger.debug(f"fix_links found link_contents = '{link_contents}'")
-            if link_contents.startswith('rc://en/ta/man/'):
-                link_contents = link_contents[15:] # Remove unwanted prefix
-                #adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/{link_contents}/01.md">Door43/en_ta/src/master/{link_contents}/01.md</a>'
-                adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_ta/src/master/{link_contents}/01.md">translationAcademy:{link_contents}</a>'
-            elif link_contents.startswith('rc://en/tw/dict/'):
-                link_contents = link_contents[16:] # Remove unwanted prefix
-                #adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_tw/src/master/{link_contents}.md">Door43/en_tw/src/master/{link_contents}.md</a>'
-                adjusted_link = f'<a href="https://git.door43.org/unfoldingWord/en_tw/src/master/{link_contents}.md">translationWords:{link_contents}</a>'
-            else:
-                self.log.error(f"Cannot convert link: '{link_contents.replace('QQQQ','[[').replace('ZZZZ',']]')}'")
-                adjusted_link = link_contents
-            adjusted_text = adjusted_text[:match.start()] + adjusted_link + adjusted_text[match.end():]
-        # AppSettings.logger.debug(f"fix_links is returning '{adjusted_text}'")
-        # Check we left it tidy (no un-matched double square brackets)
-        if 'QQQQ' in adjusted_text or 'ZZZZ' in adjusted_text:
-            adjusted_text = adjusted_text.replace('QQQQ','[[').replace('ZZZZ',']]')
-            self.log.error(f"Have a problem with link(s) in '{adjusted_text}' from '{source_text}'")
-        return adjusted_text
-
-
-    def buildSingleHtml(self, tsv_filepath):
+    def buildSingleHtml(self, tsv_filepath:str) -> str:
         """
         Convert TSV info for one book to HTML.
 
@@ -282,7 +263,7 @@ class Tsv2HtmlConverter(Converter):
         for tsv_line in self.tsv_lines[1:]: # Skip the header line
             # AppSettings.logger.debug(f"Processing {tsv_line} …")
             try:
-                B, C, V, ID, SupportReference, OrigQuote, Occurrence, GLQuote, OccurrenceNote = tsv_line
+                B, C, V, OrigQuote, OccurrenceNote = tsv_line
             except ValueError:
                 self.log.warning(f"Unable to convert bad TSV line (wrong number of fields) near {B} {C}:{V} = {self.get_truncated_string(tsv_line)}")
                 output_html += f'<p>BAD SOURCE LINE NOT CONVERTED: {tsv_line}</p>'
@@ -295,23 +276,24 @@ class Tsv2HtmlConverter(Converter):
             if OrigQuote:
                 output_html += f'<p>{OrigQuote}</p>\n'
             if OccurrenceNote:
-                if '[[' in OccurrenceNote or ']]' in OccurrenceNote:
-                    OccurrenceNote = self.fix_links(OccurrenceNote)
-                for bit in OccurrenceNote.split('<br>'):
-                    if bit.startswith('# '):
-                        output_html += f'<h3>{bit[2:]}</h3>\n'
-                    elif bit.startswith('## '):
-                        output_html += f'<h4>{bit[3:]}</h4>\n'
-                    elif bit.startswith('### '):
-                        output_html += f'<h5>{bit[4:]}</h5>\n'
-                    elif bit.startswith('#### '):
-                        output_html += f'<h6>{bit[5:]}</h6>\n'
-                    elif bit.startswith('##### '):
-                        output_html += f'<h7>{bit[6:]}</h7>\n'
-                    elif bit:
-                        if bit.startswith('#'):
-                            self.log.warning(f"{B} {C}:{V} has unexpected bit: '{bit}'")
-                        output_html += f'<p>{bit}</p>\n'
+                output_html += markdown2.markdown(OccurrenceNote \
+                                                    .replace('<br>','\n').replace('<br/>','\n') \
+                                                    .replace('\n#','\n###')) # Increment heading levels by 2
+                # for bit in OccurrenceNote.split('<br>'):
+                #     if bit.startswith('# '):
+                #         output_html += f'<h3>{bit[2:]}</h3>\n'
+                #     elif bit.startswith('## '):
+                #         output_html += f'<h4>{bit[3:]}</h4>\n'
+                #     elif bit.startswith('### '):
+                #         output_html += f'<h5>{bit[4:]}</h5>\n'
+                #     elif bit.startswith('#### '):
+                #         output_html += f'<h6>{bit[5:]}</h6>\n'
+                #     elif bit.startswith('##### '):
+                #         output_html += f'<h7>{bit[6:]}</h7>\n'
+                #     elif bit:
+                #         if bit.startswith('#'):
+                #             self.log.warning(f"{B} {C}:{V} has unexpected bit: '{bit}'")
+                #         output_html += f'<p>{bit}</p>\n'
             lastC, lastV = C, V
 
         return output_html + "</body></html>"
