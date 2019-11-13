@@ -263,6 +263,7 @@ class TnTsvLinter(Linter):
         """
         Checks the header progressions in the markdown string
         """
+        # TODO: Why can't we convert <br> to nl and run the normal MD linter???
         header_level = 0
         for bit in markdown_string.split('<br>'):
             if bit.startswith('# '):
