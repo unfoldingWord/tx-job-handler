@@ -439,8 +439,9 @@ class RC:
 # end of class RC
 
 
+
 class Resource:
-    def __init__(self, rc, resource: dict) -> None:
+    def __init__(self, rc:RC, resource:Dict[str,Any]) -> None:
         """
         :param RC rc:
         :param dict resource:

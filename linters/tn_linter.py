@@ -289,7 +289,7 @@ class TnTsvLinter(Linter):
     # end of TnTsvLinter.check_markdown function
 
 
-    def preload_original_text_archive(self, name, zip_url):
+    def preload_original_text_archive(self, name:str, zip_url:str) -> bool:
         """
         Fetch and unpack the Hebrew/Greek zip file.
 
@@ -310,7 +310,7 @@ class TnTsvLinter(Linter):
     # end of TnTsvLinter.preload_original_text_archive function
 
 
-    def check_original_language_quotes(self, B,C,V, quoteField):
+    def check_original_language_quotes(self, B:str,C:str,V:str, quoteField:str) -> None:
         """
         Check that the quoted portions can indeed be found in the original language versions.
         """
@@ -352,7 +352,17 @@ class TnTsvLinter(Linter):
                 self.log.warnings.append(f"Ellipsis without surrounding snippet in {B} {C}:{V} '{quoteField}'")
         elif quoteField not in verse_text:
             AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
-            self.log.warnings.append(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
+            # if B=='TIT':
+            #     import unicodedata
+            #     print(f"quoteField='{quoteField}'")
+            #     for char in quoteField:
+            #         print(unicodedata.name(char), end='  ')
+            #     print(f"\nverse_text='{verse_text}'")
+            #     for char in verse_text:
+            #         print(unicodedata.name(char), end='  ')
+            #     print()
+            extra = ' (contains No-Break Space)' if '\u00A0' in quoteField else ''
+            self.log.warnings.append(f"Unable to find {B} {C}:{V} '{quoteField}'{extra} in '{verse_text}'")
     # end of TnTsvLinter.check_original_language_quotes function
 
 

@@ -1,3 +1,5 @@
+# TX RQ Settings
+
 from os import getenv
 
 # NOTE: These variable names are defined by the rq package
