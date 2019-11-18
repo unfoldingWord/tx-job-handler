@@ -19,10 +19,11 @@ from typing import Dict, Tuple, Any, Optional
 
 # Library (PyPi) imports
 import requests
+from rq import get_current_job, Queue
 from statsd import StatsClient # Graphite front-end
 
 # Local imports
-from rq_settings import prefix, debug_mode_flag
+from rq_settings import prefix, debug_mode_flag, webhook_queue_name
 from general_tools.file_utils import unzip, remove_tree, empty_folder
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
@@ -83,12 +84,13 @@ CONVERTER_TABLE = (
 AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
-stats_prefix = f"tx.{'dev' if prefix else 'prod'}.job-handler"
+tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
+job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
 
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
 graphite_url = os.getenv('GRAPHITE_HOSTNAME', 'localhost')
-stats_client = StatsClient(host=graphite_url, port=8125, prefix=stats_prefix)
+stats_client = StatsClient(host=graphite_url, port=8125, prefix=job_handler_stats_prefix)
 
 
 
@@ -402,6 +404,13 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
 
     AppSettings.logger.info(f"Clearing /tmp folder…")
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
+
+    AppSettings.logger.info(f"Updating queue statistics…")
+    our_queue= Queue(webhook_queue_name, connection=get_current_job().connection)
+    len_our_queue = len(our_queue) # Should normally sit at zero here
+    AppSettings.logger.debug(f"Queue '{webhook_queue_name}' length={len_our_queue}")
+    stats_client.gauge(f'"{tx_stats_prefix}.enqueue-job.queue.length.current', len_our_queue)
+    AppSettings.logger.info(f"Updated stats for '{tx_stats_prefix}.enqueue-job.queue.length.current' to {len_our_queue}")
 
     try:
         job_descriptive_name = process_tx_job(prefix, queued_json_payload)
