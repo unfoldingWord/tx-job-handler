@@ -575,7 +575,7 @@ def takeV(v):
         report_error(f"{state.referenceString} - Verse out of order: after {state.lastReferenceString}\n")
         state.addError(state.referenceString)
     elif state.verse == state.lastVerse:
-        report_error(f"{state.referenceString} - Duplicated verse\n")
+        report_error(f"{state.referenceString} - Duplicated verse number\n")
     elif state.verse == state.lastVerse + 2 and not isOptional(state.referenceString):
         missing = " - Missing verse between this and: "
     elif state.verse > state.lastVerse + 2:

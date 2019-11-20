@@ -100,7 +100,7 @@ class Linter(metaclass=ABCMeta):
             warnings.append("………………")
             warnings.extend(self.log.warnings[-9:])
             # msg = f"Warnings truncated (from {len(self.log.warnings)} to {len(warnings)})"
-            msg = f"Warnings reduced from {len(self.log.warnings)} to {len(warnings)}"
+            msg = f"Linter warnings reduced from {len(self.log.warnings):,} to {len(warnings)}"
             AppSettings.logger.debug(f"Linter {msg}")
             warnings.append(msg)
 
