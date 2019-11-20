@@ -309,7 +309,7 @@ class TestUsfmLinter(LinterTestCase):
         self.replace_verse(out_dir, self.php_file_name, chapter=1, start_vs=1, end_vs=2, replace='\\v 1 stuff \\v 1 more stuff ')  # replace v1
         expected_warnings = True
         linter = self.run_linter(out_dir)
-        self.assertEqual(linter.log.warnings[0], 'PHP 1:1 - Duplicated verse')
+        self.assertEqual(linter.log.warnings[0], 'PHP 1:1 - Duplicated verse number')
         self.verify_results(expected_warnings, linter)
 
     def test_PhpV2beforeV1(self):
