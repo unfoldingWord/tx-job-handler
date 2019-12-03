@@ -361,8 +361,9 @@ class TnTsvLinter(Linter):
             #     for char in verse_text:
             #         print(unicodedata.name(char), end='  ')
             #     print()
-            extra = ' (contains No-Break Space)' if '\u00A0' in quoteField else ''
-            self.log.warnings.append(f"Unable to find {B} {C}:{V} '{quoteField}'{extra} in '{verse_text}'")
+            extra_text = " (contains No-Break Space shown as '~')" if '\u00A0' in quoteField else ""
+            if extra_text: quoteField = quoteField.replace('\u00A0', '~')
+            self.log.warnings.append(f"Unable to find {B} {C}:{V} '{quoteField}'{extra_text} in '{verse_text}'")
     # end of TnTsvLinter.check_original_language_quotes function
 
 
@@ -419,10 +420,11 @@ class TnTsvLinter(Linter):
                 ix = book_line.find('\\k-s ')
                 if ix != -1:
                     book_line = book_line[:ix] # Remove k-s field right up to end of line
-                verseText += ' ' + book_line
+                verseText += ('' if book_line.startswith('\\f ') else ' ') + book_line
         verseText = verseText.replace('\\p ', '').strip().replace('  ', ' ')
         # print(f"Got verse text1: '{verseText}'")
-        # Remove \w fields (just leaving the word)
+
+        # Remove \w fields (just leaving the actual Bible text words)
         ixW = verseText.find('\\w ')
         while ixW != -1:
             ixEnd = verseText.find('\\w*', ixW)
@@ -436,6 +438,14 @@ class TnTsvLinter(Linter):
                 verseText = verseText.replace('\\w ', '', 1) # Attempt to limp on
             ixW = verseText.find('\\w ', ixW+1) # Might be another one
         # print(f"Got verse text2: '{verseText}'")
+
+        # Remove footnotes
+        verseText = re.sub(r'\\f (.+?)\\f\*', '', verseText)
+        # Remove alternative versifications
+        verseText = re.sub(r'\\va (.+?)\\va\*', '', verseText)
+        # print(f"Got verse text3: '{verseText}'")
+
+        # Final clean-up (shouldn't be necessary, but just in case)
         return verseText.replace('  ', ' ')
     # end of TnTsvLinter.get_passage function
 
