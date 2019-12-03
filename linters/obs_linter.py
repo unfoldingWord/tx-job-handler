@@ -1,14 +1,15 @@
 import os
 import re
+
+from app_settings.app_settings import AppSettings
+from general_tools.file_utils import read_file
 from linters.markdown_linter import MarkdownLinter
 from linters.obs_data import obs_data
-from general_tools.file_utils import read_file
-from app_settings.app_settings import AppSettings
 
 
 class ObsLinter(MarkdownLinter):
 
-    def lint(self):
+    def lint(self) -> bool:
         """
         Checks for issues with OBS
 
@@ -32,7 +33,7 @@ class ObsLinter(MarkdownLinter):
             filename = os.path.join(project_dir, chapter_number + '.md')
 
             if not os.path.isfile(filename):
-                self.log.warning(f"Chapter {chapter_number} does not exist!")
+                self.log.warning(f"Chapter {chapter_number} does not exist.")
                 continue
 
             chapter_md = read_file(filename)
@@ -40,7 +41,7 @@ class ObsLinter(MarkdownLinter):
 
             # Find chapter headings
             if is_title < 0:
-                self.log.warning(f"Chapter {chapter_number} does not have a title!")
+                self.log.warning(f"Chapter {chapter_number} does not have a title.")
 
             # Identify missing frames
             expected_frame_count = obs_data['chapters'][str(chapter).zfill(2)]['frames']
@@ -52,9 +53,9 @@ class ObsLinter(MarkdownLinter):
                 if strict_find_result < 0: # not found
                     pattern_loose = '-{0}-{1}.'.format(chapter_number, frame_index)
                     if chapter_md.find(pattern_loose) < 0:
-                        self.log.warning('Missing frame: {0}-{1}'.format(chapter_number, frame_index))
+                        self.log.warning(f"Missing frame: {chapter_number}-{frame_index}")
                     else: # failed the strict one, but found the loose one
-                        self.log.warning('Bad frame formatting: {0}-{1}'.format(chapter_number, frame_index))
+                        self.log.warning(f"Unexpected picture link formatting: {chapter_number}-{frame_index}")
 
             # look for verse reference
             if not reference_re.search(chapter_md):
@@ -72,12 +73,12 @@ class ObsLinter(MarkdownLinter):
             }
 
             if not os.path.isfile(filename):
-                self.log.warning(f"{book_end}.md does not exist!")
+                self.log.warning(f"{book_end}.md does not exist.")
                 continue
 
             if self.rc.resource.language.identifier != 'en':
                 end_content = read_file(filename)
                 if lines[book_end] in end_content:
-                    self.log.warning(f"Story {book_end} matter is not translated!")
+                    self.log.warning(f"Story {book_end} matter is not translated.")
 
         return super(ObsLinter, self).lint()  # Runs the markdown linter

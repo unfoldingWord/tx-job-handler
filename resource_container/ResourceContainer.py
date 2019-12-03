@@ -605,7 +605,7 @@ class Resource:
                 return issued_pub_date.strftime('%Y-%m-%d')
             AppSettings.logger.critical(f"RC issued pub_date={issued_pub_date!r}")
         else:
-            AppSettings.logger.warning("RC has no 'issued' date available")
+            AppSettings.logger.debug("RC has no 'issued' date available")
             return datetime.utcnow().strftime('%Y-%m-%d')
 
     @property
@@ -619,7 +619,7 @@ class Resource:
                 return modified_result.strftime('%Y-%m-%d')
             AppSettings.logger.critical(f"RC modified={modified_result!r}")
         else:
-            AppSettings.logger.warning("RC has no 'modified' date available")
+            AppSettings.logger.debug("RC has no 'modified' date available")
             return datetime.utcnow().strftime('%Y-%m-%d')
 
     @property
