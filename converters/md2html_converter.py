@@ -18,12 +18,12 @@ from app_settings.app_settings import AppSettings
 
 class Md2HtmlConverter(Converter):
 
-    def convert(self):
+    def convert(self) -> bool:
         if self.repo_subject == 'Open_Bible_Stories':
             # TODO: What is the difference here?
             self.convert_obs()
             return True
-        elif self.repo_subject in ('OBS_Translation_Notes', 'OBS_Translation_Questions'):
+        elif self.repo_subject in ('OBS_Study_Notes', 'OBS_Study_Questions', 'OBS_Translation_Notes', 'OBS_Translation_Questions'):
             self.convert_obsNotes()
             return True
         elif '_Lexicon' in self.repo_subject:
@@ -35,7 +35,7 @@ class Md2HtmlConverter(Converter):
     # end of Md2HtmlConverter.convert()
 
 
-    def convert_obs(self):
+    def convert_obs(self) -> None:
         self.log.info("Converting OBS markdown files…")
 
         # Find the first directory that has md files.
@@ -75,7 +75,7 @@ class Md2HtmlConverter(Converter):
     # end of Md2HtmlConverter.convert_obs()
 
 
-    def convert_obsNotes(self):
+    def convert_obsNotes(self) -> None:
         """
         This converter is used for OBS_tn and OBS_tq
         """
@@ -156,7 +156,7 @@ class Md2HtmlConverter(Converter):
     # end of Md2HtmlConverter.convert_obsNotes()
 
 
-    def convert_markdown(self):
+    def convert_markdown(self) -> None:
         self.log.info("Converting Markdown files…")
 
         # Find the first directory that has md files.
@@ -273,7 +273,7 @@ class Md2HtmlConverter(Converter):
     # end of Md2HtmlConverter.convert_markdown()
 
 
-    def convert_lexicon(self):
+    def convert_lexicon(self) -> None:
         """
         Does not convert md files starting with G or H and a digit.
         """
@@ -400,7 +400,7 @@ class Md2HtmlConverter(Converter):
     # end of Md2HtmlConverter.convert_lexicon()
 
 
-    def fix_lexicon_markdown_urls(self, content):
+    def fix_lexicon_markdown_urls(self, content:str) -> str:
         """
         Change lexicon links that point to .md URL to instead point to a default page
             with the xxx.md link added
@@ -439,10 +439,10 @@ class Md2HtmlConverter(Converter):
             # print("fix_markdown_urls now has", new_content)
             self.write_lexicon_view_entry_file(fixed_path)
         return new_content
-    # end of Md2HtmlConverter.fix_markdown_urls()
+    # end of Md2HtmlConverter.fix_markdown_urls function
 
 
-    def write_lexicon_view_entry_file(self, path_prefix):
+    def write_lexicon_view_entry_file(self, path_prefix:str) -> None:
         """
         Write the dummy html file that will be used to display markdown lexicon entries.
         """
@@ -488,5 +488,5 @@ class Md2HtmlConverter(Converter):
 </body>
 </html>
 ''')
-    # end of Md2HtmlConverter.write_lexicon_view_entry_file()
+    # end of Md2HtmlConverter.write_lexicon_view_entry_file function
 # end of Md2HtmlConverter class
