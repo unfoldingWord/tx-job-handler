@@ -23,7 +23,8 @@ class Md2HtmlConverter(Converter):
             # TODO: What is the difference here?
             self.convert_obs()
             return True
-        elif self.repo_subject in ('OBS_Study_Notes', 'OBS_Study_Questions', 'OBS_Translation_Notes', 'OBS_Translation_Questions'):
+        elif self.repo_subject in ('OBS_Study_Notes', 'OBS_Study_Questions',
+                                   'OBS_Translation_Notes', 'OBS_Translation_Questions'):
             self.convert_obsNotes()
             return True
         elif '_Lexicon' in self.repo_subject:
@@ -71,13 +72,13 @@ class Md2HtmlConverter(Converter):
                         copyfile(filepath, output_filepath)
                 except:
                     pass
-        self.log.info("Finished processing OBS Markdown files.")
+        self.log.info("Finished processing OBS markdown files.")
     # end of Md2HtmlConverter.convert_obs()
 
 
     def convert_obsNotes(self) -> None:
         """
-        This converter is used for OBS_tn and OBS_tq
+        This converter is used for OBS_sn, OBS_sq, OBS_tn and OBS_tq
         """
         self.log.info("Converting OBSNotes markdown files…")
 
@@ -152,125 +153,8 @@ class Md2HtmlConverter(Converter):
         #                     copyfile(filepath, output_filepath)
         #             except:
         #                 pass
-        self.log.info("Finished processing OBSNotes Markdown files.")
+        self.log.info("Finished processing OBSNotes markdown files.")
     # end of Md2HtmlConverter.convert_obsNotes()
-
-
-    def convert_markdown(self) -> None:
-        self.log.info("Converting Markdown files…")
-
-        # Find the first directory that has md files.
-        files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
-        # convert_only_list = self.check_for_exclusive_convert()
-        convert_only_list = [] # Not totally sure what the above line did
-
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
-            # Just a very simple template with $title and $content place-holders
-            html_template = string.Template(template_file.read())
-
-        # found_chapters = {}
-        for filepath in sorted(files):
-            if filepath.endswith('.md'):
-                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
-                filename = base_name_part + '.md'
-                if convert_only_list and (filename not in convert_only_list):  # see if this is a file we are to convert
-                    continue
-                html_filename = base_name_part + '.html'
-                AppSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
-
-                # Convert files that are markdown files
-                try: md = read_file(filepath)
-                except Exception as e:
-                    self.log.error(f"Error reading {filename}: {e}")
-                    continue
-                # if 0: # test code -- creates html1
-                #     headers = {"content-type": "application/json"}
-                #     url = "http://bg.door43.org/api/v1/markdown"
-                #     payload = {
-                #         'Context': "",
-                #         'Mode': "normal",
-                #         'Text': md,
-                #         'Wiki': False
-                #         }
-                #     # url = "http://bg.door43.org/api/v1/markdown/raw"
-                #     AppSettings.logger.debug(f"Making callback to {url} with payload:")
-                #     AppSettings.logger.debug(json.dumps(payload)[:256] + '…')
-                #     try:
-                #         response = requests.post(url, json=payload, headers=headers)
-                #         # response = requests.post(url, data=md, headers=headers)
-                #     except requests.exceptions.ConnectionError as e:
-                #         AppSettings.logger.critical(f"Markdown->HTML connection error: {e}")
-                #         response = None
-                #     if response:
-                #         #AppSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
-                #         #AppSettings.logger.debug(f"response.headers = {response.headers}")
-                #         AppSettings.logger.debug(f"response.text = {response.text[:256] + '…'}")
-                #         html1 = response.text
-                #         if response.status_code != 200:
-                #             AppSettings.logger.critical(f"Failed to submit Markdown->HTML job:"
-                #                                         f" {response.status_code}={response.reason}")
-                #         # callback_status = response.status_code
-                #         # if (callback_status >= 200) and (callback_status < 299):
-                #         #     AppSettings.logger.debug("Markdown->HTML callback finished.")
-                #         # else:
-                #         #     AppSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
-                #     else: # no response
-                #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
-                if 1: # old/existing code -- creates html2
-                    if self.repo_subject in ['Translation_Academy',]:
-                        html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
-                        if prefix and debug_mode_flag:
-                            write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html2)
-                    else:
-                        html2 = markdown.markdown(md)
-                # if 0:
-                #     if html2 == html1:
-                #         AppSettings.logger.debug("HTML responses are identical.")
-                #     else:
-                #         AppSettings.logger.error(f"HTML responses differ: {len(html1)} and {len(html2)}")
-                #         AppSettings.logger.debug(repr(html1)[:256] + ' …… ' + repr(html1)[-256:])
-                #         AppSettings.logger.debug(repr(html2)[:256] + ' …… ' + repr(html2)[-256:])
-                #     try: html = html1
-                #     except UnboundLocalError: html = html2
-                # else:
-                html = html2
-
-                html = html_template.safe_substitute(
-                                        title=self.repo_subject.replace('_',' '),
-                                        content=html)
-                if prefix and debug_mode_flag:
-                    write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)
-
-                html = fix_naked_urls(html)
-                if prefix and debug_mode_flag:
-                    write_file(os.path.join(self.debug_dir, base_name_part+'.3.html'), html)
-
-                # Change headers like <h1><a id="verbs"/>Verbs</h1> to <h1 id="verbs">Verbs</h1>
-                soup = BeautifulSoup(html, 'html.parser')
-                for tag in soup.findAll('a', {'id': True}):
-                    if tag.parent and tag.parent.name in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-                        tag.parent['id'] = tag['id']
-                        tag.parent['class'] = tag.parent.get('class', []) + ['section-header']
-                        tag.extract()
-                html = str(soup)
-
-                # Write the file
-                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
-                # found_chapters[base_name_part] = True
-                output_file = os.path.join(self.output_dir, html_filename)
-                write_file(output_file, html)
-                self.log.info(f"Converted {filename} to {html_filename}.")
-            else:
-                # Directly copy over files that are not markdown files
-                try:
-                    output_file = os.path.join(self.output_dir, os.path.basename(filepath))
-                    if not os.path.exists(output_file):
-                        copyfile(filepath, output_file)
-                except:
-                    pass
-        self.log.info("Finished processing Markdown files.")
-    # end of Md2HtmlConverter.convert_markdown()
 
 
     def convert_lexicon(self) -> None:
@@ -396,7 +280,7 @@ class Md2HtmlConverter(Converter):
                         copyfile(filepath, output_file)
                 except:
                     pass
-        self.log.info("Finished processing Markdown files.")
+        self.log.info("Finished processing Lexicon markdown files.")
     # end of Md2HtmlConverter.convert_lexicon()
 
 
@@ -490,3 +374,120 @@ class Md2HtmlConverter(Converter):
 ''')
     # end of Md2HtmlConverter.write_lexicon_view_entry_file function
 # end of Md2HtmlConverter class
+
+
+    def convert_markdown(self) -> None:
+        self.log.info("Converting Markdown files…")
+
+        # Find the first directory that has md files.
+        files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
+        # convert_only_list = self.check_for_exclusive_convert()
+        convert_only_list = [] # Not totally sure what the above line did
+
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
+            # Just a very simple template with $title and $content place-holders
+            html_template = string.Template(template_file.read())
+
+        # found_chapters = {}
+        for filepath in sorted(files):
+            if filepath.endswith('.md'):
+                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
+                filename = base_name_part + '.md'
+                if convert_only_list and (filename not in convert_only_list):  # see if this is a file we are to convert
+                    continue
+                html_filename = base_name_part + '.html'
+                AppSettings.logger.debug(f"Converting '{filename}' to '{html_filename}' …")
+
+                # Convert files that are markdown files
+                try: md = read_file(filepath)
+                except Exception as e:
+                    self.log.error(f"Error reading {filename}: {e}")
+                    continue
+                # if 0: # test code -- creates html1
+                #     headers = {"content-type": "application/json"}
+                #     url = "http://bg.door43.org/api/v1/markdown"
+                #     payload = {
+                #         'Context': "",
+                #         'Mode': "normal",
+                #         'Text': md,
+                #         'Wiki': False
+                #         }
+                #     # url = "http://bg.door43.org/api/v1/markdown/raw"
+                #     AppSettings.logger.debug(f"Making callback to {url} with payload:")
+                #     AppSettings.logger.debug(json.dumps(payload)[:256] + '…')
+                #     try:
+                #         response = requests.post(url, json=payload, headers=headers)
+                #         # response = requests.post(url, data=md, headers=headers)
+                #     except requests.exceptions.ConnectionError as e:
+                #         AppSettings.logger.critical(f"Markdown->HTML connection error: {e}")
+                #         response = None
+                #     if response:
+                #         #AppSettings.logger.info(f"response.status_code = {response.status_code}, response.reason = {response.reason}")
+                #         #AppSettings.logger.debug(f"response.headers = {response.headers}")
+                #         AppSettings.logger.debug(f"response.text = {response.text[:256] + '…'}")
+                #         html1 = response.text
+                #         if response.status_code != 200:
+                #             AppSettings.logger.critical(f"Failed to submit Markdown->HTML job:"
+                #                                         f" {response.status_code}={response.reason}")
+                #         # callback_status = response.status_code
+                #         # if (callback_status >= 200) and (callback_status < 299):
+                #         #     AppSettings.logger.debug("Markdown->HTML callback finished.")
+                #         # else:
+                #         #     AppSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
+                #     else: # no response
+                #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
+                if 1: # old/existing code -- creates html2
+                    if self.repo_subject in ['Translation_Academy',]:
+                        html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
+                        if prefix and debug_mode_flag:
+                            write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html2)
+                    else:
+                        html2 = markdown.markdown(md)
+                # if 0:
+                #     if html2 == html1:
+                #         AppSettings.logger.debug("HTML responses are identical.")
+                #     else:
+                #         AppSettings.logger.error(f"HTML responses differ: {len(html1)} and {len(html2)}")
+                #         AppSettings.logger.debug(repr(html1)[:256] + ' …… ' + repr(html1)[-256:])
+                #         AppSettings.logger.debug(repr(html2)[:256] + ' …… ' + repr(html2)[-256:])
+                #     try: html = html1
+                #     except UnboundLocalError: html = html2
+                # else:
+                html = html2
+
+                html = html_template.safe_substitute(
+                                        title=self.repo_subject.replace('_',' '),
+                                        content=html)
+                if prefix and debug_mode_flag:
+                    write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)
+
+                html = fix_naked_urls(html)
+                if prefix and debug_mode_flag:
+                    write_file(os.path.join(self.debug_dir, base_name_part+'.3.html'), html)
+
+                # Change headers like <h1><a id="verbs"/>Verbs</h1> to <h1 id="verbs">Verbs</h1>
+                soup = BeautifulSoup(html, 'html.parser')
+                for tag in soup.findAll('a', {'id': True}):
+                    if tag.parent and tag.parent.name in ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
+                        tag.parent['id'] = tag['id']
+                        tag.parent['class'] = tag.parent.get('class', []) + ['section-header']
+                        tag.extract()
+                html = str(soup)
+
+                # Write the file
+                base_name_part = os.path.splitext(os.path.basename(filepath))[0]
+                # found_chapters[base_name_part] = True
+                output_file = os.path.join(self.output_dir, html_filename)
+                write_file(output_file, html)
+                self.log.info(f"Converted {filename} to {html_filename}.")
+            else:
+                # Directly copy over files that are not markdown files
+                try:
+                    output_file = os.path.join(self.output_dir, os.path.basename(filepath))
+                    if not os.path.exists(output_file):
+                        copyfile(filepath, output_file)
+                except:
+                    pass
+        self.log.info("Finished processing generic markdown files.")
+    # end of Md2HtmlConverter.convert_markdown()
