@@ -5,15 +5,13 @@ requests==2.22.0
 watchtower==0.7.3
 
 # yaml is used by file_utils used by ResourceContainer
-pyyaml==5.1.2
+pyyaml==5.2
 
-# dateutil is used by file_utils used by ResourceContainer
+# dateutil is used by data_utils used by ResourceContainer
 py-dateutil==2.2
 
-# TEMP: Force next package to not upgrade to 2.8.1 for boto3 requirements Nov 2019
-#python-dateutil==2.8.0
 # boto3 is used by aws_tools
-boto3==1.10.28
+boto3==1.10.35
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==2.4.5

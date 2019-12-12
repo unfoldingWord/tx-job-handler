@@ -153,6 +153,7 @@ class TnTsvLinter(Linter):
         # Compares with the unfoldingWord version if possible
         #   otherwise falls back to the Door43Catalog version
         # NOTE: This is the only place that Door43.org is hard-coded into the tX side of the system
+        # TODO: Should this be moved back to the Door43 preprocessor like most other similar checks?
         need_to_check_quotes = False
         rels = self.rc.resource.relation
         if isinstance(rels, list):

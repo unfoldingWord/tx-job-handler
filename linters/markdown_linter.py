@@ -36,21 +36,22 @@ class MarkdownLinter(Linter):
         for filename in self.get_files(relative_paths=True):
             with open( os.path.join(self.source_dir, filename), 'rt') as md_file:
                 file_contents = md_file.read()
-            found_any = False
+            found_any_paired_chars = False
             # found_mismatch = False
             for pairStart,pairEnd in (('(',')'), ('[',']'), ('{','}')):
                 pairStartCount = file_contents.count(pairStart)
                 pairEndCount   = file_contents.count(pairEnd)
                 if pairStartCount or pairEndCount:
-                    found_any = True
+                    found_any_paired_chars = True
                 if pairStartCount > pairEndCount:
                     self.log.warning(f"{filename.replace('.md','')}: Possible missing closing '{pairEnd}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
                     # found_mismatch = True
                 elif pairEndCount > pairStartCount:
                     self.log.warning(f"{filename.replace('.md','')}: Possible missing opening '{pairStart}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
                     # found_mismatch = True
-            if found_any: # and not found_mismatch:
-                # double-check the nesting
+            if found_any_paired_chars: # and not found_mismatch:
+                # Double-check the nesting
+                lines = file_contents.split('\n')
                 nestingString = ''
                 line_number = 1
                 for ix, char in enumerate(file_contents):
@@ -70,7 +71,7 @@ class MarkdownLinter(Linter):
                                 pass # Just ignore this -- at least they'll still get the above mismatched count message
                             else:
                                 locateString = f" after recent '{nestingString[-1]}'" if nestingString else ''
-                                self.log.warning(f"{filename.replace('.md','')} line {line_number}: Possible nesting error -- found unexpected '{char}'{locateString}")
+                                self.log.warning(f"{filename.replace('.md','')} line {line_number:,}: Possible nesting error -- found unexpected '{char}'{locateString} near {lines[line_number-1]}")
                     elif char == '\n':
                         line_number += 1
                 if nestingString: # handle left-overs

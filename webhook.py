@@ -42,13 +42,16 @@ from converters.md2html_converter import Md2HtmlConverter
 from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
+
 # NOTE: The following two tables are each scanned in order
 #       (so put 'other' entries lower)
 # All searching of the tables is case-sensitive
 # Columns are: 1/ linter name 2/ linter 3/ input formats 4/ resource types
 LINTER_TABLE = (
     ('obs',      ObsLinter,      ('md',),      ('Open_Bible_Stories','obs'),              ),
-    ('obsNotes', ObsNotesLinter, ('md',),      ('OBS_Translation_Notes',
+    ('obsNotes', ObsNotesLinter, ('md',),      ('OBS_Study_Notes',
+                                                'OBS_Study_Questions',
+                                                'OBS_Translation_Notes',
                                                 'OBS_Translation_Questions'),             ),
     ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta'),              ),
     ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('TSV_Translation_Notes','tn'),            ),
@@ -65,7 +68,8 @@ LINTER_TABLE = (
 CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
                     ('Generic_Markdown',
-                    'Open_Bible_Stories','OBS_Translation_Notes','OBS_Translation_Questions','obs',
+                    'Open_Bible_Stories','OBS_Study_Notes','OBS_Study_Questions',
+                                    'OBS_Translation_Notes','OBS_Translation_Questions','obs',
                     'Translation_Academy','ta', 'Translation_Questions','tq', 'Translation_Words',
                     'Translation_Words','tw', 'Translation_Notes','tn',
                     'Greek_Lexicon', 'Hebrew-Aramaic_Lexicon',
