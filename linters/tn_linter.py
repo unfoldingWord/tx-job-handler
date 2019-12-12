@@ -1,3 +1,4 @@
+from typing import Optional
 import os
 import re
 import tempfile
@@ -9,6 +10,8 @@ from general_tools import file_utils, url_utils
 from tx_usfm_tools.usfm_verses import verses
 from linters.markdown_linter import MarkdownLinter
 from linters.linter import Linter
+from linters.py_markdown_linter.lint import MarkdownLinter as PyMarkdownLinter
+from linters.py_markdown_linter.config import LintConfig
 
 
 class TnLinter(MarkdownLinter):
@@ -16,7 +19,7 @@ class TnLinter(MarkdownLinter):
     # match links of form '](link)'
     link_marker_re = re.compile(r'\]\(([^\n()]+)\)')
 
-    def __init__(self, single_file=None, *args, **kwargs):
+    def __init__(self, single_file:Optional[str]=None, *args, **kwargs) -> None:
         super(TnLinter, self).__init__(*args, **kwargs)
 
         self.single_file = single_file
@@ -28,7 +31,7 @@ class TnLinter(MarkdownLinter):
             AppSettings.logger.debug(f"Single source dir '{self.single_dir}'")
 
 
-    def lint(self):
+    def lint(self) -> bool:
         """
         Checks for issues with translationNotes
 
@@ -63,9 +66,7 @@ class TnLinter(MarkdownLinter):
             if not found_files \
             and 'OBS' not in self.repo_subject \
             and len(self.rc.projects) != 1: # Many repos are intentionally just one book
-                msg = f"Missing tN book: '{dir}'"
-                AppSettings.logger.debug(msg)
-                self.log.warnings.append(msg)
+                self.log.warning(f"Missing tN book: '{dir}'")
 
         results = super(TnLinter, self).lint()  # Runs checks on Markdown, using the markdown linter
         if not results:
@@ -87,9 +88,7 @@ class TnLinter(MarkdownLinter):
                 exists = os.path.exists(file_path_abs)
                 if not exists:
                     a = self.get_file_link(f, folder)
-                    msg = f"{a}: contains invalid link: ({link})"
-                    self.log.warnings.append(msg)
-                    AppSettings.logger.debug(msg)
+                    self.log.warning(f"{a}: contains invalid link: ({link})")
 
     def get_file_link(self, f:str, folder:str):
         parts = folder.split(self.source_dir)
@@ -127,6 +126,11 @@ class TnTsvLinter(Linter):
         self.source_dir is the directory of source files (.tsv)
         :return boolean:
         """
+        lint_config = LintConfig()
+        for rule_id in ('MD009', 'MD010', 'MD013'): # Ignore
+            lint_config.disable_rule_by_id(rule_id)
+        py_markdown_linter = PyMarkdownLinter(lint_config)
+
         self.source_dir = os.path.abspath(self.source_dir)
         source_dir = self.source_dir
         for root, _dirs, files in os.walk(source_dir):
@@ -145,9 +149,7 @@ class TnTsvLinter(Linter):
                         found_file = True
                         break
                 if not found_file:
-                    msg = f"Missing tN tsv book: '{dir}'"
-                    self.log.warnings.append(msg)
-                    AppSettings.logger.debug(msg)
+                    self.log.warning(f"Missing tN tsv book: '{dir}'")
 
         # See if manifest has relationships back to original language versions
         # Compares with the unfoldingWord version if possible
@@ -160,7 +162,7 @@ class TnTsvLinter(Linter):
             for rel in rels:
                 if 'hbo/uhb' in rel:
                     if '?v=' not in rel:
-                        self.log.warnings.append(f"No Hebrew version number specified in manifest: '{rel}'")
+                        self.log.warning(f"No Hebrew version number specified in manifest: '{rel}'")
                     version = rel[rel.find('?v=')+3:]
                     url = f"https://git.door43.org/unfoldingWord/UHB/archive/v{version}.zip"
                     successFlag = self.preload_original_text_archive('uhb', url)
@@ -168,11 +170,11 @@ class TnTsvLinter(Linter):
                         url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/uhb.zip"
                         successFlag = self.preload_original_text_archive('uhb', url)
                     if successFlag:
-                        # self.log.warnings.append(f"Note: Using {url} for checking Hebrew quotes against.")
+                        # self.log.warning(f"Note: Using {url} for checking Hebrew quotes against.")
                         need_to_check_quotes = True
                 if 'el-x-koine/ugnt' in rel:
                     if '?v=' not in rel:
-                        self.log.warnings.append(f"No Greek version number specified in manifest: '{rel}'")
+                        self.log.warning(f"No Greek version number specified in manifest: '{rel}'")
                     version = rel[rel.find('?v=')+3:]
                     url = f"https://git.door43.org/unfoldingWord/UGNT/archive/v{version}.zip"
                     successFlag = self.preload_original_text_archive('ugnt', url)
@@ -180,10 +182,10 @@ class TnTsvLinter(Linter):
                         url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/ugnt.zip"
                         successFlag = self.preload_original_text_archive('ugnt', url)
                     if successFlag:
-                        # self.log.warnings.append(f"Note: Using {url} for checking Greek quotes against.")
+                        # self.log.warning(f"Note: Using {url} for checking Greek quotes against.")
                         need_to_check_quotes = True
         if not need_to_check_quotes:
-            self.log.warnings.append("Unable to find/load original language (Heb/Grk) sources for comparing snippets against.")
+            self.log.warning("Unable to find/load original language (Heb/Grk) sources for comparing snippets against.")
 
         # Now check tabs and C:V numbers
         MAX_ERROR_COUNT = 20
@@ -202,49 +204,49 @@ class TnTsvLinter(Linter):
                     if not started:
                         # AppSettings.logger.debug(f"TSV header line is '{tsv_line}'")
                         if tsv_line != 'Book	Chapter	Verse	OrigQuote	OccurrenceNote':
-                            self.log.warnings.append(f"Unexpected TSV header line: '{tsv_line}' in {filename}")
+                            self.log.warning(f"Unexpected TSV header line: '{tsv_line}' in {filename}")
                             error_count += 1
                         started = True
                     elif tab_count != TnTsvLinter.EXPECTED_TAB_COUNT:
-                        self.log.warnings.append(f"Bad {expectedB} line near {C}:{V} with {tab_count} tabs (expected {TnTsvLinter.EXPECTED_TAB_COUNT})")
+                        self.log.warning(f"Bad {expectedB} line near {C}:{V} with {tab_count} tabs (expected {TnTsvLinter.EXPECTED_TAB_COUNT})")
                         B = C = V = OrigQuote = OccurrenceNote = None
                         error_count += 1
                     else:
                         B, C, V, OrigQuote, OccurrenceNote = tsv_line.split('\t')
                         if B != expectedB:
-                            self.log.warnings.append(f"Unexpected '{tsv_line}' line in {filename}")
+                            self.log.warning(f"Unexpected '{B}' in '{tsv_line}' in {filename}")
                         if not C:
-                            self.log.warnings.append(f"Missing chapter number after {lastC}:{lastV} in {filename}")
+                            self.log.warning(f"Missing chapter number after {lastC}:{lastV} in {filename}")
                         elif not C.isdigit() and C not in ('front','back'):
-                            self.log.warnings.append(f"Bad '{C}' chapter number near verse {V} in {filename}")
+                            self.log.warning(f"Bad '{C}' chapter number near verse {V} in {filename}")
                         elif C.isdigit() and lastC.isdigit():
                             lastCint, Cint = int(lastC), int(C)
                             if Cint < lastCint:
-                                self.log.warnings.append(f"Decrementing '{C}' chapter number after {lastC} in {filename}")
+                                self.log.warning(f"Decrementing '{C}' chapter number after {lastC} in {filename}")
                             elif Cint > lastCint+1:
-                                self.log.warnings.append(f"Missing chapter number {lastCint+1} after {lastC} in {filename}")
+                                self.log.warning(f"Missing chapter number {lastCint+1} after {lastC} in {filename}")
                         if C == lastC: # still in the same chapter
                             if not V.isdigit():
-                                self.log.warnings.append(f"Bad '{V}' verse number in chapter {C} in {filename}")
+                                self.log.warning(f"Bad '{V}' verse number in chapter {C} in {filename}")
                             elif lastV.isdigit():
                                 lastVint, Vint = int(lastV), int(V)
                                 if Vint < lastVint:
-                                    self.log.warnings.append(f"Decrementing '{V}' verse number after {lastV} in chapter {C} in {filename}")
+                                    self.log.warning(f"Decrementing '{V}' verse number after {lastV} in chapter {C} in {filename}")
                                 # NOTE: Disabled because missing verse notes are expected
                                 # elif Vint > lastVint+1:
-                                    # self.log.warnings.append(f"Missing verse number {lastVint+1} after {lastV} in chapter {C} in {filename}")
+                                    # self.log.warning(f"Missing verse number {lastVint+1} after {lastV} in chapter {C} in {filename}")
                         else: # just started a new chapter
                             if not V.isdigit() and V != 'intro':
-                                self.log.warnings.append(f"Bad '{V}' verse number in start of chapter {C} in {filename}")
+                                self.log.warning(f"Bad '{V}' verse number in start of chapter {C} in {filename}")
                         if OrigQuote and need_to_check_quotes:
                             try: self.check_original_language_quotes(B,C,V,OrigQuote)
                             except Exception as e:
-                                self.log.warnings.append(f"{B} {C}:{V} Unable to check original language quotes: {e}")
+                                self.log.warning(f"{B} {C}:{V} Unable to check original language quotes: {e}")
                         if OccurrenceNote:
                             left_count, right_count = OccurrenceNote.count('['), OccurrenceNote.count(']')
                             if left_count != right_count:
-                                self.log.warnings.append(f"Unmatched square brackets at {B} {C}:{V} in '{OccurrenceNote}'")
-                            self.check_markdown(OccurrenceNote, f"{B} {C}:{V}")
+                                self.log.warning(f"Unmatched square brackets at {B} {C}:{V} in '{OccurrenceNote}'")
+                            self.check_markdown(py_markdown_linter, OccurrenceNote, f'{B} {C}:{V}')
                         lastC, lastV = C, V
                         if lastC == 'front': lastC = '0'
                         elif lastC == 'back': lastC = '999'
@@ -260,33 +262,42 @@ class TnTsvLinter(Linter):
     # end of TnTsvLinter.lint()
 
 
-    def check_markdown(self, markdown_string, reference):
+    def check_markdown(self, mdLinter:PyMarkdownLinter, markdown_string:str, reference:str) -> None:
         """
         Checks the header progressions in the markdown string
         """
-        # TODO: Why can't we convert <br> to nl and run the normal MD linter???
+        # New code using unfinished PyMarkdownLinter
+        linter_warnings = mdLinter.lint(markdown_string.replace('<br>','\n'))
+        if linter_warnings:
+            AppSettings.logger.debug(f"Markdown linter result count for {reference} = {len(linter_warnings):,}.")
+            for rule_violation in linter_warnings:
+                self.log.warning(f"{reference} line {rule_violation.line_nr}: {rule_violation.message}")
+
+        # Also, our manual checks (since the above is unfinished)
         header_level = 0
         for bit in markdown_string.split('<br>'):
             if bit.startswith('# '):
                 header_level = 1
             elif bit.startswith('## '):
                 if header_level < 1:
-                    self.log.warnings.append(f"Markdown header jumped directly to level 2 at {reference}")
+                    self.log.warning(f"Markdown header jumped directly to level 2 at {reference}")
                 header_level = 2
             elif bit.startswith('### '):
                 if header_level < 2:
-                    self.log.warnings.append(f"Markdown header jumped directly to level 3 at {reference}")
+                    self.log.warning(f"Markdown header jumped directly to level 3 at {reference}")
                 header_level = 3
             elif bit.startswith('#### '):
                 if header_level < 3:
-                    self.log.warnings.append(f"Markdown header jumped directly to level 4 at {reference}")
+                    self.log.warning(f"Markdown header jumped directly to level 4 at {reference}")
                 header_level = 4
             elif bit.startswith('##### '):
                 if header_level < 4:
-                    self.log.warnings.append(f"Markdown header jumped directly to level 5 at {reference}")
+                    self.log.warning(f"Markdown header jumped directly to level 5 at {reference}")
                 header_level = 5
             elif bit.startswith('#'):
                 self.log.warning(f"Badly formatted markdown header at {reference}")
+
+        self.check_pairs(markdown_string, reference, ignore_close_parenthesis=True) # Uses 1) for lists of points!
     # end of TnTsvLinter.check_markdown function
 
 
@@ -304,7 +315,7 @@ class TnTsvLinter(Linter):
             file_utils.remove_file(zip_path)
         except Exception as e:
             AppSettings.logger.error(f"Unable to download {zip_url}: {e}")
-            self.log.warnings.append(f"Unable to download '{name}' from {zip_url}")
+            self.log.warning(f"Unable to download '{name}' from {zip_url}")
             return False
         # AppSettings.logger.debug(f"Got {name} files:", os.listdir(self.preload_dir))
         return True
@@ -323,18 +334,18 @@ class TnTsvLinter(Linter):
 
         if '...' in quoteField:
             AppSettings.logger.debug(f"Bad ellipse characters in {B} {C}:{V} '{quoteField}'")
-            self.log.warnings.append(f"Should use proper ellipse character in {B} {C}:{V} '{quoteField}'")
+            self.log.warning(f"Should use proper ellipse character in {B} {C}:{V} '{quoteField}'")
 
         if '…' in quoteField:
             quoteBits = quoteField.split('…')
             if ' …' in quoteField or '… ' in quoteField:
                 AppSettings.logger.debug(f"Unexpected space(s) beside ellipse in {B} {C}:{V} '{quoteField}'")
-                self.log.warnings.append(f"Unexpected space(s) beside ellipse character in {B} {C}:{V} '{quoteField}'")
+                self.log.warning(f"Unexpected space(s) beside ellipse character in {B} {C}:{V} '{quoteField}'")
         elif '...' in quoteField: # Yes, we still actually allow this
             quoteBits = quoteField.split('...')
             if ' ...' in quoteField or '... ' in quoteField:
                 AppSettings.logger.debug(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
-                self.log.warnings.append(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
+                self.log.warning(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
         else:
             quoteBits = None
 
@@ -348,9 +359,9 @@ class TnTsvLinter(Linter):
                         elif index == numQuoteBits-1: description = 'end'
                         else: description = f"middle{index if numQuoteBits>3 else ''}"
                         AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteBits[index]}' ({description}) in '{verse_text}'")
-                        self.log.warnings.append(f"Unable to find {B} {C}:{V} {description} of '{quoteField}' in '{verse_text}'")
+                        self.log.warning(f"Unable to find {B} {C}:{V} {description} of '{quoteField}' in '{verse_text}'")
             else: # < 2
-                self.log.warnings.append(f"Ellipsis without surrounding snippet in {B} {C}:{V} '{quoteField}'")
+                self.log.warning(f"Ellipsis without surrounding snippet in {B} {C}:{V} '{quoteField}'")
         elif quoteField not in verse_text:
             AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
             # if B=='TIT':
@@ -364,7 +375,7 @@ class TnTsvLinter(Linter):
             #     print()
             extra_text = " (contains No-Break Space shown as '~')" if '\u00A0' in quoteField else ""
             if extra_text: quoteField = quoteField.replace('\u00A0', '~')
-            self.log.warnings.append(f"Unable to find {B} {C}:{V} '{quoteField}'{extra_text} in '{verse_text}'")
+            self.log.warning(f"Unable to find {B} {C}:{V} '{quoteField}'{extra_text} in '{verse_text}'")
     # end of TnTsvLinter.check_original_language_quotes function
 
 
@@ -466,9 +477,7 @@ class TnTsvLinter(Linter):
                 exists = os.path.exists(file_path_abs)
                 if not exists:
                     a = self.get_file_link(filename, folder)
-                    msg = f"{a}: contains invalid link: ({link})"
-                    self.log.warnings.append(msg)
-                    AppSettings.logger.debug(msg)
+                    self.log.warning(f"{a}: contains invalid link: ({link})")
     # end of TnTsvLinter.find_invalid_links function
 
     def get_file_link(self, filename:str, folder:str) -> str:
