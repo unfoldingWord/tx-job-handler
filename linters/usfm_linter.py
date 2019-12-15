@@ -1,3 +1,4 @@
+from typing import Tuple, Optional
 import os
 import traceback
 from linters.linter import Linter
@@ -7,16 +8,29 @@ from app_settings.app_settings import AppSettings
 
 
 
+# If they start a line
+SHOULD_ALWAYS_HAVE_TEXT_MARKERS = ( # Put longest markers ahead of shorter ones
+                            'id', 'usfm', 'ide', 'h', 'toc1','toc2','toc3,',
+                            'is1','is', 'iot',
+                            'ip',
+                            'ms','ms1','ms2','ms3','ms', 'mr1','mr'
+                            'c', 'v',
+                            's1','s2','s3','s4', # Can't use 's' yet coz we have empty s5 fields
+                            'zaln-s', 'w',
+                            )
+
+
+
 class UsfmLinter(Linter):
 
 
-    def __init__(self, single_file=None, *args, **kwargs):
+    def __init__(self, single_file:Optional[str]=None, *args, **kwargs) -> None:
         self.single_file = single_file
         self.found_books = []
         super(UsfmLinter, self).__init__(*args, **kwargs)
 
 
-    def lint(self):
+    def lint(self) -> bool:
         """
         Checks for issues with all Bibles, such as missing books or chapters
 
@@ -49,7 +63,7 @@ class UsfmLinter(Linter):
         return True
 
 
-    def parse_file(self, file_path, sub_path, file_name):
+    def parse_file(self, file_path:str, sub_path:str, file_name:str) -> None:
 
         book_code, book_full_name = self.get_book_ids(file_name)
 
@@ -66,7 +80,7 @@ class UsfmLinter(Linter):
 
 
     @staticmethod
-    def get_book_ids(usfm_filename):
+    def get_book_ids(usfm_filename:str) -> Tuple[str,str]:
         """
         Given the name of a usfm file,
             try to determine the book_code (as well as returning the fullname part without the extension)
@@ -108,7 +122,14 @@ class UsfmLinter(Linter):
     # end of get_book_ids function
 
 
-    def parse_usfm_text(self, sub_path, file_name, book_text, book_full_name, book_code):
+    def parse_usfm_text(self, sub_path:str, file_name:str,
+                                book_text:str, book_full_name:str, book_code:str) -> None:
+        """
+        """
+        if not book_text:
+            self.log.warning(f"{book_code} - No USFM text found")
+            return
+            
         try:
             lang_code = self.rc.resource.language.identifier
             errors, book_code = verifyUSFM.verify_contents_quiet(book_text, book_full_name, book_code, lang_code)
@@ -128,5 +149,23 @@ class UsfmLinter(Linter):
         except Exception as e: # for debugging
             self.log.warning(f"Failed to verify book '{file_name}', exception: {e}")
             print(f"Failed to verify USFM book '{file_name}', exception: {e}: {traceback.format_exc()}")
+
+        # RJH added checks for USFM lines without content (Dec 2019)
+        # TODO: Ideally this should go in
+        C = V = '0'
+        for line in book_text.split('\n'):
+            if line.startswith('\\'):
+                if line.startswith('\\c '): C, V = line[3:], '0'
+                elif line.startswith('\\v '):
+                    ixSpace = line.find(' ', 3) # Find the end of the verse number
+                    V = '?' if ixSpace==-1 else line[3:ixSpace]
+                for marker in SHOULD_ALWAYS_HAVE_TEXT_MARKERS:
+                    if line.startswith(f'\\{marker}'):
+                        if len(line) <= len(marker) + 1: # 1 for backslash
+                            self.log.warning(f"{book_code} {C}:{V} '{line}' line has no content")
+                        elif len(line) < len(marker) + 5: # 1 for backslash and space + 3
+                            # Shortest line is '\h Job', '\usfm 3.0'
+                            self.log.warning(f"{book_code} {C}:{V} '{line}' line seems too short")
+                        break
     # end of parse_usfm_text function
 # end of UsfmLinter class
