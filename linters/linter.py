@@ -113,6 +113,59 @@ class Linter(metaclass=ABCMeta):
     # end of run()
 
 
+    def check_pairs(self, someText:str, ref:str, ignore_close_parenthesis=False) -> None:
+        """
+        Check matching number of pairs.
+
+        If closing parenthesis is used for points, e.g., 1) This point.
+            then set the optional flag.
+        """
+        check_pairs = (('[',']'), ('{','}')) if ignore_close_parenthesis \
+                    else (('(',')'), ('[',']'), ('{','}'))
+
+        found_any_paired_chars = False
+        # found_mismatch = False
+        for pairStart,pairEnd in check_pairs:
+            pairStartCount = someText.count(pairStart)
+            pairEndCount   = someText.count(pairEnd)
+            if pairStartCount or pairEndCount:
+                found_any_paired_chars = True
+            if pairStartCount > pairEndCount:
+                self.log.warning(f"{ref}: Possible missing closing '{pairEnd}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
+                # found_mismatch = True
+            elif pairEndCount > pairStartCount:
+                self.log.warning(f"{ref}: Possible missing opening '{pairStart}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
+                # found_mismatch = True
+        if found_any_paired_chars: # and not found_mismatch:
+            # Double-check the nesting
+            lines = someText.split('\n')
+            nestingString = ''
+            line_number = 1
+            for ix, char in enumerate(someText):
+                if char in '({[':
+                    nestingString += char
+                elif char in ')}]':
+                    if char == ')': wanted_start_char = '('
+                    elif char == '}': wanted_start_char = '{'
+                    elif char == ']': wanted_start_char = '['
+                    if nestingString and nestingString[-1] == wanted_start_char:
+                        nestingString = nestingString[:-1] # Close off successful match
+                    else: # not the closing that we expected
+                        if char==')' \
+                        and ix>0 and someText[ix-1].isdigit() \
+                        and ix<len(someText)-1 and someText[ix+1] in ' \t':
+                            # This could be part of a list like 1) ... 2) ...
+                            pass # Just ignore this -- at least they'll still get the above mismatched count message
+                        else:
+                            locateString = f" after recent '{nestingString[-1]}'" if nestingString else ''
+                            self.log.warning(f"{ref} line {line_number:,}: Possible nesting error -- found unexpected '{char}'{locateString} near {lines[line_number-1]}")
+                elif char == '\n':
+                    line_number += 1
+            if nestingString: # handle left-overs
+                reformatted_nesting_string = "'" + "', '".join(nestingString) + "'"
+                self.log.warning(f"{ref}: Seem to have the following unclosed field(s): {reformatted_nesting_string}")
+    # NOTE: Notifying all those is probably overkill, but never mind (it might help detect multiple errors)
+
     # def download_archive(self) -> None:
     #     filename = self.source_zip_url.rpartition('/')[2]
     #     self.source_zip_file = os.path.join(self.temp_dir, filename)
