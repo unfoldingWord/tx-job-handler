@@ -416,43 +416,58 @@ class SingleHTMLRenderer(AbstractRenderer):
     # def render_imt(self, token):
     #     self.write('\n\n<h2>' + token.value + '</h2>')
     def render_imt1(self, token):
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<h2>' + token.value + '</h2>')
     def render_imt2(self, token):
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<h3>' + token.value + '</h3>')
     def render_imt3(self, token):
+        self.stopLI()
+        self.closeParagraph()
         self.write('\n\n<h4>' + token.value + '</h4>')
 
     # def render_is(self, token):
     #     self.stopLI()
     #     self.closeParagraph()
     #     self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
-    def render_is1(self, token):
+    def render_is1(self, token) -> None:
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
-    def render_is2(self, token):
+    def render_is2(self, token) -> None:
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<h5 style="text-align:center">' + token.getValue() + '</h5>')
-    def render_is3(self, token):
+    def render_is3(self, token) -> None:
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<h5">' + token.getValue() + '</h5>')
 
-    def render_ip(self, token):
+    def render_iot(self, token) -> None:
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<h2>' + token.value + '</h2>')
+    def render_io1(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('<span class="io1">' + token.value + '</span>')
+
+    def render_ip(self, token) -> None:
         assert not token.value
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<p>')
         self.inParagraph = True
 
-    def render_ipi(self, token):
+    def render_ipi(self, token) -> None:
         assert not token.value
         self.stopLI()
         self.closeParagraph()
         self.writeIndent(2)
 
-    def render_im(self, token):
+    def render_im(self, token) -> None:
         assert not token.value
         # TODO: This should NOT be identical to render_ip
         self.stopLI()
