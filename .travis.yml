@@ -4,10 +4,10 @@
 #   QUEUE_PREFIX
 #   AWS_ACCESS_KEY_ID
 #   ASW_SECRET_ACCESS_KEY
-##   DOCKER_USERNAME
-##   DOCKER_PASSWORD
+#   DOCKER_USERNAME
+#   DOCKER_PASSWORD
 
-dist: xenial
+dist: bionic
 language: python
 # See available versions at https://docs.travis-ci.com/user/languages/python/
 python:
