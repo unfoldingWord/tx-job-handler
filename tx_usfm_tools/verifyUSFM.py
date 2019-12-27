@@ -4,6 +4,7 @@
 # Uses parseUsfm module.
 # Place this script in the USFM-Tools folder.
 
+from typing import List, Tuple, Optional
 import re
 import sys
 import logging
@@ -14,7 +15,7 @@ from tx_usfm_tools import parseUsfm, usfm_verses
 # Global variables
 lastToken = None
 vv_re = re.compile(r'([0-9]+)-([0-9]+)')
-error_log = None
+error_log:Optional[List[str]] = None
 
 chapter_marker_re = re.compile(r'\\c(?!a)') # Don't match on \ca
 verse_marker_re = re.compile(r'\\v(?!a)') # Don't match on \va
@@ -430,15 +431,17 @@ def verifyChapterCount():
                     report_error(f"{state.ID} {i} - Missing chapter\n")
 
 
-def verifyTextTranslated(text, token):
+def verifyTextTranslated(text:str, token) -> None:
     found, word = needsTranslation(text)
     if found:
         report_error(f"Token '\\{token}' has possible untranslated word '{word}'")
 
 
-def needsTranslation(text):
+def needsTranslation(text) -> Tuple[bool,Optional[str]]:
     state = State()
-    if state.lang_code and state.lang_code[0:2]!='en':  # no need to translate english
+    if state.lang_code \
+    and state.lang_code not in ('en', 'el-x-koine', 'hbo'):  # no need to translate English
+        # NOTE: We don't put booknames in original Heb/Grk documents either
         english = state.getEnglishWords()
         words = text.split(' ')
         for word in words:
@@ -449,7 +452,7 @@ def needsTranslation(text):
     return False, None
 
 
-def binarySearch(alist, item):
+def binarySearch(alist, item) -> bool:
     first = 0
     last = len(alist)-1
     found = False
@@ -468,7 +471,7 @@ def binarySearch(alist, item):
     return found
 
 
-def isNumber(s):
+def isNumber(s) -> bool:
     if s:
         char = s[0]
         if (char >= '0') and (char <= '9'):
@@ -476,7 +479,7 @@ def isNumber(s):
     return False
 
 
-def takeCL(text):
+def takeCL(text:str):
     state = State()
     state.addChapterLabel(text)
     verifyTextTranslated(text, 'cl')
@@ -724,7 +727,8 @@ def take(token):
 # end of take(token) function
 
 
-def verify_contents_quiet(unicodestring, filename, book_code, lang_code):
+def verify_contents_quiet(unicodestring:str, filename:str, book_code:str,
+                                                        lang_code:str) -> Tuple[List[str],str]:
     """
     This is called by the USFM linter.
     """
