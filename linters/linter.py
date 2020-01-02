@@ -186,7 +186,9 @@ class Linter(metaclass=ABCMeta):
                 # print(f"check_pairs found {count} of '{field}' at {ref} in '{some_text}'")
                 if (count % 2) != 0:
                     # print(f"{ref}: Seem to have have mismatched '{field}' pairs in '{some_text}'")
-                    self.log.warning(f"{ref}: Seem to have have mismatched '{field}' pairs")
+                    content_snippet = some_text if len(some_text) < 85 \
+                                        else f"{some_text[:40]} …… {some_text[-40:]}"
+                    self.log.warning(f"{ref}: Seem to have have mismatched '{field}' pairs in '{content_snippet}'")
                     break # Only want one warning per text
     # end of Linter.check_pairs function
 #end of linter.py
