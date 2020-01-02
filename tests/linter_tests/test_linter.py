@@ -18,7 +18,7 @@ class MyLinter(Linter):
         self.mock_download = False
 
     def lint(self):
-        for i in range(0, self.lint_warning_count):
+        for _i in range(0, self.lint_warning_count):
             self.log.warning('warning')
 
     def download_archive(self):
