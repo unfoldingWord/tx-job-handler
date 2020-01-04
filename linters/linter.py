@@ -1,10 +1,11 @@
+from typing import Any, Optional, Union
 import json
 import os
 import tempfile
 import traceback
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
-from typing import Any, Optional, Union
+import re
 
 from app_settings.app_settings import AppSettings
 from rq_settings import prefix, debug_mode_flag
@@ -35,7 +36,7 @@ class Linter(metaclass=ABCMeta):
 
         # TODO: Why do we need this? How does it help?
         self.rc:Optional[RC] = None   # Constructed later when we know we have a source_dir
-    # end of __init__ function
+    # end of Linter.__init__ function
 
 
     def close(self) -> None:
@@ -45,7 +46,7 @@ class Linter(metaclass=ABCMeta):
             AppSettings.logger.debug(f"Linter temp folder '{self.temp_dir}' has been left on disk for debugging!")
         else:
             remove_tree(self.temp_dir)
-    # end of close()
+    # end of Linter.close()
 
 
     # def __del__(self):
@@ -62,7 +63,7 @@ class Linter(metaclass=ABCMeta):
         :return bool:
         """
         raise NotImplementedError()
-    # end of lint()
+    # end of Linter.lint()
 
 
     def run(self) -> dict:
@@ -110,10 +111,10 @@ class Linter(metaclass=ABCMeta):
             }
         AppSettings.logger.debug(f"Linter results: {results}")
         return results
-    # end of run()
+    # end of Linter.run()
 
 
-    def check_pairs(self, someText:str, ref:str, ignore_close_parenthesis=False) -> None:
+    def check_pairs(self, some_text:str, ref:str, ignore_close_parenthesis=False) -> None:
         """
         Check matching number of pairs.
 
@@ -126,8 +127,8 @@ class Linter(metaclass=ABCMeta):
         found_any_paired_chars = False
         # found_mismatch = False
         for pairStart,pairEnd in check_pairs:
-            pairStartCount = someText.count(pairStart)
-            pairEndCount   = someText.count(pairEnd)
+            pairStartCount = some_text.count(pairStart)
+            pairEndCount   = some_text.count(pairEnd)
             if pairStartCount or pairEndCount:
                 found_any_paired_chars = True
             if pairStartCount > pairEndCount:
@@ -138,10 +139,10 @@ class Linter(metaclass=ABCMeta):
                 # found_mismatch = True
         if found_any_paired_chars: # and not found_mismatch:
             # Double-check the nesting
-            lines = someText.split('\n')
+            lines = some_text.split('\n')
             nestingString = ''
             line_number = 1
-            for ix, char in enumerate(someText):
+            for ix, char in enumerate(some_text):
                 if char in '({[':
                     nestingString += char
                 elif char in ')}]':
@@ -152,8 +153,8 @@ class Linter(metaclass=ABCMeta):
                         nestingString = nestingString[:-1] # Close off successful match
                     else: # not the closing that we expected
                         if char==')' \
-                        and ix>0 and someText[ix-1].isdigit() \
-                        and ix<len(someText)-1 and someText[ix+1] in ' \t':
+                        and ix>0 and some_text[ix-1].isdigit() \
+                        and ix<len(some_text)-1 and some_text[ix+1] in ' \t':
                             # This could be part of a list like 1) ... 2) ...
                             pass # Just ignore this -- at least they'll still get the above mismatched count message
                         else:
@@ -164,28 +165,30 @@ class Linter(metaclass=ABCMeta):
             if nestingString: # handle left-overs
                 reformatted_nesting_string = "'" + "', '".join(nestingString) + "'"
                 self.log.warning(f"{ref}: Seem to have the following unclosed field(s): {reformatted_nesting_string}")
-    # NOTE: Notifying all those is probably overkill, but never mind (it might help detect multiple errors)
+        # NOTE: Notifying all those is probably overkill,
+        #  but never mind (it might help detect multiple errors)
 
-    # def download_archive(self) -> None:
-    #     filename = self.source_zip_url.rpartition('/')[2]
-    #     self.source_zip_file = os.path.join(self.temp_dir, filename)
-    #     AppSettings.logger.debug("Downloading {0} to {1}".format(self.source_zip_url, self.source_zip_file))
-    #     if not os.path.isfile(self.source_zip_file):
-    #         try:
-    #             download_file(self.source_zip_url, self.source_zip_file)
-    #         finally:
-    #             if not os.path.isfile(self.source_zip_file):
-    #                 raise Exception(f"Failed to download {self.source_zip_url}")
-    # # end of download_archive()
-
-
-    # def unzip_archive(self) -> None:
-    #     AppSettings.logger.debug(f"Unzipping {self.source_zip_file} to {self.temp_dir}")
-    #     unzip(self.source_zip_file, self.temp_dir)
-    #     dirs = [d for d in os.listdir(self.temp_dir) if os.path.isdir(os.path.join(self.temp_dir, d))]
-    #     if dirs:
-    #         self.source_dir = os.path.join(self.temp_dir, dirs[0])
-    #     else:
-    #         self.source_dir = self.temp_dir
-    # # end of unzip_archive()
+        # These are markdown specific checks, but hopefully shouldn't hurt to be done for all strings
+        # They don't seem to be picked up by the markdown linter libraries for some reason.
+        for field,regex in ( # Put longest ones first
+                        # Seems that the fancy ones (commented out) don't find occurrences at the start (or end?) of the text
+                        ('___', r'___'),
+                        # ('___', r'[^_]___[^_]'), # three underlines
+                        ('***', r'\*\*\*'),
+                        # ('***', r'[^\*]\*\*\*[^\*]'), # three asterisks
+                        ('__', r'__'),
+                        # ('__', r'[^_]__[^_]'), # two underlines
+                        ('**', r'\*\*'),
+                        # ('**', r'[^\*]\*\*[^\*]'), # two asterisks
+                    ):
+            count = len(re.findall(regex, some_text)) # Finds all NON-OVERLAPPING matches
+            if count:
+                # print(f"check_pairs found {count} of '{field}' at {ref} in '{some_text}'")
+                if (count % 2) != 0:
+                    # print(f"{ref}: Seem to have have mismatched '{field}' pairs in '{some_text}'")
+                    content_snippet = some_text if len(some_text) < 85 \
+                                        else f"{some_text[:40]} …… {some_text[-40:]}"
+                    self.log.warning(f"{ref}: Seem to have have mismatched '{field}' pairs in '{content_snippet}'")
+                    break # Only want one warning per text
+    # end of Linter.check_pairs function
 #end of linter.py
