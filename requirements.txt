@@ -1,17 +1,17 @@
 # rq and statsd/Graphite and requests are used by the job handler
-rq==1.1.0
+rq==1.2.0
 statsd==3.3.0
 requests==2.22.0
 watchtower==0.7.3
 
 # yaml is used by file_utils used by ResourceContainer
-pyyaml==5.2
+pyyaml==5.3
 
 # dateutil is used by data_utils used by ResourceContainer
 py-dateutil==2.2
 
 # boto3 is used by aws_tools
-boto3==1.10.45
+boto3==1.10.48
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==2.4.6
