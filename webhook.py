@@ -7,6 +7,7 @@
 #       job() function (at bottom here) is executed by rq package when there is an available entry in the named queue.
 
 # Python imports
+from typing import Dict, Tuple, Any, Optional
 import os
 import tempfile
 import json
@@ -15,7 +16,6 @@ from time import time
 import sys
 sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
 import traceback
-from typing import Dict, Tuple, Any, Optional
 
 # Library (PyPi) imports
 import requests
@@ -88,7 +88,7 @@ CONVERTER_TABLE = (
 AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
-tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
+tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}.HTML"
 job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
 
 
@@ -421,7 +421,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         job_descriptive_name = process_tx_job(prefix, queued_json_payload)
     except Exception as e:
         # Catch most exceptions here so we can log them to CloudWatch
-        prefixed_name = f"{prefix}tX_JobHandler"
+        prefixed_name = f"{prefix}tX_HTML_Job_Handler"
         AppSettings.logger.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
         AppSettings.logger.critical(f"{e}: {traceback.format_exc()}")
         AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
@@ -440,16 +440,16 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         boto3_session = Session(aws_access_key_id=aws_access_key_id,
                             aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
                             region_name='us-west-2')
-        watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
+        failure_watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
                                                     use_queues=False,
                                                     log_group=log_group_name,
                                                     stream_name=prefixed_name)
-        logger2.addHandler(watchtower_log_handler)
+        logger2.addHandler(failure_watchtower_log_handler)
         logger2.setLevel(logging.DEBUG)
         logger2.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{aws_access_key_id[-2:]}'.")
         logger2.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
         logger2.critical(f"{e}: {traceback.format_exc()}")
-        watchtower_log_handler.close()
+        failure_watchtower_log_handler.close()
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
@@ -463,4 +463,4 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
-# end of webhook.py for tx_enqueue_job
+# end of webhook.py for tX HTML Job Handler
