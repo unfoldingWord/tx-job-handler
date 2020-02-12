@@ -96,13 +96,12 @@ class Linter(metaclass=ABCMeta):
             self.log.warnings.append(message)
             AppSettings.logger.error(f'{e}: {traceback.format_exc()}')
         warnings = self.log.warnings
-        if len(warnings) > 200:  # sanity check so we don't overflow callback size limits
-            warnings = warnings[:190]
+        if len(self.log.warnings) > 200:  # sanity check so we don't overflow callback size limits
+            warnings = self.log.warnings[:190]
             warnings.append("………………")
             warnings.extend(self.log.warnings[-9:])
-            # msg = f"Warnings truncated (from {len(self.log.warnings)} to {len(warnings)})"
             msg = f"Linter warnings reduced from {len(self.log.warnings):,} to {len(warnings)}"
-            AppSettings.logger.debug(f"Linter {msg}")
+            AppSettings.logger.debug(msg)
             warnings.append(msg)
 
         results = {
