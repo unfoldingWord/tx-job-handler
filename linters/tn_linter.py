@@ -1,13 +1,13 @@
 from typing import Optional
 import os
 import re
-import tempfile
+# import tempfile
 
 from rq_settings import prefix, debug_mode_flag
 from app_settings.app_settings import AppSettings
 from door43_tools.bible_books import BOOK_NUMBERS
-from general_tools import file_utils, url_utils
-from tx_usfm_tools.usfm_verses import verses
+from general_tools import file_utils #, url_utils
+# from tx_usfm_tools.usfm_verses import verses
 from linters.markdown_linter import MarkdownLinter
 from linters.linter import Linter
 from linters.py_markdown_linter.lint import MarkdownLinter as PyMarkdownLinter
@@ -112,9 +112,9 @@ class TnTsvLinter(Linter):
 
 
     def __init__(self, *args, **kwargs) -> None:
-        self.loaded_file_path = None
-        self.loaded_file_contents = None
-        self.preload_dir = tempfile.mkdtemp(prefix='tX_tN_linter_preload_')
+        # self.loaded_file_path = None
+        # self.loaded_file_contents = None
+        # self.preload_dir = tempfile.mkdtemp(prefix='tX_tN_linter_preload_')
         super(TnTsvLinter, self).__init__(*args, **kwargs)
 
 
@@ -151,41 +151,41 @@ class TnTsvLinter(Linter):
                 if not found_file:
                     self.log.warning(f"Missing tN tsv book: '{dir}'")
 
-        # See if manifest has relationships back to original language versions
-        # Compares with the unfoldingWord version if possible
-        #   otherwise falls back to the Door43Catalog version
-        # NOTE: This is the only place that Door43.org is hard-coded into the tX side of the system
-        # TODO: Should this be moved back to the Door43 preprocessor like most other similar checks?
-        need_to_check_quotes = False
-        rels = self.rc.resource.relation
-        if isinstance(rels, list):
-            for rel in rels:
-                if 'hbo/uhb' in rel:
-                    if '?v=' not in rel:
-                        self.log.warning(f"No Hebrew version number specified in manifest: '{rel}'")
-                    version = rel[rel.find('?v=')+3:]
-                    url = f"https://git.door43.org/unfoldingWord/UHB/archive/v{version}.zip"
-                    successFlag = self.preload_original_text_archive('uhb', url)
-                    if not successFlag: # Try the Door43 Catalog version
-                        url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/uhb.zip"
-                        successFlag = self.preload_original_text_archive('uhb', url)
-                    if successFlag:
-                        # self.log.warning(f"Note: Using {url} for checking Hebrew quotes against.")
-                        need_to_check_quotes = True
-                if 'el-x-koine/ugnt' in rel:
-                    if '?v=' not in rel:
-                        self.log.warning(f"No Greek version number specified in manifest: '{rel}'")
-                    version = rel[rel.find('?v=')+3:]
-                    url = f"https://git.door43.org/unfoldingWord/UGNT/archive/v{version}.zip"
-                    successFlag = self.preload_original_text_archive('ugnt', url)
-                    if not successFlag: # Try the Door43 Catalog version
-                        url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/ugnt.zip"
-                        successFlag = self.preload_original_text_archive('ugnt', url)
-                    if successFlag:
-                        # self.log.warning(f"Note: Using {url} for checking Greek quotes against.")
-                        need_to_check_quotes = True
-        if not need_to_check_quotes:
-            self.log.warning("Unable to find/load original language (Heb/Grk) sources for comparing snippets against.")
+        # # See if manifest has relationships back to original language versions
+        # # Compares with the unfoldingWord version if possible
+        # #   otherwise falls back to the Door43Catalog version
+        # # NOTE: This is the only place that Door43.org is hard-coded into the tX side of the system
+        # # TODO: Should this be moved back to the Door43 preprocessor like most other similar checks?
+        # need_to_check_quotes = False
+        # rels = self.rc.resource.relation
+        # if isinstance(rels, list):
+        #     for rel in rels:
+        #         if 'hbo/uhb' in rel:
+        #             if '?v=' not in rel:
+        #                 self.log.warning(f"No Hebrew version number specified in manifest: '{rel}'")
+        #             version = rel[rel.find('?v=')+3:]
+        #             url = f"https://git.door43.org/unfoldingWord/UHB/archive/v{version}.zip"
+        #             successFlag = self.preload_original_text_archive('uhb', url)
+        #             if not successFlag: # Try the Door43 Catalog version
+        #                 url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/uhb.zip"
+        #                 successFlag = self.preload_original_text_archive('uhb', url)
+        #             if successFlag:
+        #                 # self.log.warning(f"Note: Using {url} for checking Hebrew quotes against.")
+        #                 need_to_check_quotes = True
+        #         if 'el-x-koine/ugnt' in rel:
+        #             if '?v=' not in rel:
+        #                 self.log.warning(f"No Greek version number specified in manifest: '{rel}'")
+        #             version = rel[rel.find('?v=')+3:]
+        #             url = f"https://git.door43.org/unfoldingWord/UGNT/archive/v{version}.zip"
+        #             successFlag = self.preload_original_text_archive('ugnt', url)
+        #             if not successFlag: # Try the Door43 Catalog version
+        #                 url = f"https://cdn.door43.org/{rel.replace('?v=', '/v')}/ugnt.zip"
+        #                 successFlag = self.preload_original_text_archive('ugnt', url)
+        #             if successFlag:
+        #                 # self.log.warning(f"Note: Using {url} for checking Greek quotes against.")
+        #                 need_to_check_quotes = True
+        # if not need_to_check_quotes:
+        #     self.log.warning("Unable to find/load original language (Heb/Grk) sources for comparing snippets against.")
 
         # Now check tabs and C:V numbers
         MAX_ERROR_COUNT = 20
@@ -209,10 +209,10 @@ class TnTsvLinter(Linter):
                         started = True
                     elif tab_count != TnTsvLinter.EXPECTED_TAB_COUNT:
                         self.log.warning(f"Bad {expectedB} line near {C}:{V} with {tab_count} tabs (expected {TnTsvLinter.EXPECTED_TAB_COUNT})")
-                        B = C = V = OrigQuote = OccurrenceNote = None
+                        B = C = V = _OrigQuote = OccurrenceNote = None
                         error_count += 1
                     else:
-                        B, C, V, OrigQuote, OccurrenceNote = tsv_line.split('\t')
+                        B, C, V, _OrigQuote, OccurrenceNote = tsv_line.split('\t')
                         if B != expectedB:
                             self.log.warning(f"Unexpected '{B}' in '{tsv_line}' in {filename}")
                         if not C:
@@ -238,10 +238,10 @@ class TnTsvLinter(Linter):
                         else: # just started a new chapter
                             if not V.isdigit() and V != 'intro':
                                 self.log.warning(f"Bad '{V}' verse number in start of chapter {C} in {filename}")
-                        if OrigQuote and need_to_check_quotes:
-                            try: self.check_original_language_quotes(B,C,V,OrigQuote)
-                            except Exception as e:
-                                self.log.warning(f"{B} {C}:{V} Unable to check original language quotes: {e}")
+                        # if OrigQuote and need_to_check_quotes:
+                        #     try: self.check_original_language_quotes(B,C,V,OrigQuote)
+                        #     except Exception as e:
+                        #         self.log.warning(f"{B} {C}:{V} Unable to check original language quotes: {e}")
                         if OccurrenceNote:
                             left_count, right_count = OccurrenceNote.count('['), OccurrenceNote.count(']')
                             if left_count != right_count:
@@ -254,10 +254,10 @@ class TnTsvLinter(Linter):
                         AppSettings.logger.critical("TnTsvLinter: Too many TSV count errors -- aborting!")
                         break
 
-        if prefix and debug_mode_flag:
-            AppSettings.logger.debug(f"Temp folder '{self.preload_dir}' has been left on disk for debugging!")
-        else:
-            file_utils.remove_tree(self.preload_dir)
+        # if prefix and debug_mode_flag:
+        #     AppSettings.logger.debug(f"Temp folder '{self.preload_dir}' has been left on disk for debugging!")
+        # else:
+        #     file_utils.remove_tree(self.preload_dir)
         return True
     # end of TnTsvLinter.lint()
 
@@ -301,165 +301,165 @@ class TnTsvLinter(Linter):
     # end of TnTsvLinter.check_markdown function
 
 
-    def preload_original_text_archive(self, name:str, zip_url:str) -> bool:
-        """
-        Fetch and unpack the Hebrew/Greek zip file.
+    # def preload_original_text_archive(self, name:str, zip_url:str) -> bool:
+    #     """
+    #     Fetch and unpack the Hebrew/Greek zip file.
 
-        Returns a True/False success flag
-        """
-        AppSettings.logger.info(f"preload_original_text_archive({name}, {zip_url})…")
-        zip_path = os.path.join(self.preload_dir, f'{name}.zip')
-        try:
-            url_utils.download_file(zip_url, zip_path)
-            file_utils.unzip(zip_path, self.preload_dir)
-            file_utils.remove_file(zip_path)
-        except Exception as e:
-            AppSettings.logger.error(f"Unable to download {zip_url}: {e}")
-            self.log.warning(f"Unable to download '{name}' from {zip_url}")
-            return False
-        # AppSettings.logger.debug(f"Got {name} files:", os.listdir(self.preload_dir))
-        return True
-    # end of TnTsvLinter.preload_original_text_archive function
-
-
-    def check_original_language_quotes(self, B:str,C:str,V:str, quoteField:str) -> None:
-        """
-        Check that the quoted portions can indeed be found in the original language versions.
-        """
-        # AppSettings.logger.debug(f"check_original_language_quotes({B},{C},{V}, {quoteField})…")
-
-        verse_text = self.get_passage(B,C,V)
-        if not verse_text:
-            return # nothing else we can do here
-
-        if '...' in quoteField:
-            AppSettings.logger.debug(f"Bad ellipse characters in {B} {C}:{V} '{quoteField}'")
-            self.log.warning(f"Should use proper ellipse character in {B} {C}:{V} '{quoteField}'")
-
-        if '…' in quoteField:
-            quoteBits = quoteField.split('…')
-            if ' …' in quoteField or '… ' in quoteField:
-                AppSettings.logger.debug(f"Unexpected space(s) beside ellipse in {B} {C}:{V} '{quoteField}'")
-                self.log.warning(f"Unexpected space(s) beside ellipse character in {B} {C}:{V} '{quoteField}'")
-        elif '...' in quoteField: # Yes, we still actually allow this
-            quoteBits = quoteField.split('...')
-            if ' ...' in quoteField or '... ' in quoteField:
-                AppSettings.logger.debug(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
-                self.log.warning(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
-        else:
-            quoteBits = None
-
-        if quoteBits:
-            numQuoteBits = len(quoteBits)
-            if numQuoteBits >= 2:
-                for index in range(numQuoteBits):
-                    if quoteBits[index] not in verse_text: # this is what we really want to catch
-                        # If the quote has multiple parts, create a description of the current part
-                        if index == 0: description = 'beginning'
-                        elif index == numQuoteBits-1: description = 'end'
-                        else: description = f"middle{index if numQuoteBits>3 else ''}"
-                        AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteBits[index]}' ({description}) in '{verse_text}'")
-                        self.log.warning(f"Unable to find {B} {C}:{V} {description} of '{quoteField}' in '{verse_text}'")
-            else: # < 2
-                self.log.warning(f"Ellipsis without surrounding snippet in {B} {C}:{V} '{quoteField}'")
-        elif quoteField not in verse_text:
-            AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
-            # if B=='TIT':
-            #     import unicodedata
-            #     print(f"quoteField='{quoteField}'")
-            #     for char in quoteField:
-            #         print(unicodedata.name(char), end='  ')
-            #     print(f"\nverse_text='{verse_text}'")
-            #     for char in verse_text:
-            #         print(unicodedata.name(char), end='  ')
-            #     print()
-            extra_text = " (contains No-Break Space shown as '~')" if '\u00A0' in quoteField else ""
-            if extra_text: quoteField = quoteField.replace('\u00A0', '~')
-            self.log.warning(f"Unable to find {B} {C}:{V} '{quoteField}'{extra_text} in '{verse_text}'")
-    # end of TnTsvLinter.check_original_language_quotes function
+    #     Returns a True/False success flag
+    #     """
+    #     AppSettings.logger.info(f"preload_original_text_archive({name}, {zip_url})…")
+    #     zip_path = os.path.join(self.preload_dir, f'{name}.zip')
+    #     try:
+    #         url_utils.download_file(zip_url, zip_path)
+    #         file_utils.unzip(zip_path, self.preload_dir)
+    #         file_utils.remove_file(zip_path)
+    #     except Exception as e:
+    #         AppSettings.logger.error(f"Unable to download {zip_url}: {e}")
+    #         self.log.warning(f"Unable to download '{name}' from {zip_url}")
+    #         return False
+    #     # AppSettings.logger.debug(f"Got {name} files:", os.listdir(self.preload_dir))
+    #     return True
+    # # end of TnTsvLinter.preload_original_text_archive function
 
 
-    def get_passage(self, B:str, C:str,V:str) -> str:
-        """
-        Get the information for the given verse out of the appropriate book file.
+    # def check_original_language_quotes(self, B:str,C:str,V:str, quoteField:str) -> None:
+    #     """
+    #     Check that the quoted portions can indeed be found in the original language versions.
+    #     """
+    #     # AppSettings.logger.debug(f"check_original_language_quotes({B},{C},{V}, {quoteField})…")
 
-        Also removes milestones and extra word (\\w) information
-        """
-        # AppSettings.logger.debug(f"get_passage({B}, {C},{V})…")
-        try: book_number = verses[B]['usfm_number']
-        except KeyError: # how can this happen?
-            AppSettings.logger.error(f"Unable to find book number for '{B} {C}:{V}' in get_passage()")
-            book_number = 0
+    #     verse_text = self.get_passage(B,C,V)
+    #     if not verse_text:
+    #         return # nothing else we can do here
 
-        # Look for OT book first -- if not found, look for NT book
-        #   NOTE: Lazy way to determine which testament/folder the book is in
-        book_path = os.path.join(self.preload_dir, f'{book_number}-{B}.usfm')
-        if not os.path.isfile(book_path):
-            # NOTE: uW UHB and UGNT repos didn't use to have language code in repo name
-            book_path = os.path.join(self.preload_dir, 'hbo_uhb/', f'{book_number}-{B}.usfm')
-            if not os.path.isfile(book_path):
-                book_path = os.path.join(self.preload_dir, 'uhb/', f'{book_number}-{B}.usfm')
-            if not os.path.isfile(book_path):
-                book_path = os.path.join(self.preload_dir, 'el-x-koine_ugnt/', f'{book_number}-{B}.usfm')
-            if not os.path.isfile(book_path):
-                book_path = os.path.join(self.preload_dir, 'ugnt/', f'{book_number}-{B}.usfm')
-        if not os.path.isfile(book_path):
-            return None
-        if self.loaded_file_path != book_path:
-            # It's not cached already
-            AppSettings.logger.info(f"Reading {book_path}…")
-            with open(book_path, 'rt') as book_file:
-                self.loaded_file_contents = book_file.read()
-            self.loaded_file_path = book_path
-            # Do some initial cleaning and convert to lines
-            self.loaded_file_contents = self.loaded_file_contents \
-                                            .replace('\\zaln-e\\*','') \
-                                            .replace('\\k-e\\*', '') \
-                                            .split('\n')
-        # print("loaded_book_contents", self.loaded_file_contents)
-        found_chapter = found_verse = False
-        verseText = ''
-        for book_line in self.loaded_file_contents:
-            if not found_chapter and book_line == f'\\c {C}':
-                found_chapter = True
-                continue
-            if found_chapter and not found_verse and book_line.startswith(f'\\v {V}'):
-                found_verse = True
-                continue
-            if found_verse:
-                if book_line.startswith('\\v ') or book_line.startswith('\\c '):
-                    break # Don't go into the next verse or chapter
-                ix = book_line.find('\\k-s ')
-                if ix != -1:
-                    book_line = book_line[:ix] # Remove k-s field right up to end of line
-                verseText += ('' if book_line.startswith('\\f ') else ' ') + book_line
-        verseText = verseText.replace('\\p ', '').strip().replace('  ', ' ')
-        # print(f"Got verse text1: '{verseText}'")
+    #     if '...' in quoteField:
+    #         AppSettings.logger.debug(f"Bad ellipse characters in {B} {C}:{V} '{quoteField}'")
+    #         self.log.warning(f"Should use proper ellipse character in {B} {C}:{V} '{quoteField}'")
 
-        # Remove \w fields (just leaving the actual Bible text words)
-        ixW = verseText.find('\\w ')
-        while ixW != -1:
-            ixEnd = verseText.find('\\w*', ixW)
-            if ixEnd != -1:
-                field = verseText[ixW+3:ixEnd]
-                bits = field.split('|')
-                adjusted_field = bits[0]
-                verseText = verseText[:ixW] + adjusted_field + verseText[ixEnd+3:]
-            else:
-                AppSettings.logger.error(f"Missing \\w* in {B} {C}:{V} verseText: '{verseText}'")
-                verseText = verseText.replace('\\w ', '', 1) # Attempt to limp on
-            ixW = verseText.find('\\w ', ixW+1) # Might be another one
-        # print(f"Got verse text2: '{verseText}'")
+    #     if '…' in quoteField:
+    #         quoteBits = quoteField.split('…')
+    #         if ' …' in quoteField or '… ' in quoteField:
+    #             AppSettings.logger.debug(f"Unexpected space(s) beside ellipse in {B} {C}:{V} '{quoteField}'")
+    #             self.log.warning(f"Unexpected space(s) beside ellipse character in {B} {C}:{V} '{quoteField}'")
+    #     elif '...' in quoteField: # Yes, we still actually allow this
+    #         quoteBits = quoteField.split('...')
+    #         if ' ...' in quoteField or '... ' in quoteField:
+    #             AppSettings.logger.debug(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
+    #             self.log.warning(f"Unexpected space(s) beside ellipse characters in {B} {C}:{V} '{quoteField}'")
+    #     else:
+    #         quoteBits = None
 
-        # Remove footnotes
-        verseText = re.sub(r'\\f (.+?)\\f\*', '', verseText)
-        # Remove alternative versifications
-        verseText = re.sub(r'\\va (.+?)\\va\*', '', verseText)
-        # print(f"Got verse text3: '{verseText}'")
+    #     if quoteBits:
+    #         numQuoteBits = len(quoteBits)
+    #         if numQuoteBits >= 2:
+    #             for index in range(numQuoteBits):
+    #                 if quoteBits[index] not in verse_text: # this is what we really want to catch
+    #                     # If the quote has multiple parts, create a description of the current part
+    #                     if index == 0: description = 'beginning'
+    #                     elif index == numQuoteBits-1: description = 'end'
+    #                     else: description = f"middle{index if numQuoteBits>3 else ''}"
+    #                     AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteBits[index]}' ({description}) in '{verse_text}'")
+    #                     self.log.warning(f"Unable to find {B} {C}:{V} {description} of '{quoteField}' in '{verse_text}'")
+    #         else: # < 2
+    #             self.log.warning(f"Ellipsis without surrounding snippet in {B} {C}:{V} '{quoteField}'")
+    #     elif quoteField not in verse_text:
+    #         AppSettings.logger.debug(f"Unable to find {B} {C}:{V} '{quoteField}' in '{verse_text}'")
+    #         # if B=='TIT':
+    #         #     import unicodedata
+    #         #     print(f"quoteField='{quoteField}'")
+    #         #     for char in quoteField:
+    #         #         print(unicodedata.name(char), end='  ')
+    #         #     print(f"\nverse_text='{verse_text}'")
+    #         #     for char in verse_text:
+    #         #         print(unicodedata.name(char), end='  ')
+    #         #     print()
+    #         extra_text = " (contains No-Break Space shown as '~')" if '\u00A0' in quoteField else ""
+    #         if extra_text: quoteField = quoteField.replace('\u00A0', '~')
+    #         self.log.warning(f"Unable to find {B} {C}:{V} '{quoteField}'{extra_text} in '{verse_text}'")
+    # # end of TnTsvLinter.check_original_language_quotes function
 
-        # Final clean-up (shouldn't be necessary, but just in case)
-        return verseText.replace('  ', ' ')
-    # end of TnTsvLinter.get_passage function
+
+    # def get_passage(self, B:str, C:str,V:str) -> str:
+    #     """
+    #     Get the information for the given verse out of the appropriate book file.
+
+    #     Also removes milestones and extra word (\\w) information
+    #     """
+    #     # AppSettings.logger.debug(f"get_passage({B}, {C},{V})…")
+    #     try: book_number = verses[B]['usfm_number']
+    #     except KeyError: # how can this happen?
+    #         AppSettings.logger.error(f"Unable to find book number for '{B} {C}:{V}' in get_passage()")
+    #         book_number = 0
+
+    #     # Look for OT book first -- if not found, look for NT book
+    #     #   NOTE: Lazy way to determine which testament/folder the book is in
+    #     book_path = os.path.join(self.preload_dir, f'{book_number}-{B}.usfm')
+    #     if not os.path.isfile(book_path):
+    #         # NOTE: uW UHB and UGNT repos didn't use to have language code in repo name
+    #         book_path = os.path.join(self.preload_dir, 'hbo_uhb/', f'{book_number}-{B}.usfm')
+    #         if not os.path.isfile(book_path):
+    #             book_path = os.path.join(self.preload_dir, 'uhb/', f'{book_number}-{B}.usfm')
+    #         if not os.path.isfile(book_path):
+    #             book_path = os.path.join(self.preload_dir, 'el-x-koine_ugnt/', f'{book_number}-{B}.usfm')
+    #         if not os.path.isfile(book_path):
+    #             book_path = os.path.join(self.preload_dir, 'ugnt/', f'{book_number}-{B}.usfm')
+    #     if not os.path.isfile(book_path):
+    #         return None
+    #     if self.loaded_file_path != book_path:
+    #         # It's not cached already
+    #         AppSettings.logger.info(f"Reading {book_path}…")
+    #         with open(book_path, 'rt') as book_file:
+    #             self.loaded_file_contents = book_file.read()
+    #         self.loaded_file_path = book_path
+    #         # Do some initial cleaning and convert to lines
+    #         self.loaded_file_contents = self.loaded_file_contents \
+    #                                         .replace('\\zaln-e\\*','') \
+    #                                         .replace('\\k-e\\*', '') \
+    #                                         .split('\n')
+    #     # print("loaded_book_contents", self.loaded_file_contents)
+    #     found_chapter = found_verse = False
+    #     verseText = ''
+    #     for book_line in self.loaded_file_contents:
+    #         if not found_chapter and book_line == f'\\c {C}':
+    #             found_chapter = True
+    #             continue
+    #         if found_chapter and not found_verse and book_line.startswith(f'\\v {V}'):
+    #             found_verse = True
+    #             continue
+    #         if found_verse:
+    #             if book_line.startswith('\\v ') or book_line.startswith('\\c '):
+    #                 break # Don't go into the next verse or chapter
+    #             ix = book_line.find('\\k-s ')
+    #             if ix != -1:
+    #                 book_line = book_line[:ix] # Remove k-s field right up to end of line
+    #             verseText += ('' if book_line.startswith('\\f ') else ' ') + book_line
+    #     verseText = verseText.replace('\\p ', '').strip().replace('  ', ' ')
+    #     # print(f"Got verse text1: '{verseText}'")
+
+    #     # Remove \w fields (just leaving the actual Bible text words)
+    #     ixW = verseText.find('\\w ')
+    #     while ixW != -1:
+    #         ixEnd = verseText.find('\\w*', ixW)
+    #         if ixEnd != -1:
+    #             field = verseText[ixW+3:ixEnd]
+    #             bits = field.split('|')
+    #             adjusted_field = bits[0]
+    #             verseText = verseText[:ixW] + adjusted_field + verseText[ixEnd+3:]
+    #         else:
+    #             AppSettings.logger.error(f"Missing \\w* in {B} {C}:{V} verseText: '{verseText}'")
+    #             verseText = verseText.replace('\\w ', '', 1) # Attempt to limp on
+    #         ixW = verseText.find('\\w ', ixW+1) # Might be another one
+    #     # print(f"Got verse text2: '{verseText}'")
+
+    #     # Remove footnotes
+    #     verseText = re.sub(r'\\f (.+?)\\f\*', '', verseText)
+    #     # Remove alternative versifications
+    #     verseText = re.sub(r'\\va (.+?)\\va\*', '', verseText)
+    #     # print(f"Got verse text3: '{verseText}'")
+
+    #     # Final clean-up (shouldn't be necessary, but just in case)
+    #     return verseText.replace('  ', ' ')
+    # # end of TnTsvLinter.get_passage function
 
 
     def find_invalid_links(self, folder:str, filename:str, contents:str) -> None:
