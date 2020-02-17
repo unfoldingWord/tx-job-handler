@@ -9,7 +9,7 @@ WORKDIR /code
 RUN pip3 install --upgrade pip
 RUN pip3 install --requirement requirements.txt
 
-CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_Dev_JobHandler" ]
+CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_Dev_HTML_Job_Handler" ]
 
 # Define environment variables
 # NOTE: The following environment variables are optional:

@@ -455,6 +455,11 @@ class Md2HtmlConverter(Converter):
                 #     except UnboundLocalError: html = html2
                 # else:
                 html = html2
+                # print(f"md len = {len(md):,}  html len = {len(html):,}  ratio = {len(html)/len(md):.2f}")
+                if len(html) < len(md): # Seems created html was too short
+                    AppSettings.logger.error(f"Converter error: {filename} HTML ended up smaller than the original markdown!")
+                    self.log.info(f"Markdown was {md[:20]} …… {md[-200:]}")
+                    self.log.info(f"HTML is {html[:20]} ' …… ', {html[-200:]}")
 
                 html = html_template.safe_substitute(
                                         title=self.repo_subject.replace('_',' '),

@@ -329,10 +329,10 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderI_S(self, token):
         assert not token.value
-        self.write('<i>')
+        self.write('<em>')
     def renderI_E(self, token):
         assert not token.value
-        self.write('</i>')
+        self.write('</em>')
 
     def renderND_S(self, token):
         assert not token.value
@@ -361,10 +361,10 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderQS_S(self, token):
         assert not token.value
-        self.write('<i class="quote selah" style="float:right;">')
+        self.write('<em class="quote selah" style="float:right;">')
     def renderQS_E(self, token):
         assert not token.value
-        self.write('</i>')
+        self.write('</em>')
 
     def renderWJ_S(self, token):
         assert not token.value
@@ -375,10 +375,10 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderEM_S(self, token):
         assert not token.value
-        self.write('<i class="emphasis">')
+        self.write('<em class="emphasis">')
     def renderEM_E(self, token):
         assert not token.value
-        self.write('</i>')
+        self.write('</em>')
 
     def renderE(self, token):
         self.closeParagraph()
@@ -491,14 +491,14 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.chapterLabel = token.value
 
     def renderQR(self, token):
-        self.write('<i class="quote right" style="display:block;float:right;">'+token.value+'</i>')
+        self.write('<em class="quote right" style="display:block;float:right;">'+token.value+'</em>')
 
 
     def renderF_S(self, token):
         # print(f"renderF_S({token.value}) with {self.footnoteFlag} and '{self.footnote_text}'")
         self.closeFootnote() # If there's one currently open
         self.footnote_id = 'fn-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.footnote_num)
-        self.write('<span id="ref-{0}"><sup><i>[<a href="#{0}">{1}</a>]</i></sup></span>'.format(self.footnote_id, self.footnote_num))
+        self.write('<span id="ref-{0}"><sup><em>[<a href="#{0}">{1}</a>]</em></sup></span>'.format(self.footnote_id, self.footnote_num))
         self.footnoteFlag = True
         text = token.value
         if text.startswith('+ '):
@@ -529,12 +529,12 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderFQA(self, token):
         # print(f"renderFQA({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
-        self.footnote_text += '<i>' + token.value
+        self.footnote_text += '<em>' + token.value
         self.fqaFlag = True
     def renderFQA_E(self, token):
         # print(f"renderFQA_E({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
         if self.fqaFlag:
-            self.footnote_text += '</i>' + token.value
+            self.footnote_text += '</em>' + token.value
         self.fqaFlag = False
 
 
@@ -562,7 +562,7 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.write('<hr class="footnotes-hr"/>')
             for fkey in sorted(fkeys):
                 footnote = self.footnotes[fkey]
-                self.write(f'<div id="{fkey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup><i>[<a href="#ref-{fkey}">{footnote["fn_num"]}</a>]</i></sup> <span class="text">{footnote["text"]}</span></div>')
+                self.write(f'<div id="{fkey}" class="footnote">{footnote["chapter"].lstrip("0")}:{footnote["verse"].lstrip("0")} <sup>[<a href="#ref-{fkey}">{footnote["fn_num"]}</a>]</sup> <span class="text">{footnote["text"]}</span></div>')
             self.write('</div>')
         self.footnotes = {}
 
@@ -572,7 +572,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert token.value == '+'
         self.closeCrossReference() # If there's one currently open
         self.crossReference_id = 'xr-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.crossReference_num)
-        self.write('<span id="ref-{0}"><sup><i>[<a href="#{0}">{1}</a>]</i></sup></span>'.format(self.crossReference_id, self.crossReference_num))
+        self.write('<span id="ref-{0}"><sup><em>[<a href="#{0}">{1}</a>]</em></sup></span>'.format(self.crossReference_id, self.crossReference_num))
         self.crossReferenceFlag = True
         text = token.value
         if text.startswith('+ '):
@@ -625,7 +625,7 @@ class SingleHTMLRenderer(AbstractRenderer):
                 liveCrossReferences = self.livenCrossReferences(crossreference['text'])
                 origin_text = self.crossReference_origin if self.crossReference_origin \
                                 else f'{crossreference["chapter"].lstrip("0")}:{crossreference["verse"].lstrip("0")}'
-                self.write(f'<div id="{crKey}" class="crossreference">{origin_text} <sup><i>[<a href="#ref-{crKey}">{crossreference["xr_num"]}</a>]</i></sup> <span class="text">{liveCrossReferences}</span></div>')
+                self.write(f'<div id="{crKey}" class="crossreference">{origin_text} <sup>[<a href="#ref-{crKey}">{crossreference["xr_num"]}</a>]</sup> <span class="text">{liveCrossReferences}</span></div>')
             self.write('</div>')
         self.crossReferences = {}
 
@@ -685,10 +685,10 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderQAC(self, token):
         assert not token.value
-        self.write('<i class="quote acrostic character">')
+        self.write('<em class="quote acrostic character">')
     def renderQAC_E(self,token):
         assert not token.value
-        self.write('</i>')
+        self.write('</em>')
 
 
     def renderText(self, token):
