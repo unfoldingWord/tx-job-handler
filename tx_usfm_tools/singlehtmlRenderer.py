@@ -250,11 +250,11 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderS3(self, token):
         self.stopLI()
         self.closeParagraph()
-        self.write('\n\n<h5">' + token.getValue() + '</h5>')
+        self.write('\n\n<h6>' + token.getValue() + '</h6>')
     def renderS4(self, token):
         self.stopLI()
         self.closeParagraph()
-        self.write('\n\n<h5">' + token.getValue() + '</h5>')
+        self.write('\n\n<h6>' + token.getValue() + '</h6>')
 
     def renderS5(self, token):
         if token.value:
