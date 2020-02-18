@@ -28,7 +28,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.listItemLevel = 0
 
         self.footnoteFlag = False
-        self.fqaFlag = False
+        self.emFlag = False # <em> needs closing
         self.footnotes = {}
         self.footnote_id = ''
         self.footnote_num = 1
@@ -330,9 +330,12 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderI_S(self, token):
         assert not token.value
         self.write('<em>')
+        self.emFlag = True
     def renderI_E(self, token):
         assert not token.value
-        self.write('</em>')
+        if self.emFlag:
+            self.write('</em>')
+            self.emFlag = False
 
     def renderND_S(self, token):
         assert not token.value
@@ -512,6 +515,9 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderFT(self, token):
         # print(f"renderFT({token.value}) with '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
         self.footnote_text += token.value
     def renderFT_E(self, token):
         assert not token.value
@@ -527,20 +533,35 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('<br />')
 
 
-    def renderFQA(self, token):
-        # print(f"renderFQA({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
+    def renderFQ(self, token):
+        # print(f"renderFQ({token.value}) with {self.emFlag} and '{self.footnote_text}'")
         self.footnote_text += '<em>' + token.value
-        self.fqaFlag = True
+        self.emFlag = True
+    def renderFQ_E(self, token):
+        # print(f"renderFQ_E({token.value}) with {self.emFlag} and '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
+        self.footnote_text += token.value
+
+    def renderFQA(self, token):
+        # print(f"renderFQA({token.value}) with {self.emFlag} and '{self.footnote_text}'")
+        self.footnote_text += '<em>' + token.value
+        self.emFlag = True
     def renderFQA_E(self, token):
-        # print(f"renderFQA_E({token.value}) with {self.fqaFlag} and '{self.footnote_text}'")
-        if self.fqaFlag:
-            self.footnote_text += '</em>' + token.value
-        self.fqaFlag = False
+        # print(f"renderFQA_E({token.value}) with {self.emFlag} and '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
+        self.footnote_text += token.value
 
 
     def closeFootnote(self):
         # if self.footnoteFlag or self.footnote_text:
         #     print(f"closeFootnote() with {self.footnoteFlag} and '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
         if self.footnoteFlag:
             self.footnoteFlag = False
             self.renderFQA_E(UsfmToken(''))
