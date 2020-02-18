@@ -120,8 +120,8 @@ class Linter(metaclass=ABCMeta):
         If closing parenthesis is used for points, e.g., 1) This point.
             then set the optional flag.
         """
-        check_pairs = (('[',']'), ('{','}')) if ignore_close_parenthesis \
-                    else (('(',')'), ('[',']'), ('{','}'))
+        check_pairs = (('[',']'), ('{','}'), ('**_','_**')) if ignore_close_parenthesis \
+                    else (('(',')'), ('[',']'), ('{','}'), ('**_','_**'))
 
         found_any_paired_chars = False
         # found_mismatch = False
