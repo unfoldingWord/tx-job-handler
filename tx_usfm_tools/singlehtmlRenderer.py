@@ -376,6 +376,13 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('</span>')
 
+    def renderBD_S(self, token):
+        assert not token.value
+        self.write('<b>')
+    def renderBD_E(self, token):
+        assert not token.value
+        self.write('</b>')
+
     def renderEM_S(self, token):
         assert not token.value
         self.write('<em class="emphasis">')
@@ -415,6 +422,10 @@ class SingleHTMLRenderer(AbstractRenderer):
         # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.cb} {self.cc}:{self.cv}")
         self.closeParagraph()
         self.write('<span class="sp">' + token.value + '</span>')
+
+    def render_ili(self, token):
+        assert not token.value
+        self.startLI(1)
 
     # def render_imt(self, token):
     #     self.write('\n\n<h2>' + token.value + '</h2>')

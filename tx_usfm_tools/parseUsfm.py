@@ -157,6 +157,8 @@ sc_e      = usfmEndToken('sc')
 # Italics
 ist     = usfmToken('it')
 ien     = usfmEndToken('it')
+em_s     = usfmToken('em')
+em_e     = usfmEndToken('em')
 
 # Bold
 bd_s    = usfmToken('bd')
@@ -231,6 +233,8 @@ io2     = usfmToken('io2')
 ior_s   = usfmToken('ior')
 ior_e   = usfmEndToken('ior')
 
+ili   = usfmToken('ili')
+
 imt     = usfmTokenValue('imt', phrase)
 imt1    = usfmTokenValue('imt1', phrase)
 imt2    = usfmTokenValue('imt2', phrase)
@@ -290,8 +294,8 @@ element =  MatchFirst([ide, id,
                        xo,
                        xt, xt_e,
                        xe,
-                       ist,
-                       ien,
+                       ist, ien,
+                       em_s, em_e,
                        wj_s, wj_e,
                        nd_s, nd_e,
                        bd_s, bd_e,
@@ -307,6 +311,7 @@ element =  MatchFirst([ide, id,
                        imi,
                        iot, io1, io2,
                        ior_s, ior_e,
+                       ili,
                        imt, imt1, imt2, imt3,
                        ie,
                        bk_s, bk_e,
@@ -449,6 +454,7 @@ def createToken(t):
         'xt':   XTToken, 'xt*': XTEndToken,
         'x*':   XEndToken,
         'it':   ITStartToken, 'it*':  ITEndToken,
+        'em':   EMStartToken, 'em*':  EMEndToken,
         'bd':   BDStartToken, 'bd*':  BDEndToken,
         'bdit': BDITStartToken, 'bdit*': BDITEndToken,
 
@@ -504,6 +510,8 @@ def createToken(t):
         'is1':  IS1Token,
         'is2':  IS2Token,
         'is3':  IS3Token,
+
+        'ili':  ILIToken,
 
         'imt':  IMTToken,
         'imt1': IMT1Token,
@@ -632,6 +640,8 @@ class UsfmToken:
     def isX_E(self):     return False
     def isIS(self):     return False
     def isIE(self):     return False
+    def isEMS(self):     return False
+    def isEME(self):     return False
     def isSCS(self):    return False
     def isSCE(self):    return False
     def isLI(self):     return False
@@ -687,6 +697,7 @@ class UsfmToken:
     def is_is1(self):   return False
     def is_is2(self):   return False
     def is_is3(self):   return False
+    def is_ili(self):  return False
     def is_imt(self):  return False
     def is_imt1(self):  return False
     def is_imt2(self):  return False
@@ -976,7 +987,6 @@ class FEEndToken(UsfmToken):
 class FVStartToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFV_S(self)
     def isFVS(self):      return True
-
 class FVEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFV_E(self)
     def isFVE(self):      return True
@@ -984,7 +994,6 @@ class FVEndToken(UsfmToken):
 class FDCStartToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFDC_S(self)
     def isFDCS(self):      return True
-
 class FDCEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFDC_E(self)
     def isFDCE(self):      return True
@@ -996,10 +1005,16 @@ class FPToken(UsfmToken):
 class ITStartToken(UsfmToken):
     def renderOn(self, printer): return printer.renderIT_S(self)
     def isIS(self):      return True
-
 class ITEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderIT_E(self)
     def isIE(self):      return True
+
+class EMStartToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderEM_S(self)
+    def isEMS(self):      return True
+class EMEndToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderEM_E(self)
+    def isEME(self):      return True
 
 class BDStartToken(UsfmToken):
     def renderOn(self, printer): return printer.renderBD_S(self)
@@ -1259,6 +1274,10 @@ class IS2Token(UsfmToken):
 class IS3Token(UsfmToken):
     def renderOn(self, printer):  return printer.render_is3(self)
     def is_is3(self):             return True
+
+class ILIToken(UsfmToken):
+    def renderOn(self, printer): return printer.render_ili(self)
+    def is_ili(self): return True
 
 class IMTToken(UsfmToken):
     def renderOn(self, printer): return printer.render_imt(self)
