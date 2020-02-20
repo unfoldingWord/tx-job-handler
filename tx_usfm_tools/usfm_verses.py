@@ -3,7 +3,7 @@ verses = {
     'en_name': 'Front Matter',
     'chapters': 0,
     'verses': [],
-    'usfm_number': '00'
+    'usfm_number': 'A0'
   },
 	'GEN': {
     'en_name': 'Genesis',

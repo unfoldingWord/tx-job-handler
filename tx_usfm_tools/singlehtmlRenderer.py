@@ -671,7 +671,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         for individualXR in xr_text.split(';'):
             # print(f"  Processing '{individualXR}'…")
             strippedXR = individualXR.strip()
-            xrBookcode = xrBooknumber = None
+            # xrBookcode = xrBooknumberStr = None
             xrLink = ''
             match = re.match(r'(\w{2,16}) (\d{1,3}):(\d{1,3})', strippedXR)
             if match:
@@ -696,11 +696,12 @@ class SingleHTMLRenderer(AbstractRenderer):
                     # print(f"      ix4={ix}")
                 if ix != -1:
                     xrBookcode = silNames[ix+1]
-                    xrBooknumber = bookKeys[xrBookcode]
+                    xrBooknumberStr = bookKeys[xrBookcode]
+                    assert isinstance(xrBooknumberStr, str)
                     # print(f"      xrBookcode='{xrBookcode}'")
-                    # print(f"      xrBooknumber='{xrBooknumber}'")
-                    # TODO: This logic may not work for NT books (due to book numbering MAT=41)
-                    xrLink = f'{str(ix+1).zfill(2)}-{xrBookcode}.html#{xrBooknumber}-ch-{C.zfill(3)}-v-{V.zfill(3)}'
+                    # print(f"      xrBooknumber='{xrBooknumberStr}'")
+                    # TODO: This logic may not work for FRT and for NT books (due to book numbering MAT=41)
+                    xrLink = f'{str(ix+1).zfill(2)}-{xrBookcode}.html#{xrBooknumberStr}-ch-{C.zfill(3)}-v-{V.zfill(3)}'
                     # lastBookcode, lastBooknumber = xrBookcode, xrBooknumber
             # TODO: Handle other types of matches, e.g., book name not included, i.e., defaults to last book
             # print(f"    Got '{xrLink}'…")
