@@ -460,7 +460,7 @@ class TestUsfmLinter(LinterTestCase):
     def test_get_books_ids(self):
         linter = UsfmLinter(repo_subject='Bible', source_dir=None)
         for filename, expectedResults in (
-                            ('00-FRT.usfm', ('FRT','00-FRT')),
+                            ('A0-FRT.usfm', ('FRT','A0-FRT')),
                             ('01-GEN.USFM', ('GEN','01-GEN')),
                             ('10-2Sa.usfm3', ('2SA','10-2SA')),
                             ('en-ult-php-book.usfm', ('PHP','EN-ULT-PHP-BOOK')),

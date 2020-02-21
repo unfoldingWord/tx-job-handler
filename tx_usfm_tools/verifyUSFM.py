@@ -39,7 +39,7 @@ class State:
     chapter_label = ''
     chapter = 0
     nParagraphs = 0
-    nMargin = 0
+    nMargins = 0
     nQuotes = 0
     verse = 0
     lastVerse = 0
@@ -77,7 +77,7 @@ class State:
         State.textOkayHere = False
         State.chapters = set()
         State.nParagraphs = 0
-        State.nMargin = 0
+        State.nMargins = 0
         State.nQuotes = 0
         State.lastReferenceString = ''
         State.referenceString = ''
@@ -133,7 +133,7 @@ class State:
         State.chapters.add(State.chapter)
         State.lastVerse = 0
         State.nParagraphs = 0
-        State.nMargin = 0
+        State.nMargins = 0
         State.nQuotes = 0
         State.verse = 0
         State.needVerseText = False
@@ -152,7 +152,7 @@ class State:
         State.textOkayHere = True
 
     def addMargin(self):
-        State.nMargin += State.nMargin + 1
+        State.nMargins += 1
         State.textOkayHere = True
 
     # supports a span of verses, e.g. 3-4, if needed. Passes the verse(s) on to addVerse()
@@ -570,7 +570,7 @@ def takeV(v):
             report_error(f"{state.referenceString} {v} - Missing ID before verse\n")
         if state.chapter == 0:
             report_error(f"{state.referenceString} - Missing chapter tag\n")
-        if (state.nParagraphs == 0) and (state.nQuotes == 0) and (state.nMargin == 0):
+        if (state.nParagraphs == 0) and (state.nQuotes == 0) and (state.nMargins == 0):
             report_error(f"{state.referenceString} - Missing paragraph marker (\\p), margin (\\m) or quote (\\q) before verse text\n")
 
     missing = ""
@@ -611,8 +611,8 @@ def takeText(t):
         if t[0] == '\\':
             report_error(f"{state.referenceString} - Nearby uncommon or invalid marker\n")
         else:
-            # print "Missing verse marker before text: <" + t.encode('utf-8') + "> around " + state.reference
-            # report_error("Missing verse marker or extra text around " + state.referenceString + ": <" + t[0:10] + '>.\n')
+            print(f"Missing verse marker before text: <{t}> around {state.referenceString}")
+            report_error(f"Missing verse marker or extra text around {state.referenceString}: <{t[:10]}>.\n")
             report_error(f"{state.referenceString} - Missing verse marker or extra text nearby\n")
         if lastToken:
             report_error(f"{state.referenceString} - Preceding Token.type was '{lastToken.getType()}'\n")
@@ -710,7 +710,7 @@ def take(token):
         takeC(token.value)
     elif token.isP() \
     or token.isPI() or token.isPI1() or token.isPI2() \
-    or token.isPC() or token.isNB():
+    or token.isPC() or token.isNB() or token.is_ip():
         takeP()
     elif token.isV():
         takeV(token.value)
@@ -718,7 +718,7 @@ def take(token):
         takeText(token.value)
     elif token.isQ() or token.isQ1() or token.isQ2() or token.isQ3():
         state.addQuote()
-    elif token.isM() or token.isMI():
+    elif token.isM() or token.isMI() or token.is_im():
         state.addMargin()
     elif token.isUnknown():
         takeUnknown(state, token)
