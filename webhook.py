@@ -88,7 +88,7 @@ CONVERTER_TABLE = (
 AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
-tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}.HTML"
+tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
 job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
 
 
@@ -300,8 +300,8 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
                                    f" contains {os.listdir(source_folder_path)}")
 
     # Save some stats
-    stats_client.incr(f"{job_handler_stats_prefix}.jobs.format.{queued_json_payload['input_format']}_{queued_json_payload['output_format']}")
-    stats_client.incr(f"{job_handler_stats_prefix}.jobs.identifier.{queued_json_payload['resource_type']}")
+    stats_client.incr(f"{job_handler_stats_prefix}.jobs.HTML.input.{queued_json_payload['input_format']}")
+    stats_client.incr(f"{job_handler_stats_prefix}.jobs.HTML.subject.{queued_json_payload['resource_type']}")
 
 
     # Find the correct linter and converter
@@ -357,7 +357,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        stats_client.incr(f'{job_handler_stats_prefix}.callbacks.attempted')
+        stats_client.incr(f'{job_handler_stats_prefix}.callbacks.HTML.attempted')
         response:Optional[requests.Response]
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
@@ -405,7 +405,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     """
     AppSettings.logger.debug("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
-    stats_client.incr(f'{job_handler_stats_prefix}.jobs.attempted')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.HTML.attempted')
 
     AppSettings.logger.info(f"Clearing /tmp folder…")
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
@@ -453,13 +453,13 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
-    stats_client.timing(f'{job_handler_stats_prefix}.job.duration', elapsed_milliseconds)
+    stats_client.timing(f'{job_handler_stats_prefix}.job.HTML.duration', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
-    stats_client.incr(f'{job_handler_stats_prefix}.jobs.completed')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.HTML.completed')
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
