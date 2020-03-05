@@ -376,6 +376,13 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('</span>')
 
+    def renderTL_S(self, token):
+        assert not token.value
+        self.write('<em class="foreign">')
+    def renderTL_E(self, token):
+        assert not token.value
+        self.write('</em>')
+
     def renderWJ_S(self, token):
         assert not token.value
         self.write('<span class="woc">')
