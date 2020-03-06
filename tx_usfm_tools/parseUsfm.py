@@ -143,12 +143,17 @@ xt      = usfmTokenValue('xt', phrase)
 # xts    = usfmToken('xt')
 xt_e    = usfmEndToken('xt')
 
-wj_s     = usfmToken('wj')
-wj_e     = usfmEndToken('wj')
+# Keyword/Keyterm http://ubsicap.github.io/usfm/master/characters/index.html#k-k
+k_s     = usfmToken('k')
+k_e     = usfmEndToken('k')
 
 # Transliterated
 tl_s      = usfmToken('tl')
 tl_e      = usfmEndToken('tl')
+
+# Word of Jesus
+wj_s     = usfmToken('wj')
+wj_e     = usfmEndToken('wj')
 
 # Small caps
 sc_s      = usfmToken('sc')
@@ -296,6 +301,8 @@ element =  MatchFirst([ide, id,
                        xe,
                        ist, ien,
                        em_s, em_e,
+                       k_s, k_e,
+                       tl_s, tl_e,
                        wj_s, wj_e,
                        nd_s, nd_e,
                        bd_s, bd_e,
@@ -304,7 +311,6 @@ element =  MatchFirst([ide, id,
                        d,
                        sp,
                        add_s, add_e,
-                       tl_s, tl_e,
                        is0, is1, is2, is3,
                        ip,
                        im,
@@ -470,9 +476,10 @@ def createToken(t):
         'add':  ADDStartToken, 'add*': ADDEndToken,
         'nd':   NDStartToken, 'nd*':  NDEndToken,
         'sc':   SCStartToken, 'sc*':  SCEndToken,
+        'k':    KStartToken, 'k*':  KEndToken,
+        'tl':   TLStartToken, 'tl*':  TLEndToken,
         'wj':   WJStartToken, 'wj*':  WJEndToken,
         'm':    MToken,
-        'tl':   TLStartToken, 'tl*':  TLEndToken,
         '\\\\': EscapedToken,
         'rem':  REMToken,
 
@@ -590,6 +597,8 @@ class UsfmToken:
     def isV(self):      return False
     def isVAS(self):    return False
     def isVAE(self):    return False
+    def isKS(self):     return False
+    def isKE(self):     return False
     def isWJS(self):    return False
     def isWJE(self):    return False
     def isTEXT(self):   return False
@@ -824,6 +833,13 @@ class VAEndToken(UsfmToken):
 class TEXTToken(UsfmToken):
     def renderOn(self, printer): return printer.renderText(self)
     def isTEXT(self):   return True
+
+class KStartToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderK_S(self)
+    def isKS(self):    return True
+class KEndToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderK_E(self)
+    def isKE(self):    return True
 
 class WJStartToken(UsfmToken):
     def renderOn(self, printer): return printer.renderWJ_S(self)

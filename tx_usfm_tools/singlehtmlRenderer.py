@@ -369,6 +369,20 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('</em>')
 
+    def renderK_S(self, token):
+        assert not token.value
+        self.write('<span class="keyterm">')
+    def renderK_E(self, token):
+        assert not token.value
+        self.write('</span>')
+
+    def renderTL_S(self, token):
+        assert not token.value
+        self.write('<em class="foreign">')
+    def renderTL_E(self, token):
+        assert not token.value
+        self.write('</em>')
+
     def renderWJ_S(self, token):
         assert not token.value
         self.write('<span class="woc">')
@@ -389,6 +403,20 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderEM_E(self, token):
         assert not token.value
         self.write('</em>')
+
+    def renderIT_S(self, token):
+        assert not token.value
+        self.write('<em class="italic">')
+    def renderIT_E(self, token):
+        assert not token.value
+        self.write('</em>')
+
+    def renderBDIT_S(self, token):
+        assert not token.value
+        self.write('<b><em class="italic">')
+    def renderBDIT_E(self, token):
+        assert not token.value
+        self.write('</em></b>')
 
     def renderE(self, token):
         self.closeParagraph()
