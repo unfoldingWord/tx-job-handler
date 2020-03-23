@@ -19,7 +19,7 @@ class TwLinter(MarkdownLinter):
         :return bool:
         """
         self.source_dir = os.path.abspath(self.source_dir)
-        for root, dirs, files in os.walk(self.source_dir):
+        for root, _dirs, files in os.walk(self.source_dir):
             for f in files:
                 file_path = os.path.join(root, f)
                 parts = os.path.splitext(f)

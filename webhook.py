@@ -17,7 +17,7 @@ import sys
 sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
 import traceback
 
-# Library (PyPi) imports
+# Library (PyPI) imports
 import requests
 from rq import get_current_job, Queue
 from statsd import StatsClient # Graphite front-end
