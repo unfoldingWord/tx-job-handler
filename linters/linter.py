@@ -114,19 +114,18 @@ class Linter(metaclass=ABCMeta):
     # end of Linter.run()
 
 
-    def check_pairs(self, some_text:str, ref:str, ignore_close_parenthesis=False) -> None:
+    def check_punctuation_pairs(self, some_text:str, ref:str, allow_close_parenthesis_points=False) -> None:
         """
         Check matching number of pairs.
 
         If closing parenthesis is used for points, e.g., 1) This point.
             then set the optional flag.
         """
-        check_pairs = (('[',']'), ('{','}'), ('**_','_**')) if ignore_close_parenthesis \
-                    else (('(',')'), ('[',']'), ('{','}'), ('**_','_**'))
+        punctuation_pairs_to_check = (('(',')'), ('[',']'), ('{','}'), ('**_','_**'))
 
         found_any_paired_chars = False
         # found_mismatch = False
-        for pairStart,pairEnd in check_pairs:
+        for pairStart,pairEnd in punctuation_pairs_to_check:
             pairStartCount = some_text.count(pairStart)
             pairEndCount   = some_text.count(pairEnd)
             if pairStartCount or pairEndCount:
@@ -135,7 +134,13 @@ class Linter(metaclass=ABCMeta):
                 self.log.warning(f"{ref}: Possible missing closing '{pairEnd}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
                 # found_mismatch = True
             elif pairEndCount > pairStartCount:
-                self.log.warning(f"{ref}: Possible missing opening '{pairStart}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
+                if allow_close_parenthesis_points:
+                    # possible_points_list = re.findall(r'\s\d\) ', some_text)
+                    # if possible_points_list: print("possible_points_list", possible_points_list)
+                    possible_point_count = len(re.findall(r'\s\d\) ', some_text))
+                    pairEndCount -= possible_point_count
+                if pairEndCount > pairStartCount: # still
+                    self.log.warning(f"{ref}: Possible missing opening '{pairStart}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
                 # found_mismatch = True
         if found_any_paired_chars: # and not found_mismatch:
             # Double-check the nesting
@@ -183,12 +188,12 @@ class Linter(metaclass=ABCMeta):
                     ):
             count = len(re.findall(regex, some_text)) # Finds all NON-OVERLAPPING matches
             if count:
-                # print(f"check_pairs found {count} of '{field}' at {ref} in '{some_text}'")
+                # print(f"check_punctuation_pairs found {count} of '{field}' at {ref} in '{some_text}'")
                 if (count % 2) != 0:
                     # print(f"{ref}: Seem to have have mismatched '{field}' pairs in '{some_text}'")
                     content_snippet = some_text if len(some_text) < 85 \
                                         else f"{some_text[:40]} …… {some_text[-40:]}"
                     self.log.warning(f"{ref}: Seem to have have mismatched '{field}' pairs in '{content_snippet}'")
                     break # Only want one warning per text
-    # end of Linter.check_pairs function
+    # end of Linter.check_punctuation_pairs function
 #end of linter.py
