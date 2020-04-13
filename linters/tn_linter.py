@@ -256,7 +256,7 @@ class TnTsvLinter(Linter):
             elif bit.startswith('#'):
                 self.log.warning(f"Badly formatted markdown header at {reference}")
 
-        self.check_pairs(markdown_string, reference, ignore_close_parenthesis=True) # Uses 1) for lists of points!
+        self.check_punctuation_pairs(markdown_string, reference, allow_close_parenthesis_points=True) # Uses 1) for lists of points!
     # end of TnTsvLinter.check_markdown function
 
 

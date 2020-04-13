@@ -12,7 +12,7 @@ language: python
 # See available versions at https://docs.travis-ci.com/user/languages/python/
 python:
   - '3.8'
-  - 'nightly'
+#  - 'nightly'
 # NOTE: We only deploy on THE FIRST of these tests being successful -- see condition below
 
 services:

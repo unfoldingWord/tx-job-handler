@@ -36,7 +36,7 @@ class MarkdownLinter(Linter):
         for filename in self.get_files(relative_paths=True):
             with open( os.path.join(self.source_dir, filename), 'rt') as md_file:
                 file_contents = md_file.read()
-            self.check_pairs(file_contents, filename.replace('.md',''))
+            self.check_punctuation_pairs(file_contents, filename.replace('.md',''))
 
 
         md_data = self.get_strings() # Used for AWS Lambda call
