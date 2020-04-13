@@ -214,7 +214,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         if not self.current_chapter_number_string:
             self.chapterLabel = token.value
         else: # NOTE: This could be a duplicate field coz the c field usually writes these types of lines
-            logging.error("Got \\cl field after \c -- could produce duplicate chapter numbers!!!")
+            logging.error("Got \\cl field after \\c -- could produce duplicate chapter numbers!!!")
             self.write(f'\n\n<h2 id="{self.current_bookname}-ch-{self.current_chapter_number_string}" class="c-num">{token.value}</h2>')
 
     def renderC(self, token):
