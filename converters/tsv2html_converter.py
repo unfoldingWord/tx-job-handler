@@ -21,7 +21,7 @@ class Tsv2HtmlConverter(Converter):
     """
     # NOTE: Not all columns are passed from the preprocessor -- only the used ones
     EXPECTED_TAB_COUNT = 4 # So there's one more column than this
-        # NOTE: The preprocessor removes unneeded columns while fixing links
+        # (The preprocessor removes unneeded columns while fixing links.)
 
 
     def convert(self) -> bool:

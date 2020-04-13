@@ -17,14 +17,18 @@ class SingleHTMLRenderer(AbstractRenderer):
         # IO
         self.outputFilename = outputFilename
         self.inputDir = inputDir
-        # Position
-        self.cb = ''    # Current Book
-        self.cc = '001'    # Current Chapter
-        self.cv = '001'    # Current Verse
+        self.resetBook()
+
+
+    def resetBook(self):
+        self.current_bookname = ''
+        self.current_chapter_number_string = ''
+        self.current_verse_number_string = ''
         self.inParagraph = False
         self.indentFlag = False
         self.bookName = ''
         self.chapterLabel = 'Chapter'
+        self.thisChapterLabel = ''
         self.listItemLevel = 0
 
         self.footnoteFlag = False
@@ -110,7 +114,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.f.write(h)
 
     def startLI(self, level=1):
-        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} startLI({level})…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} startLI({level})…")
         if self.listItemLevel:
             self.stopLI()
         assert self.listItemLevel == 0
@@ -120,7 +124,7 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.listItemLevel += 1
 
     def stopLI(self):
-        # if 'NUM' in self.bookName and '00' in self.cc and self.listItemLevel: logging.debug(f"@{self.cc}:{self.cv} stopLI() from level {self.listItemLevel}…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string and self.listItemLevel: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} stopLI() from level {self.listItemLevel}…")
         while self.listItemLevel > 0:
             self.f.write('</ul>')
             self.listItemLevel -= 1
@@ -134,7 +138,7 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def writeIndent(self, level):
         assert level > 0
-        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} writeIndent({level})…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} writeIndent({level})…")
         # if self.indentFlag:
         self.closeParagraph()  # always close the last indent before starting a new one
         self.indentFlag = True
@@ -142,7 +146,7 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('&nbsp;' * (level * 4))  # spaces for PDF since we can't style margin with css
 
     def closeParagraph(self):
-        # if 'NUM' in self.bookName and '00' in self.cc and self.indentFlag: logging.debug(f"@{self.cc}:{self.cv} closeParagraph() from {self.indentFlag}…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string and self.indentFlag: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} closeParagraph() from {self.indentFlag}…")
         if self.inParagraph:
             self.inParagraph = False
             self.f.write('</p>\n')
@@ -151,12 +155,17 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.f.write('</p>\n')
 
     def renderID(self, token):
+        """
+        Must be new book now.
+        """
+        # Close the last book
         self.writeFootnotes()
         self.writeCrossReferences()
-        self.cb = bookKeyForIdValue(token.value)
-        self.chapterLabel = 'Chapter'
         self.closeParagraph()
-        #self.write('\n\n<span id="' + self.cb + '"></span>\n')
+        # Open new book
+        self.resetBook()
+        self.current_bookname = bookKeyForIdValue(token.value)
+        #self.write('\n\n<span id="' + self.current_bookname + '"></span>\n')
 
     def renderIDE(self, token):
         pass # Ignore
@@ -198,9 +207,41 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('\n\n<h4>' + token.value + '</h4>')
 
 
+    def renderCL(self, token):
+        """
+        Means something different if it occurs before or after chapter 1.
+        """
+        if not self.current_chapter_number_string:
+            self.chapterLabel = token.value
+        else: # NOTE: This could be a duplicate field coz the c field usually writes these types of lines
+            logging.error("Got \\cl field after \c -- could produce duplicate chapter numbers!!!")
+            self.write(f'\n\n<h2 id="{self.current_bookname}-ch-{self.current_chapter_number_string}" class="c-num">{token.value}</h2>')
+
+    def renderC(self, token):
+        self.closeFootnote()
+        if not self.bookName: # i.e., there was no \h or \toc2 field in the USFM
+            # NOTE: The next line is not tested on New Testament -- may be out by one book
+            self.bookName = bookNames[int(self.current_bookname)-1]
+            logging.warning(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
+            self.writeHeader()
+        self.stopLI()
+        self.closeParagraph()
+        self.writeFootnotes()
+        self.writeCrossReferences()
+        self.footnote_num = 1
+        self.current_chapter_number_string = token.value.zfill(3)
+        self.write(f'\n\n<h2 id="{self.current_bookname}-ch-{self.current_chapter_number_string}" class="c-num">{self.chapterLabel} {token.value}</h2>')
+    def renderCA_S(self, token):
+        assert not token.value
+        self.write('<span class="altChapter">')
+    def renderCA_E(self, token):
+        assert not token.value
+        self.write('</span>')
+
+
     def renderP(self, token):
         assert not token.value
-        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderP({token.value})…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderP({token.value})…")
         self.stopLI()
         self.closeParagraph()
         self.write('\n\n<p>')
@@ -208,13 +249,13 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def renderPI1(self, token):
         assert not token.value
-        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderPI({token.value})…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderPI({token.value})…")
         self.stopLI()
         self.closeParagraph()
         self.writeIndent(2)
     def renderPI2(self, token):
         assert not token.value
-        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderPI({token.value})…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderPI({token.value})…")
         self.stopLI()
         self.closeParagraph()
         self.writeIndent(3)
@@ -260,37 +301,15 @@ class SingleHTMLRenderer(AbstractRenderer):
         if token.value:
             logger = logging.warning if token.value==' ' else logging.error
             logger(f"pseudo-USFM 's5' marker will lose following text: '{token.value}'")
-        # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderS5({token.value})…")
+        # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderS5({token.value})…")
         self.write('\n<span class="chunk-break"></span>\n')
-
-    def renderC(self, token):
-        self.closeFootnote()
-        if not self.bookName: # i.e., there was no \h or \toc2 field in the USFM
-            # NOTE: The next line is not tested on New Testament -- may be out by one book
-            self.bookName = bookNames[int(self.cb)-1]
-            logging.warning(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
-            self.writeHeader()
-        self.stopLI()
-        self.closeParagraph()
-        self.writeFootnotes()
-        self.writeCrossReferences()
-        self.footnote_num = 1
-        self.cc = token.value.zfill(3)
-        self.write('\n\n<h2 id="{0}-ch-{1}" class="c-num">{2} {3}</h2>'
-                   .format(self.cb, self.cc, self.chapterLabel, token.value))
-    def renderCA_S(self, token):
-        assert not token.value
-        self.write('<span class="altChapter">')
-    def renderCA_E(self, token):
-        assert not token.value
-        self.write('</span>')
 
     def renderV(self, token):
         self.stopLI()
         self.closeFootnote()
-        self.cv = token.value.zfill(3)
+        self.current_verse_number_string = token.value.zfill(3)
         self.write(' <span id="{0}-ch-{1}-v-{2}" class="v-num"><sup><b>{3}</b></sup></span>'.
-                   format(self.cb, self.cc, self.cv, token.value))
+                   format(self.current_bookname, self.current_chapter_number_string, self.current_verse_number_string, token.value))
     def renderVA_S(self, token):
         assert not token.value
         self.write('<span class="altVerse"><sup> (')
@@ -430,7 +449,7 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     # def renderLI(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
     #     assert not token.value
-    #     # if 'NUM' in self.bookName and '00' in self.cc: logging.debug(f"@{self.cc}:{self.cv} renderLI({token.value})…")
+    #     # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderLI({token.value})…")
     #     self.renderLI1(token)
     def renderLI1(self, token):
         assert not token.value
@@ -443,11 +462,11 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.startLI(3)
 
     def renderD(self, token):
-        # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.cb} {self.cc}:{self.cv}")
+        # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.current_bookname} {self.current_chapter_number_string}:{self.current_verse_number_string}")
         self.closeParagraph()
         self.write('<span class="d">' + token.value + '</span>')
     def renderSP(self, token):
-        # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.cb} {self.cc}:{self.cv}")
+        # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.current_bookname} {self.current_chapter_number_string}:{self.current_verse_number_string}")
         self.closeParagraph()
         self.write('<span class="sp">' + token.value + '</span>')
 
@@ -529,9 +548,6 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.closeParagraph()
 
-    def renderCL(self, token):
-        self.chapterLabel = token.value
-
     def renderQR(self, token):
         self.write('<em class="quote right" style="display:block;float:right;">'+token.value+'</em>')
 
@@ -539,7 +555,7 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderF_S(self, token):
         # print(f"renderF_S({token.value}) with {self.footnoteFlag} and '{self.footnote_text}'")
         self.closeFootnote() # If there's one currently open
-        self.footnote_id = 'fn-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.footnote_num)
+        self.footnote_id = 'fn-{0}-{1}-{2}-{3}'.format(self.current_bookname, self.current_chapter_number_string, self.current_verse_number_string, self.footnote_num)
         self.write('<span id="ref-{0}"><sup><em>[<a href="#{0}">{1}</a>]</em></sup></span>'.format(self.footnote_id, self.footnote_num))
         self.footnoteFlag = True
         text = token.value
@@ -606,9 +622,9 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.renderFQA_E(UsfmToken(''))
             self.footnotes[self.footnote_id] = {
                 'text': self.footnote_text,
-                'book': self.cb,
-                'chapter': self.cc,
-                'verse': self.cv,
+                'book': self.current_bookname,
+                'chapter': self.current_chapter_number_string,
+                'verse': self.current_verse_number_string,
                 'fn_num': self.footnote_num
             }
             self.footnote_num += 1
@@ -631,7 +647,7 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderX_S(self, token):
         assert token.value == '+'
         self.closeCrossReference() # If there's one currently open
-        self.crossReference_id = 'xr-{0}-{1}-{2}-{3}'.format(self.cb, self.cc, self.cv, self.crossReference_num)
+        self.crossReference_id = 'xr-{0}-{1}-{2}-{3}'.format(self.current_bookname, self.current_chapter_number_string, self.current_verse_number_string, self.crossReference_num)
         self.write('<span id="ref-{0}"><sup><em>[<a href="#{0}">{1}</a>]</em></sup></span>'.format(self.crossReference_id, self.crossReference_num))
         self.crossReferenceFlag = True
         text = token.value
@@ -665,9 +681,9 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.crossReferences[self.crossReference_id] = {
                 'origin': self.crossReference_origin,
                 'text': self.crossReference_text,
-                'book': self.cb,
-                'chapter': self.cc,
-                'verse': self.cv,
+                'book': self.current_bookname,
+                'chapter': self.current_chapter_number_string,
+                'verse': self.current_verse_number_string,
                 'xr_num': self.crossReference_num
             }
             self.crossReference_num += 1
