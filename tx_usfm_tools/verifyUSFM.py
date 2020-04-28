@@ -659,7 +659,7 @@ def isIntro(token):
     return token.is_is1() or token.is_ip() or token.is_iot() or token.is_io1()
 
 def isCharacterFormatting(token):
-    # RJH added this 16May2019 -- doesn't contain all character format codes yet
+    # RJH added this 16May2019—doesn't contain all character format codes yet
     return token.isADDS() or token.isADDE() \
         or token.isNDS() or token.isNDE() \
         or token.isWJS() or token.isWJE() \
@@ -671,7 +671,7 @@ def isCharacterFormatting(token):
 
 def isTextCarryingToken(token):
     """
-    NOTE: RJH -- how can this work when it contains both newline markers
+    NOTE: RJH—how can this work when it contains both newline markers
                     and character (e.g., footnote) markers???
             Also, does it check if they actually contain text?
     """

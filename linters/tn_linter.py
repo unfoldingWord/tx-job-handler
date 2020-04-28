@@ -210,7 +210,7 @@ class TnTsvLinter(Linter):
                         if lastC == 'front': lastC = '0'
                         elif lastC == 'back': lastC = '999'
                     if error_count > MAX_ERROR_COUNT:
-                        AppSettings.logger.critical("TnTsvLinter: Too many TSV count errors -- aborting!")
+                        AppSettings.logger.critical("TnTsvLinter: Too many TSV count errors—aborting!")
                         break
 
         # if prefix and debug_mode_flag:

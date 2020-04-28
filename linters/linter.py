@@ -131,7 +131,7 @@ class Linter(metaclass=ABCMeta):
             if pairStartCount or pairEndCount:
                 found_any_paired_chars = True
             if pairStartCount > pairEndCount:
-                self.log.warning(f"{ref}: Possible missing closing '{pairEnd}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
+                self.log.warning(f"{ref}: Possible missing closing '{pairEnd}' — found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
                 # found_mismatch = True
             elif pairEndCount > pairStartCount:
                 if allow_close_parenthesis_points:
@@ -140,7 +140,7 @@ class Linter(metaclass=ABCMeta):
                     possible_point_count = len(re.findall(r'\s\d\) ', some_text))
                     pairEndCount -= possible_point_count
                 if pairEndCount > pairStartCount: # still
-                    self.log.warning(f"{ref}: Possible missing opening '{pairStart}' -- found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
+                    self.log.warning(f"{ref}: Possible missing opening '{pairStart}' — found {pairStartCount} '{pairStart}' but {pairEndCount} '{pairEnd}'")
                 # found_mismatch = True
         if found_any_paired_chars: # and not found_mismatch:
             # Double-check the nesting
@@ -161,10 +161,10 @@ class Linter(metaclass=ABCMeta):
                         and ix>0 and some_text[ix-1].isdigit() \
                         and ix<len(some_text)-1 and some_text[ix+1] in ' \t':
                             # This could be part of a list like 1) ... 2) ...
-                            pass # Just ignore this -- at least they'll still get the above mismatched count message
+                            pass # Just ignore this—at least they'll still get the above mismatched count message
                         else:
                             locateString = f" after recent '{nestingString[-1]}'" if nestingString else ''
-                            self.log.warning(f"{ref} line {line_number:,}: Possible nesting error -- found unexpected '{char}'{locateString} near {lines[line_number-1]}")
+                            self.log.warning(f"{ref} line {line_number:,}: Possible nesting error—found unexpected '{char}'{locateString} near {lines[line_number-1]}")
                 elif char == '\n':
                     line_number += 1
             if nestingString: # handle left-overs

@@ -587,7 +587,7 @@ class Resource:
 
     @property
     def issued(self) -> str:
-        # Make sure a string is returned -- not a date object
+        # Make sure a string is returned—not a date object
         if 'issued' in self.resource and self.resource['issued']:
             issued_result = self.resource.get('issued')
             if isinstance(issued_result, str):
@@ -610,7 +610,7 @@ class Resource:
 
     @property
     def modified(self) -> str:
-        # Make sure a string is returned -- not a date object
+        # Make sure a string is returned—not a date object
         if 'modified' in self.resource and self.resource['modified']:
             modified_result = self.resource.get('modified')
             if isinstance(modified_result, str): return modified_result

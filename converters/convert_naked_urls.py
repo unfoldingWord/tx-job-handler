@@ -17,7 +17,7 @@ def fix_naked_urls(given_html):
 
     re_flags = re.MULTILINE
     # TODO: I'm sure some of these RE's could be combined (but I need to move on)
-    # <Full URLs> -- angle brackets get dropped
+    # <Full URLs> — angle brackets get dropped
     for j, regex in enumerate((r'<((?:ftp|http|https)://(?:[\.\w\d]+?)\.(?:com|org|net|us|bible)(?:[/=\?\w\d]+))>',
                                r'<((?:ftp|http|https)://(?:[\.\w\d]+?)\.(?:com|org|net|us|bible)/?)>')):
         while True:
@@ -35,7 +35,7 @@ def fix_naked_urls(given_html):
             AppSettings.logger.debug(f"Found naked URL matchB{j}: '{match.group(1)}' inside '{match.group(0)}'")
             result_html = f'{result_html[:match.start(1)]}<a href="{match.group(1)}">{match.group(1)}</a>{result_html[match.end(1):]}'
 
-    # <No protocol URLs> -- angle brackets get dropped
+    # <No protocol URLs> — angle brackets get dropped
     for j, regex in enumerate((r'<((?:[\.\w\d]+?)\.(?:com|org|net|us|bible)(?:[/=\?\w\d]+))>',
                                r'<((?:[\.\w\d]+?)\.(?:com|org|net|us|bible)/?)>')):
         while True:
