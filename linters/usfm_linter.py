@@ -94,7 +94,7 @@ class UsfmLinter(Linter):
         book_name_parts = book_full_name.split('-')
         if len(book_name_parts) > 1:
             book_code = book_name_parts[1]
-        # Expected method is above -- the code below tries to cope with human variations
+        # Expected method is above—the code below tries to cope with human variations
         if book_code not in books.silNames:
             book_code = None
             AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try1 seemed to fail with book_code='{book_code}'")
@@ -129,7 +129,7 @@ class UsfmLinter(Linter):
         if not book_text:
             self.log.warning(f"{book_code} - No USFM text found")
             return
-            
+
         try:
             lang_code = self.rc.resource.language.identifier
             errors, book_code = verifyUSFM.verify_contents_quiet(book_text, book_full_name, book_code, lang_code)

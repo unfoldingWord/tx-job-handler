@@ -14,7 +14,7 @@ import json
 from datetime import datetime, timedelta, date
 from time import time
 import sys
-sys.setrecursionlimit(1500) # Default is 1,000 -- beautifulSoup hits this limit with UST
+sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 import traceback
 
 # Library (PyPI) imports
@@ -87,7 +87,7 @@ CONVERTER_TABLE = (
 
 AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
-    AppSettings.logger.critical(f"Unexpected prefix: {prefix!r} -- expected '' or 'dev-'")
+    AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
 tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
 job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
 
@@ -234,7 +234,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
         options (dict)
         callback (url string)
     The following fields are included by the Door43 Job Handler but ignored here:
-        user_token -- was already checked by tX enqueue job
+        user_token—was already checked by tX enqueue job
 
     Conversion and linting are now initiated by sending a request to each.
 

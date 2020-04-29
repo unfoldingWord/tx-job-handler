@@ -214,13 +214,13 @@ class SingleHTMLRenderer(AbstractRenderer):
         if not self.current_chapter_number_string:
             self.chapterLabel = token.value
         else: # NOTE: This could be a duplicate field coz the c field usually writes these types of lines
-            logging.error("Got \\cl field after \\c -- could produce duplicate chapter numbers!!!")
+            logging.error("Got \\cl field after \\c — could produce duplicate chapter numbers!!!")
             self.write(f'\n\n<h2 id="{self.current_bookname}-ch-{self.current_chapter_number_string}" class="c-num">{token.value}</h2>')
 
     def renderC(self, token):
         self.closeFootnote()
         if not self.bookName: # i.e., there was no \h or \toc2 field in the USFM
-            # NOTE: The next line is not tested on New Testament -- may be out by one book
+            # NOTE: The next line is not tested on New Testament—may be out by one book
             self.bookName = bookNames[int(self.current_bookname)-1]
             logging.warning(f"Used '{self.bookName}' as book name (due to missing \\h and \\toc2 fields)")
             self.writeHeader()

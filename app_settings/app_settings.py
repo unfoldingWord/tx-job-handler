@@ -77,7 +77,7 @@ class AppSettings:
     #                    'linter_messaging_name', 'db_name', 'db_user']
     prefixable_vars = ['name', 'cdn_bucket_name', 'linter_messaging_name',]
 
-    # Credentials -- get the secret ones from environment variables
+    # Credentials—get the secret ones from environment variables
     aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
     aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
     aws_region_name = 'us-west-2'

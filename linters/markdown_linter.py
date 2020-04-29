@@ -46,7 +46,7 @@ class MarkdownLinter(Linter):
             payloadString = payloadString.decode()
         estimated_payload_length = len(payloadString) + 335 # Allow for 'config' strings (included later)
         AppSettings.logger.debug(f"Approx length of Markdown Linter payload = {estimated_payload_length:,} characters.")
-        payload_oversize_flag = estimated_payload_length > 6_291_456 # 6 MB -- AWS Lambda call will fail
+        payload_oversize_flag = estimated_payload_length > 6_291_456 # 6 MB—AWS Lambda call will fail
         if payload_oversize_flag:
             AppSettings.logger.warning(f"Oversize Markdown Linter payload = {estimated_payload_length:,} characters.")
 
@@ -69,7 +69,7 @@ class MarkdownLinter(Linter):
         else: # old (tx-Manager) code using AWS Lambda node.js call
             AppSettings.logger.info("Invoking Node.js linter via AWS Lambda call…")
             # print(len(md_data), md_data)
-            # AppSettings.logger.debug(f"Size of markdown data = {len(md_data)}") # Useless -- always shows 1
+            # AppSettings.logger.debug(f"Size of markdown data = {len(md_data)}") # Useless—always shows 1
             lint_data = self.invoke_markdown_linter(self.get_invoke_payload(md_data))
             if not lint_data:
                 return False
@@ -143,7 +143,7 @@ class MarkdownLinter(Linter):
         AppSettings.logger.debug(f"MarkdownLinter.invoke_markdown_linter( {payload['options'].keys()}/{payload['options']['config']}/{len(payload['options']['strings'])} )")
         lambda_handler = LambdaHandler()
         lint_function = f'{AppSettings.prefix}tx_markdown_linter'
-        # AppSettings.logger.debug(f"Size of {self.s3_results_key} lint data={len(payload)}") # Useless data -- always shows None/1
+        # AppSettings.logger.debug(f"Size of {self.s3_results_key} lint data={len(payload)}") # Useless data—always shows None/1
         response = lambda_handler.invoke(lint_function, payload)
         if 'errorMessage' in response:
             AppSettings.logger.error(response['errorMessage'])

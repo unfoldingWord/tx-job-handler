@@ -19,7 +19,7 @@ class Tsv2HtmlConverter(Converter):
     """
     Class to convert TSV translationNotes into HTML pages.
     """
-    # NOTE: Not all columns are passed from the preprocessor -- only the used ones
+    # NOTE: Not all columns are passed from the preprocessor—only the used ones
     EXPECTED_TAB_COUNT = 4 # So there's one more column than this
         # (The preprocessor removes unneeded columns while fixing links.)
 
@@ -190,7 +190,7 @@ class Tsv2HtmlConverter(Converter):
                     error_count += 1
                 self.tsv_lines.append(tsv_line.split('\t'))
                 if error_count > MAX_ERROR_COUNT:
-                    AppSettings.logger.critical("Tsv2HtmlConverter: Too many TSV count errors -- aborting!")
+                    AppSettings.logger.critical("Tsv2HtmlConverter: Too many TSV count errors—aborting!")
                     break
         AppSettings.logger.info(f"Preloaded {len(self.tsv_lines):,} TSV lines from {os.path.basename(tsv_filepath)}.")
 

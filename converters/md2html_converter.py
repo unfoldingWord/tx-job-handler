@@ -191,7 +191,7 @@ class Md2HtmlConverter(Converter):
                 except Exception as e:
                     self.log.error(f"Error reading {filename}: {e}")
                     continue
-                # if 0: # test code -- creates html1
+                # if 0: # test code—creates html1
                 #     headers = {"content-type": "application/json"}
                 #     url = "http://bg.door43.org/api/v1/markdown"
                 #     payload = {
@@ -224,7 +224,7 @@ class Md2HtmlConverter(Converter):
                 #         #     AppSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
                 #     else: # no response
                 #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
-                if 1: # old/existing code -- creates html2
+                if 1: # old/existing code—creates html2
                     if self.repo_subject in ['Translation_Academy',]:
                         html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
                         if prefix and debug_mode_flag:
@@ -373,7 +373,6 @@ class Md2HtmlConverter(Converter):
 </html>
 ''')
     # end of Md2HtmlConverter.write_lexicon_view_entry_file function
-# end of Md2HtmlConverter class
 
 
     def convert_markdown(self) -> None:
@@ -404,7 +403,7 @@ class Md2HtmlConverter(Converter):
                 except Exception as e:
                     self.log.error(f"Error reading {filename}: {e}")
                     continue
-                # if 0: # test code -- creates html1
+                # if 0: # test code—creates html1
                 #     headers = {"content-type": "application/json"}
                 #     url = "http://bg.door43.org/api/v1/markdown"
                 #     payload = {
@@ -437,7 +436,7 @@ class Md2HtmlConverter(Converter):
                 #         #     AppSettings.logger.error(f"Error calling callback code {callback_status}: {response.reason}")
                 #     else: # no response
                 #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
-                if 1: # old/existing code -- creates html2
+                if 1: # old/existing code—creates html2
                     if self.repo_subject in ['Translation_Academy',]:
                         html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
                         if prefix and debug_mode_flag:
@@ -496,3 +495,4 @@ class Md2HtmlConverter(Converter):
                     pass
         self.log.info("Finished processing generic markdown files.")
     # end of Md2HtmlConverter.convert_markdown()
+# end of Md2HtmlConverter class
