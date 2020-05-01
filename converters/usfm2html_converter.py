@@ -84,9 +84,9 @@ class Usfm2HtmlConverter(Converter):
                 # AppSettings.logger.debug(f"### Usfm2HtmlConverter wrote souped-up html of length {template_soup_string_length:,} from {converted_html_length:,}")
                 if '</p></p></p>' in template_soup_string:
                     AppSettings.logger.warning(f"Usfm2HtmlConverter got multiple consecutive paragraph closures in {html_filename}")
-                if template_soup_string_length < converted_html_length * 0.68: # What is the 25% or so that's lost ???
+                if template_soup_string_length < converted_html_length * 0.67: # What is the 33% or so that's lost ???
                     AppSettings.logger.debug(f"### Usfm2HtmlConverter wrote souped-up html of length {template_soup_string_length:,} from {converted_html_length:,} = {template_soup_string_length*100.0/converted_html_length}%")
-                    self.log.error(f"Usfm2HtmlConverter possibly lost converted html for {html_filename}")
+                    self.log.warning(f"Usfm2HtmlConverter possibly lost converted html for {html_filename}")
                     AppSettings.logger.info(f"Usfm2HtmlConverter {html_filename} was {converted_html_length:,} now {template_soup_string_length:,}")
                     # AppSettings.logger.debug(f"Usfm2HtmlConverter {html_filename} was: {converted_html}")
                     write_file(os.path.join(scratch_dir,filebase+'.converted.html'), template_soup_string)
