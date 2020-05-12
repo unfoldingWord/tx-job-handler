@@ -11,14 +11,14 @@ pyyaml==5.3.1
 py-dateutil==2.2
 
 # boto3 is used by aws_tools
-boto3==1.12.46
+boto3==1.13.7
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==2.4.7
 
 # markdown is used by converters/md2html_converter.py
-markdown==3.2.1
-markdown2==2.3.8
+markdown==3.2.2
+markdown2==2.3.9
 
 # usfm-tools (transform) is used by converters/usfm2html_converter.py
 # We copied in the files and updated to Python3
