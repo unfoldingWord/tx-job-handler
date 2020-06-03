@@ -71,13 +71,13 @@ class TestResourceContainer(unittest.TestCase):
         repo_dir = os.path.join(self.out_dir, 'en-obs')
         rc = RC(directory=repo_dir)
         rc.as_dict()
-        json = load_json_object(os.path.join(repo_dir, 'package.json'))
-        self.assertEqual(rc.resource.identifier, json['resource']['slug'])
+        package_json = load_json_object(os.path.join(repo_dir, 'package.json'))
+        self.assertEqual(rc.resource.identifier, package_json['resource']['slug'])
         self.assertEqual(rc.resource.type, 'book')
-        self.assertEqual(rc.resource.format, json['content_mime_type'])
+        self.assertEqual(rc.resource.format, package_json['content_mime_type'])
         self.assertEqual(rc.resource.file_ext, 'md')
         self.assertEqual(rc.resource.conformsto, 'pre-rc')
-        self.assertEqual(rc.resource.issued, json['resource']['status']['pub_date'])
+        self.assertEqual(rc.resource.issued, package_json['resource']['status']['pub_date'])
         chapters = rc.projects[0].chapters()
         self.assertEqual(len(chapters), 2)
         chunks = rc.project().chunks('_back')
@@ -184,7 +184,7 @@ class TestResourceContainer(unittest.TestCase):
         manifest = get_manifest_from_repo_name('aa_mat-ts')
         self.assertEqual(manifest['dublin_core']['language']['identifier'], 'aa')
         self.assertEqual(manifest['dublin_core']['language']['title'], 'Afaraf')
-        self.assertEqual(manifest['dublin_core']['identifier'], 'bible')
+        self.assertEqual(manifest['dublin_core']['identifier'], 'aa_mat-ts') # was 'bible'
         self.assertEqual(manifest['projects'][0]['identifier'], 'mat')
 
 if __name__ == '__main__':

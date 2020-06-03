@@ -12,6 +12,7 @@ from general_tools.file_utils import load_json_object, load_yaml_object, read_fi
 from app_settings.app_settings import AppSettings
 
 
+
 class Language:
     def __init__(self, rc, language:Dict[str,str]) -> None:
         """
@@ -22,6 +23,7 @@ class Language:
         self.language = language
         if not isinstance(self.language, dict):
             raise Exception('Missing dict parameter: language')
+
 
     @property
     def identifier(self) -> str:
@@ -35,6 +37,7 @@ class Language:
             AppSettings.logger.warning(f"Language '{self.language}' is assuming 'en' identifier")
             return 'en'
 
+
     @property
     def direction(self) -> str:
         if 'direction'in self.language:
@@ -44,6 +47,7 @@ class Language:
         else:
             AppSettings.logger.warning(f"Language '{self.language}' is assuming 'ltr' direction")
             return 'ltr'
+
 
     @property
     def title(self) -> str:
@@ -55,6 +59,7 @@ class Language:
             AppSettings.logger.warning(f"Language '{self.language}' is assuming 'English' title")
             return 'English'
 # end of Language class
+
 
 
 class Project:
@@ -73,6 +78,7 @@ class Project:
         self.config_yaml = None
         self.toc_yaml = None
 
+
     @property
     def identifier(self) -> str:
         if 'identifier'in self.project:
@@ -83,6 +89,7 @@ class Project:
             return self.project['project_id'].lower()
         else:
             return self.rc.resource.identifier
+
 
     @property
     def title(self) -> str:
@@ -99,6 +106,7 @@ class Project:
         else:
             return self.rc.resource.title
 
+
     @property
     def path(self) -> str:
         if 'path' in self.project and self.project['path']:
@@ -108,32 +116,41 @@ class Project:
         else:
             return './'
 
+
     @property
     def sort(self) -> str:
         return self.project.get('sort', '1')
+
 
     @property
     def versification(self) -> str:
         return self.project.get('versification', 'kjv')
 
+
     @property
     def categories(self) -> list:
         return self.project.get('categories', [])
 
+
     def toc(self) -> str:
         return self.rc.toc(self.identifier)
+
 
     def config(self) -> str:
         return self.rc.config(self.identifier)
 
+
     def chapters(self):
         return self.rc.chapters(self.identifier)
+
 
     def chunks(self, chapter_identifier=None):
         return self.rc.chunks(self.identifier, chapter_identifier)
 
+
     def usfm_files(self):
         return self.rc.usfm_files(self.identifier)
+
 
     def as_dict(self) -> Dict[str,Any]:
         return {
@@ -147,6 +164,7 @@ class Project:
 # end of Project class
 
 
+
 class RC:
     current_version = '0.2'
 
@@ -156,6 +174,7 @@ class RC:
         :param string repo_name:
         :param dict manifest:
         """
+        AppSettings.logger.debug(f"RC( dir='{directory}', rn='{repo_name}', man={manifest} )…")
         self._dir = directory
         if directory is not None: assert os.path.isdir(directory)
         self._manifest = manifest
@@ -165,13 +184,16 @@ class RC:
         self._projects:List[str] = []
         self.error_messages:Set[str] = set() # Don't want duplicates
 
+
     @property
     def manifest(self) -> Dict[str,Any]:
         if not self._manifest:
             self._manifest = self.get_manifest_from_dir()
         return self._manifest
 
+
     def get_manifest_from_dir(self) -> Dict[str,Any]:
+        AppSettings.logger.info(f"get_manifest_from_dir() with {self.path} …")
         manifest = None
         self.loadeded_manifest_file = False
         if not self.path or not os.path.isdir(self.path):
@@ -223,6 +245,7 @@ class RC:
             return manifest
         return get_manifest_from_repo_name(self.repo_name)
 
+
     def as_dict(self) -> Dict[str,Any]:
         """
         Return a proper dict object of the manifest
@@ -259,12 +282,14 @@ class RC:
             'projects': self.projects_as_dict
         }
 
+
     @property
     def path(self) -> str:
         if self._dir:
             return self._dir.rstrip('/')
         else:
             return ''
+
 
     @property
     def repo_name(self) -> str:
@@ -274,6 +299,7 @@ class RC:
             return os.path.basename(self.path)
         else:
             return ''  # Use empty string instead of None
+
 
     @property
     def resource(self):
@@ -346,9 +372,11 @@ class RC:
             else:
                 return Project(self)
 
+
     @property
     def project_count(self) -> int:
         return len(self.projects)
+
 
     @property
     def project_ids(self) -> List[str]:
@@ -356,6 +384,7 @@ class RC:
         for p in self.projects:
             identifiers.append(p.identifier)
         return identifiers
+
 
     def chapters(self, identifier=None):
         """
@@ -378,6 +407,7 @@ class RC:
                         chapters.append(chapter)
             return chapters
 
+
     def chunks(self, project_identifier, chapter_identifier=None):
         if chapter_identifier is None:
             chapter_identifier = project_identifier
@@ -392,6 +422,7 @@ class RC:
             if os.path.isfile(f) and not chunk.startswith('.') and ext in ['', '.txt', '.text', '.md', '.usfm']:
                 chunks.append(chunk)
         return chunks
+
 
     def usfm_files(self, identifier=None):
         """
@@ -409,6 +440,7 @@ class RC:
                 usfm_files.append(os.path.basename(f))
             return usfm_files
 
+
     def config(self, project_identifier=None):
         p = self.project(project_identifier)
         if p is None:
@@ -422,6 +454,7 @@ class RC:
                 AppSettings.logger.error(err_msg)
                 self.error_messages.add(err_msg)
         return p.config_yaml
+
 
     def toc(self, project_identifier=None):
         p = self.project(project_identifier)
@@ -573,17 +606,21 @@ class Resource:
     def subject(self) -> str:
         return self.resource.get('subject', self.title)
 
+
     @property
     def description(self) -> str:
         return self.resource.get('description', self.title)
+
 
     @property
     def relation(self) -> list:
         return self.resource.get('relation', [])
 
+
     @property
     def publisher(self) -> str:
         return self.resource.get('publisher', 'Door43')
+
 
     @property
     def issued(self) -> str:
@@ -608,6 +645,7 @@ class Resource:
             AppSettings.logger.debug("RC has no 'issued' date available")
             return datetime.utcnow().strftime('%Y-%m-%d')
 
+
     @property
     def modified(self) -> str:
         # Make sure a string is returned—not a date object
@@ -622,13 +660,16 @@ class Resource:
             AppSettings.logger.debug("RC has no 'modified' date available")
             return datetime.utcnow().strftime('%Y-%m-%d')
 
+
     @property
     def rights(self) -> str:
         return self.resource.get('rights', 'CC BY-SA 4.0')
 
+
     @property
     def creator(self) -> str:
         return self.resource.get('creator', 'Unknown Creator')
+
 
     @property
     def language(self) -> Union[Language, Dict[str,str]]:
@@ -649,6 +690,7 @@ class Resource:
                 })
         return self._language
 
+
     @property
     def contributor(self) -> list:
         if 'contributor' in self.resource and self.resource['contributor']:
@@ -663,6 +705,7 @@ class Resource:
             return contributor
         else:
             return []
+
 
     @property
     def source(self) -> list:
@@ -694,17 +737,19 @@ class Resource:
             else:
                 return []
 
+
     @property
     def version(self) -> str:
         return self.resource.get('version', '1')
 # end of class Resource
 
 
+
 def get_manifest_from_repo_name(repo_name:str) -> Dict[str,Any]:
     """
     If no manifest file was given, try dissecting the repo name.
     """
-    AppSettings.logger.warning(f"Getting manifest from repo name '{repo_name}'…")
+    AppSettings.logger.warning(f"Seems no manifest so getting details from repo name '{repo_name}'…")
     manifest:Dict[str,Any] = {
         'dublin_core': {},
     }
@@ -751,12 +796,26 @@ def get_manifest_from_repo_name(repo_name:str) -> Dict[str,Any]:
                 'identifier': part.lower(),
                 'title': BOOK_NAMES[part.lower()]
             }
-            if 'identifier' not in manifest['dublin_core']:
-                manifest['dublin_core']['identifier'] = 'bible'
+            # This wasn't a correct assumption, e.g., in 'ha_num_tq_l2' (also has book abbreviation)
+            # if 'identifier' not in manifest['dublin_core']:
+            #     manifest['dublin_core']['identifier'] = 'bible'
             if 'projects' not in manifest:
                 manifest['projects'] = []
             manifest['projects'].append(project)
             continue
+
+    # Note: Sometimes repo names end with checking level fields, e.g., _l2
+    # TODO: What other fields could we detect here?
+    if repo_name.endswith('_ta') or '_ta_l' in repo_name:
+        manifest['dublin_core']['subject'] = 'Translation Academy'
+    elif repo_name.endswith('_tn') or '_tn_l' in repo_name:
+        manifest['dublin_core']['subject'] = 'Translation Notes'
+    elif repo_name.endswith('_tq') or '_tq_l' in repo_name:
+        manifest['dublin_core']['subject'] = 'Translation Questions'
+        manifest['dublin_core']['format'] = 'text/markdown'
+    elif repo_name.endswith('_tw') or '_tw_l' in repo_name:
+        manifest['dublin_core']['subject'] = 'Translation Words'
+        manifest['dublin_core']['format'] = 'text/markdown'
 
     if 'identifier' not in manifest['dublin_core']:
         manifest['dublin_core']['identifier'] = repo_name
