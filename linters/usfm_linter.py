@@ -88,35 +88,38 @@ class UsfmLinter(Linter):
         Everything returned is UPPERCASE.
         """
         file_name_parts = usfm_filename.split('.')
+        assert len(file_name_parts) == 2 # Exactly one period in usfm_filename
         book_full_name = file_name_parts[0].upper()
 
         book_code = book_full_name
-        book_name_parts = book_full_name.split('-')
+        if book_code.endswith('_BOOK'): book_code = book_code[:-5]
+        if '-' in book_full_name: book_name_parts = book_full_name.split('-')
+        else: book_name_parts = book_full_name.split('_')
         if len(book_name_parts) > 1:
             book_code = book_name_parts[1]
         # Expected method is above—the code below tries to cope with human variations
         if book_code not in books.silNames:
             book_code = None
-            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try1 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try1 seemed to fail with book_code={book_code!r}")
             for book_code in book_name_parts:
                 if book_code in books.silNames:
                     break
         if book_code not in books.silNames:
             book_code = None
-            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try2 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try2 seemed to fail with book_code={book_code!r}")
             for book_code in book_full_name.split('_'):
                 if book_code in books.silNames:
                     break
         if book_code not in books.silNames:
             book_code = None
-            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try3 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.debug(f"get_book_ids({usfm_filename}) try3 seemed to fail with book_code={book_code!r}")
             for book_code in book_full_name.replace('-','_').split('_'):
                 if book_code in books.silNames:
                     break
         if book_code is None:
             book_code = book_full_name # again
         if book_code not in books.silNames:
-            AppSettings.logger.warning(f"get_book_ids({usfm_filename}) try4 seemed to fail with book_code='{book_code}'")
+            AppSettings.logger.warning(f"get_book_ids({usfm_filename}) try4 seemed to fail with book_code={book_code!r}")
 
         return book_code, book_full_name
     # end of get_book_ids function
@@ -139,7 +142,7 @@ class UsfmLinter(Linter):
 
             if book_code:
                 if book_code in self.found_books:
-                    self.log.warning(f"File '{sub_path}' has same code '{book_code}' as previous file")
+                    self.log.warning(f"File '{sub_path}' has same code {book_code!r} as previous file")
                 self.found_books.append(book_code)
 
             if errors:
