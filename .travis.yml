@@ -16,6 +16,10 @@ python:
   - 'nightly' # currently 3.10
 # NOTE: We only deploy on THE FIRST of these tests being successful -- see condition below
 
+jobs:
+  allow_failures:
+  - python: nightly
+
 services:
   - docker
 
