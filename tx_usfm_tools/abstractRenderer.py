@@ -27,7 +27,7 @@ class AbstractRenderer:
         warning_list = []
         try:
             # logging.debug("AbstractRenderer.run() try using renderBook…")
-            bookName = self.renderBook # This gives an AttributeError for USFM
+            bookName = self.renderBook # This gives an AttributeError for USFM since it doesn't exist
             if bookName in self.booksUsfm:
                 self.writeLog('     (' + bookName + ')')
                 tokens = parseString(self.booksUsfm[bookName])

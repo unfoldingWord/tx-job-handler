@@ -304,6 +304,15 @@ class SingleHTMLRenderer(AbstractRenderer):
         # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderS5({token.value})…")
         self.write('\n<span class="chunk-break"></span>\n')
 
+    def renderR(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p style="text-align:center">' + token.getValue() + '</p>')
+    def renderSR(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p style="text-align:center">' + token.getValue() + '</p>')
+
     def renderV(self, token):
         self.stopLI()
         self.closeFootnote()
@@ -360,6 +369,13 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('<span class="tetragrammaton">')
     def renderND_E(self, token):
+        assert not token.value
+        self.write('</span>')
+
+    def renderADD_S(self, token):
+        assert not token.value
+        self.write('<span class="add" style="color:DimGray">')
+    def renderADD_E(self, token):
         assert not token.value
         self.write('</span>')
 
@@ -575,6 +591,15 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.emFlag = False
         self.footnote_text += token.value
     def renderFT_E(self, token):
+        assert not token.value
+
+    def renderFK(self, token):
+        # print(f"renderFT({token.value}) with '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
+        self.footnote_text += token.value
+    def renderFK_E(self, token):
         assert not token.value
 
     def renderF_E(self, token):
