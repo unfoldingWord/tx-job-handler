@@ -143,6 +143,9 @@ xe      = usfmEndToken('x')
 xt      = usfmTokenValue('xt', phrase)
 # xts    = usfmToken('xt')
 xt_e    = usfmEndToken('xt')
+plus_xt      = usfmTokenValue('+xt', phrase)
+# xts    = usfmToken('xt')
+plus_xt_e    = usfmEndToken('+xt')
 
 # Keyword/Keyterm http://ubsicap.github.io/usfm/master/characters/index.html#k-k
 k_s     = usfmToken('k')
@@ -299,6 +302,7 @@ element =  MatchFirst([ide, id,
                        xdc_s, xdc_e,
                        xo,
                        xt, xt_e,
+                       plus_xt, plus_xt_e,
                        xe,
                        ist, ien,
                        em_s, em_e,
@@ -459,6 +463,7 @@ def createToken(t):
         'xdc':  XDCStartToken, 'xdc*': XDCEndToken,
         'xo':   XOToken,
         'xt':   XTToken, 'xt*': XTEndToken,
+        '+xt':  plusXTToken, '+xt*': plusXTEndToken,
         'x*':   XEndToken,
         'it':   ITStartToken, 'it*':  ITEndToken,
         'em':   EMStartToken, 'em*':  EMEndToken,
@@ -646,8 +651,10 @@ class UsfmToken:
     def isXDCE(self):   return False
     def isXO(self):     return False
     def isXT(self):     return False
-    def isXTS(self):     return False
+    def isPlusXT(self):     return False
+    # def isXTS(self):     return False
     def isXTE(self):     return False
+    def isPlusXTE(self):     return False
     def isX_E(self):     return False
     def isIS(self):     return False
     def isIE(self):     return False
@@ -959,35 +966,35 @@ class FEStartToken(UsfmToken):
     def isFE_S(self):      return True
 
 class FRToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFR(self)
+    def renderOn(self, printer): return printer.renderFR_S(self)
     def isFR(self):      return True
 class FREndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFR_E(self)
     def isFR_E(self):      return True
 
 class FKToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFK(self)
+    def renderOn(self, printer): return printer.renderFK_S(self)
     def isFK(self):      return True
 class FKEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFK_E(self)
     def isFK_E(self):      return True
 
 class FTToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFT(self)
+    def renderOn(self, printer): return printer.renderFT_S(self)
     def isFT(self):      return True
 class FTEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFT_E(self)
     def isFT_E(self):      return True
 
 class FQToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFQ(self)
+    def renderOn(self, printer): return printer.renderFQ_S(self)
     def isFQ(self):      return True
 class FQEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFQ_E(self)
     def isFQ_E(self):      return True
 
 class FQAToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderFQA(self)
+    def renderOn(self, printer): return printer.renderFQA_S(self)
     def isFQA(self):     return True
 class FQAEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderFQA_E(self)
@@ -1122,14 +1129,20 @@ class XOToken(UsfmToken):
 class XTToken(UsfmToken):
     def renderOn(self, printer): return printer.renderXT(self)
     def isXT(self):      return True
+class plusXTToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderPlusXT(self)
+    def isPlusXT(self):      return True
 
-class XTSToken(UsfmToken):
-    def renderOn(self, printer): return printer.renderXT_S(self)
-    def isXTS(self):      return True
+# class XTSToken(UsfmToken):
+#     def renderOn(self, printer): return printer.renderXT_S(self)
+#     def isXTS(self):      return True
 
 class XTEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderXT_E(self)
     def isXTE(self):      return True
+class plusXTEndToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderPlusXT_E(self)
+    def isPlusXTE(self):      return True
 
 class XEndToken(UsfmToken):
     def renderOn(self, printer): return printer.renderX_E(self)

@@ -260,6 +260,12 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.closeParagraph()
         self.writeIndent(3)
 
+    def renderPC(self, token): # centered paragraph
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
+        self.writeIndent(3) # TODO: Do this properly!!!
+
     def renderM(self, token):
         assert not token.value
         # TODO: This should NOT be identical to renderP
@@ -584,8 +590,8 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderFR(self, token):
         pass # We don't need these footnote reference fields to be rendered
 
-    def renderFT(self, token):
-        # print(f"renderFT({token.value}) with '{self.footnote_text}'")
+    def renderFT_S(self, token):
+        # print(f"renderFT_S({token.value}) with '{self.footnote_text}'")
         if self.emFlag:
             self.footnote_text += '</em>'
             self.emFlag = False
@@ -593,13 +599,22 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderFT_E(self, token):
         assert not token.value
 
-    def renderFK(self, token):
-        # print(f"renderFT({token.value}) with '{self.footnote_text}'")
+    def renderFK_S(self, token):
+        # print(f"renderFK_S({token.value}) with '{self.footnote_text}'")
         if self.emFlag:
             self.footnote_text += '</em>'
             self.emFlag = False
         self.footnote_text += token.value
     def renderFK_E(self, token):
+        assert not token.value
+
+    def renderFV_S(self, token):
+        # print(f"renderFV_S({token.value}) with '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
+        self.footnote_text += token.value
+    def renderFV_E(self, token):
         assert not token.value
 
     def renderF_E(self, token):
@@ -613,8 +628,8 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('<br />')
 
 
-    def renderFQ(self, token):
-        # print(f"renderFQ({token.value}) with {self.emFlag} and '{self.footnote_text}'")
+    def renderFQ_S(self, token):
+        # print(f"renderFQ_S({token.value}) with {self.emFlag} and '{self.footnote_text}'")
         self.footnote_text += '<em>' + token.value
         self.emFlag = True
     def renderFQ_E(self, token):
@@ -624,8 +639,8 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.emFlag = False
         self.footnote_text += token.value
 
-    def renderFQA(self, token):
-        # print(f"renderFQA({token.value}) with {self.emFlag} and '{self.footnote_text}'")
+    def renderFQA_S(self, token):
+        # print(f"renderFQA_S({token.value}) with {self.emFlag} and '{self.footnote_text}'")
         self.footnote_text += '<em>' + token.value
         self.emFlag = True
     def renderFQA_E(self, token):
@@ -691,6 +706,14 @@ class SingleHTMLRenderer(AbstractRenderer):
         else: # Can occur not in a cross-reference
             self.write(token.value)
     def renderXT_E(self, token):
+        assert not token.value
+
+    def renderPlusXT(self, token):
+        if self.crossReferenceFlag:
+            self.crossReference_text += token.value
+        else: # Can occur not in a cross-reference
+            self.write(token.value)
+    def renderPlusXT_E(self, token):
         assert not token.value
 
     def renderX_E(self, token):

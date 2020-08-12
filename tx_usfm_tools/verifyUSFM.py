@@ -286,17 +286,17 @@ def verifyIdentification(book_code):
     else:
         report_error(f"{book_code} - Missing \\h tag")
 
-    if not state.toc1:
-        report_error(f"{book_code} - Missing \\toc1 tag")
+    if book_code not in NON_CHAPTER_BOOK_CODES:
+        if not state.toc1:
+            report_error(f"{book_code} - Missing \\toc1 tag")
 
-    if not state.toc2:
-        report_error(f"{book_code} - Missing \\toc2 tag")
+        if not state.toc2:
+            report_error(f"{book_code} - Missing \\toc2 tag")
 
-    if not state.toc3:
-        report_error(f"{book_code} - Missing \\toc3 tag")
+        if not state.toc3:
+            report_error(f"{book_code} - Missing \\toc3 tag")
 
-    if not state.mt:
-        if book_code not in NON_CHAPTER_BOOK_CODES:
+        if not state.mt:
             report_error(f"{book_code} - Missing \\mt or \\mt1 tag")
 # end of verifyIdentification function
 
