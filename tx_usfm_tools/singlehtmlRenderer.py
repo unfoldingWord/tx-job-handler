@@ -316,6 +316,11 @@ class SingleHTMLRenderer(AbstractRenderer):
         # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderS5({token.value})…")
         self.write('\n<span class="chunk-break"></span>\n')
 
+    def renderPERIPH(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
+
     def renderR(self, token):
         self.stopLI()
         self.closeParagraph()
@@ -468,12 +473,6 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderE(self, token):
         self.closeParagraph()
         self.write('\n\n<p>' + token.value + '</p>')
-
-    def renderPB(self, token):
-        pass
-
-    def renderPERIPH(self, token):
-        pass
 
     # def renderLI(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
     #     assert not token.value

@@ -69,6 +69,8 @@ s4      = usfmTokenValue('s4', phrase)
 
 s5      = usfmTokenValue('s5', phrase)
 
+periph  = usfmTokenValue('periph', phrase)
+
 sr      = usfmTokenValue('sr', phrase)
 sts     = usfmTokenValue('sts', phrase)
 r       = usfmTokenValue('r', phrase)
@@ -264,6 +266,7 @@ element =  MatchFirst([ide, id,
                        d,
                        s, s1, s2, s3, s4,
                        s5,
+                       periph,
                        sr,
                        sts,
                        r,
@@ -418,6 +421,8 @@ def createToken(t):
         's4':   S4Token,
 
         's5':   S5Token,
+
+        'periph': PeriphToken,
 
         'sr':   SRToken,
         'sts':  STSToken,
@@ -596,6 +601,7 @@ class UsfmToken:
     def isS3(self):     return False
     def isS4(self):     return False
     def isS5(self):     return False
+    def isPERIPH(self):     return False
     def isSR(self):     return False
     def isSTS(self):    return False
     def isMI(self):     return False
@@ -879,6 +885,10 @@ class S4Token(UsfmToken):
 class S5Token(UsfmToken):
     def renderOn(self, printer): return printer.renderS5(self)
     def isS5(self):      return True
+
+class PeriphToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderPERIPH(self)
+    def isPERIPH(self):  return True
 
 class SRToken(UsfmToken):
     def renderOn(self, printer): return printer.renderSR(self)
