@@ -843,8 +843,26 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('<td>'+token.value+'</td>')
     def renderTC2(self, token):
         self.write('<td>'+token.value+'</td>')
-    def renderTC2(self, token):
+    def renderTC3(self, token):
         self.write('<td>'+token.value+'</td>')
+    def renderTC4(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC5(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC6(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTCR1(self, token): # right aligned
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR2(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR3(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR4(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR5(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR6(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
 
 
     def renderText(self, token):
