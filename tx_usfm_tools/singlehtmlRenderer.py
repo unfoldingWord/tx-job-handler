@@ -46,6 +46,9 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.crossReference_origin = ''
         self.crossReference_text = ''
 
+        self.inTable = False
+        self.inTableRow = False
+
 
     def render(self):
         # logging.debug("SingleHTMLRenderer.render() …")
@@ -147,21 +150,24 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def closeParagraph(self):
         # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string and self.indentFlag: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} closeParagraph() from {self.indentFlag}…")
+        if self.inTable:
+            self.f.write('</table>\n')
+            self.inTable = False
         if self.inParagraph:
+            self.f.write('</p>\n')
             self.inParagraph = False
-            self.f.write('</p>\n')
         if self.indentFlag:
-            self.indentFlag = False
             self.f.write('</p>\n')
+            self.indentFlag = False
 
     def renderID(self, token):
         """
         Must be new book now.
         """
         # Close the last book
+        self.closeParagraph()
         self.writeFootnotes()
         self.writeCrossReferences()
-        self.closeParagraph()
         # Open new book
         self.resetBook()
         self.current_bookname = bookKeyForIdValue(token.value)
@@ -821,6 +827,24 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderQAC_E(self,token):
         assert not token.value
         self.write('</em>')
+
+
+    # Table components
+    def renderTR(self, token):
+        assert not token.value
+        if not self.inTable:
+            self.write('<table>')
+            self.inTable = True
+        if self.inTableRow:
+            self.write('/tr>\n')
+        self.write('<tr>')
+        self.inTableRow = True
+    def renderTC1(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC2(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC2(self, token):
+        self.write('<td>'+token.value+'</td>')
 
 
     def renderText(self, token):
