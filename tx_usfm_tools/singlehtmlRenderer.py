@@ -266,6 +266,12 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.closeParagraph()
         self.writeIndent(3) # TODO: Do this properly!!!
 
+    def renderPM(self, token): # embedded text paragraph
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
+        self.writeIndent(3) # TODO: not sure what this should do/be ???
+
     def renderM(self, token):
         assert not token.value
         # TODO: This should NOT be identical to renderP
@@ -587,8 +593,10 @@ class SingleHTMLRenderer(AbstractRenderer):
             text = text[1:]
         self.footnote_text = text
 
-    def renderFR(self, token):
+    def renderFR_S(self, token):
         pass # We don't need these footnote reference fields to be rendered
+    def renderFR_E(self, token):
+        assert not token.value
 
     def renderFT_S(self, token):
         # print(f"renderFT_S({token.value}) with '{self.footnote_text}'")

@@ -74,6 +74,7 @@ sts     = usfmTokenValue('sts', phrase)
 r       = usfmTokenValue('r', phrase)
 p       = usfmToken('p')
 pc      = usfmToken('pc')
+pm      = usfmToken('pm')
 
 pi      = usfmToken('pi')
 pi1     = usfmToken('pi1')
@@ -402,6 +403,7 @@ def createToken(t):
         'mr':   MRToken,
         'p':    PToken,
         'pc':   PCToken,
+        'pm':   PMToken,
 
         'pi':   PIToken,
         'pi1':  PI1Token,
@@ -584,6 +586,7 @@ class UsfmToken:
     def isR(self):      return False
     def isP(self):      return False
     def isPC(self):     return False
+    def isPM(self):     return False
     def isPI(self):     return False
     def isPI1(self):     return False
     def isPI2(self):    return False
@@ -1165,6 +1168,9 @@ class TLEndToken(UsfmToken):
 class PCToken(UsfmToken):
     def renderOn(self, printer): return printer.renderPC(self)
     def isPC(self):      return True
+class PMToken(UsfmToken):
+    def renderOn(self, printer): return printer.renderPM(self)
+    def isPM(self):      return True
 
 # Indenting paragraphs
 class PIToken(UsfmToken):
