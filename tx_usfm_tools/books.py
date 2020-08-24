@@ -73,7 +73,8 @@ bookKeys = {
     '2JN': '063',
     '3JN': '064',
     'JUD': '065',
-    'REV': '066'
+    'REV': '066',
+    'BAK': '067'
 }
 
 silNames = [
@@ -143,7 +144,8 @@ silNames = [
     '2JN',
     '3JN',
     'JUD',
-    'REV']
+    'REV',
+    'BAK']
 
 silNamesNTPsalms = [
     'MAT',

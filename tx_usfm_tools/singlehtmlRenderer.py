@@ -46,6 +46,9 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.crossReference_origin = ''
         self.crossReference_text = ''
 
+        self.inTable = False
+        self.inTableRow = False
+
 
     def render(self):
         # logging.debug("SingleHTMLRenderer.render() …")
@@ -147,21 +150,24 @@ class SingleHTMLRenderer(AbstractRenderer):
 
     def closeParagraph(self):
         # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string and self.indentFlag: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} closeParagraph() from {self.indentFlag}…")
+        if self.inTable:
+            self.f.write('</table>\n')
+            self.inTable = False
         if self.inParagraph:
+            self.f.write('</p>\n')
             self.inParagraph = False
-            self.f.write('</p>\n')
         if self.indentFlag:
-            self.indentFlag = False
             self.f.write('</p>\n')
+            self.indentFlag = False
 
     def renderID(self, token):
         """
         Must be new book now.
         """
         # Close the last book
+        self.closeParagraph()
         self.writeFootnotes()
         self.writeCrossReferences()
-        self.closeParagraph()
         # Open new book
         self.resetBook()
         self.current_bookname = bookKeyForIdValue(token.value)
@@ -260,6 +266,18 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.closeParagraph()
         self.writeIndent(3)
 
+    def renderPC(self, token): # centered paragraph
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
+        self.writeIndent(3) # TODO: Do this properly!!!
+
+    def renderPM(self, token): # embedded text paragraph
+        assert not token.value
+        self.stopLI()
+        self.closeParagraph()
+        self.writeIndent(3) # TODO: not sure what this should do/be ???
+
     def renderM(self, token):
         assert not token.value
         # TODO: This should NOT be identical to renderP
@@ -303,6 +321,20 @@ class SingleHTMLRenderer(AbstractRenderer):
             logger(f"pseudo-USFM 's5' marker will lose following text: '{token.value}'")
         # if 'NUM' in self.bookName and '00' in self.current_chapter_number_string: logging.debug(f"@{self.current_chapter_number_string}:{self.current_verse_number_string} renderS5({token.value})…")
         self.write('\n<span class="chunk-break"></span>\n')
+
+    def renderPERIPH(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<h4 style="text-align:center">' + token.getValue() + '</h4>')
+
+    def renderR(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p style="text-align:center">' + token.getValue() + '</p>')
+    def renderSR(self, token):
+        self.stopLI()
+        self.closeParagraph()
+        self.write('\n\n<p style="text-align:center">' + token.getValue() + '</p>')
 
     def renderV(self, token):
         self.stopLI()
@@ -360,6 +392,13 @@ class SingleHTMLRenderer(AbstractRenderer):
         assert not token.value
         self.write('<span class="tetragrammaton">')
     def renderND_E(self, token):
+        assert not token.value
+        self.write('</span>')
+
+    def renderADD_S(self, token):
+        assert not token.value
+        self.write('<span class="add" style="color:DimGray">')
+    def renderADD_E(self, token):
         assert not token.value
         self.write('</span>')
 
@@ -440,12 +479,6 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderE(self, token):
         self.closeParagraph()
         self.write('\n\n<p>' + token.value + '</p>')
-
-    def renderPB(self, token):
-        pass
-
-    def renderPERIPH(self, token):
-        pass
 
     # def renderLI(self, token): # TODO: Can't this type of thing be in the abstractRenderer?
     #     assert not token.value
@@ -565,16 +598,36 @@ class SingleHTMLRenderer(AbstractRenderer):
             text = text[1:]
         self.footnote_text = text
 
-    def renderFR(self, token):
+    def renderFR_S(self, token):
         pass # We don't need these footnote reference fields to be rendered
+    def renderFR_E(self, token):
+        assert not token.value
 
-    def renderFT(self, token):
-        # print(f"renderFT({token.value}) with '{self.footnote_text}'")
+    def renderFT_S(self, token):
+        # print(f"renderFT_S({token.value}) with '{self.footnote_text}'")
         if self.emFlag:
             self.footnote_text += '</em>'
             self.emFlag = False
         self.footnote_text += token.value
     def renderFT_E(self, token):
+        assert not token.value
+
+    def renderFK_S(self, token):
+        # print(f"renderFK_S({token.value}) with '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
+        self.footnote_text += token.value
+    def renderFK_E(self, token):
+        assert not token.value
+
+    def renderFV_S(self, token):
+        # print(f"renderFV_S({token.value}) with '{self.footnote_text}'")
+        if self.emFlag:
+            self.footnote_text += '</em>'
+            self.emFlag = False
+        self.footnote_text += token.value
+    def renderFV_E(self, token):
         assert not token.value
 
     def renderF_E(self, token):
@@ -588,8 +641,8 @@ class SingleHTMLRenderer(AbstractRenderer):
         self.write('<br />')
 
 
-    def renderFQ(self, token):
-        # print(f"renderFQ({token.value}) with {self.emFlag} and '{self.footnote_text}'")
+    def renderFQ_S(self, token):
+        # print(f"renderFQ_S({token.value}) with {self.emFlag} and '{self.footnote_text}'")
         self.footnote_text += '<em>' + token.value
         self.emFlag = True
     def renderFQ_E(self, token):
@@ -599,8 +652,8 @@ class SingleHTMLRenderer(AbstractRenderer):
             self.emFlag = False
         self.footnote_text += token.value
 
-    def renderFQA(self, token):
-        # print(f"renderFQA({token.value}) with {self.emFlag} and '{self.footnote_text}'")
+    def renderFQA_S(self, token):
+        # print(f"renderFQA_S({token.value}) with {self.emFlag} and '{self.footnote_text}'")
         self.footnote_text += '<em>' + token.value
         self.emFlag = True
     def renderFQA_E(self, token):
@@ -666,6 +719,14 @@ class SingleHTMLRenderer(AbstractRenderer):
         else: # Can occur not in a cross-reference
             self.write(token.value)
     def renderXT_E(self, token):
+        assert not token.value
+
+    def renderPlusXT(self, token):
+        if self.crossReferenceFlag:
+            self.crossReference_text += token.value
+        else: # Can occur not in a cross-reference
+            self.write(token.value)
+    def renderPlusXT_E(self, token):
         assert not token.value
 
     def renderX_E(self, token):
@@ -766,6 +827,42 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderQAC_E(self,token):
         assert not token.value
         self.write('</em>')
+
+
+    # Table components
+    def renderTR(self, token):
+        assert not token.value
+        if not self.inTable:
+            self.write('<table>')
+            self.inTable = True
+        if self.inTableRow:
+            self.write('/tr>\n')
+        self.write('<tr>')
+        self.inTableRow = True
+    def renderTC1(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC2(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC3(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC4(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC5(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTC6(self, token):
+        self.write('<td>'+token.value+'</td>')
+    def renderTCR1(self, token): # right aligned
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR2(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR3(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR4(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR5(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
+    def renderTCR6(self, token):
+        self.write('<td style="display:block;float:right;">'+token.value+'</td>')
 
 
     def renderText(self, token):
