@@ -501,7 +501,7 @@ class SingleHTMLRenderer(AbstractRenderer):
     def renderSP(self, token):
         # logging.debug(f"singlehtmlRenderer.renderD( '{token.value}' at {self.current_bookname} {self.current_chapter_number_string}:{self.current_verse_number_string}")
         self.closeParagraph()
-        self.write('<span class="sp">' + token.value + '</span>')
+        self.write('<small><em class="italic"><span class="sp">' + token.value + '</span></em></small>')
 
     def render_ili(self, token):
         assert not token.value
