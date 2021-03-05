@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+#
+#  Copyright (c) 2021 unfoldingWord
+#  http://creativecommons.org/licenses/MIT/
+#  See LICENSE file for details.
+#
 # TX WEBHOOK
 #
 # NOTE: This module name and function name are defined by the rq package and our own tx-enqueue-job package
@@ -7,7 +13,7 @@
 #       job() function (at bottom here) is executed by rq package when there is an available entry in the named queue.
 
 # Python imports
-from typing import Dict, Tuple, Any, Optional
+from typing import Dict, Tuple, Any, Optional, Type
 import os
 import tempfile
 import json
@@ -38,9 +44,27 @@ from linters.markdown_linter import MarkdownLinter
 from linters.usfm_linter import UsfmLinter
 from linters.lexicon_linter import LexiconLinter
 
+from converters.converter import Converter
 from converters.md2html_converter import Md2HtmlConverter
 from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
+
+from door43_tools.subjects import SUBJECT_ALIASES
+from door43_tools.subjects import ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES, OBS_STUDY_NOTES, OBS_STUDY_QUESTIONS, OBS_TRANSLATION_NOTES, \
+    TRANSLATION_ACADEMY, TRANSLATION_WORDS, TRANSLATION_QUESTIONS, TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, \
+    TSV_TRANSLATION_NOTES
+from converters.pdf.bible_pdf_converter import BiblePdfConverter
+from converters.pdf.obs_pdf_converter import ObsPdfConverter
+from converters.pdf.obs_sn_sq_pdf_converter import ObsSnSqPdfConverter
+from converters.pdf.obs_sq_pdf_converter import ObsSqPdfConverter
+from converters.pdf.obs_tn_pdf_converter import ObsTnPdfConverter
+# from converters.pdf.obs_tq_pdf_converter import ObsTqPdfConverter
+from converters.pdf.sn_pdf_converter import SnPdfConverter
+from converters.pdf.sq_pdf_converter import SqPdfConverter
+from converters.pdf.ta_pdf_converter import TaPdfConverter
+from converters.pdf.tn_pdf_converter import TnPdfConverter
+from converters.pdf.tq_pdf_converter import TqPdfConverter
+from converters.pdf.tw_pdf_converter import TwPdfConverter
 
 
 # NOTE: The following two tables are each scanned in order
@@ -69,7 +93,7 @@ CONVERTER_TABLE = (
     ('md2html',   Md2HtmlConverter,   ('md','markdown','txt','text'),
                     ('Generic_Markdown',
                     'Open_Bible_Stories','OBS_Study_Notes','OBS_Study_Questions',
-                                    'OBS_Translation_Notes','OBS_Translation_Questions','obs',
+                    'OBS_Translation_Notes','OBS_Translation_Questions','obs',
                     'Translation_Academy','ta', 'Translation_Questions','tq', 'Translation_Words',
                     'Translation_Words','tw', 'Translation_Notes','tn',
                     'Greek_Lexicon', 'Hebrew-Aramaic_Lexicon',
@@ -82,6 +106,18 @@ CONVERTER_TABLE = (
                     'Greek_New_Testament','Hebrew_Old_Testament',
                     'bible', 'reg',
                     'other',),                                                      'html'),
+    (BIBLE,                 BiblePdfConverter,   ('usfm'),  SUBJECT_ALIASES[BIBLE] + SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
+    (OPEN_BIBLE_STORIES,    ObsPdfConverter,     ('md','markdown','txt','text'), SUBJECT_ALIASES[OPEN_BIBLE_STORIES], 'pdf'),
+    (OBS_STUDY_NOTES,       ObsSnSqPdfConverter, ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
+    (OBS_STUDY_QUESTIONS,   ObsSqPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_STUDY_QUESTIONS], 'pdf'),
+    (OBS_TRANSLATION_NOTES, ObsTnPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_TRANSLATION_NOTES], 'pdf'),
+    # (OBS_TRANSLATION_QUESTIONS,    ObsTqPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_TRANSLATION_QUESTIONS], 'pdf'),
+    (TRANSLATION_ACADEMY,   TaPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_ACADEMY], 'pdf'),
+    (TSV_STUDY_NOTES,       SnPdfConverter,      ('tsv'),                    SUBJECT_ALIASES[TSV_STUDY_NOTES], 'pdf'),
+    (TSV_STUDY_QUESTIONS,   SqPdfConverter,      ('tsv'),         SUBJECT_ALIASES[TSV_STUDY_QUESTIONS], 'pdf'),
+    (TSV_TRANSLATION_NOTES, TnPdfConverter,      ('tsv'),         SUBJECT_ALIASES[TSV_TRANSLATION_NOTES], 'pdf'),
+    (TRANSLATION_QUESTIONS, TqPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_QUESTIONS], 'pdf'),
+    (TRANSLATION_WORDS,     TwPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
     )
 
 
@@ -141,7 +177,7 @@ def get_converter_module(gcm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
     :return TxModule:
     """
     for converter_name, converter_class, input_formats, resource_types, output_format in CONVERTER_TABLE:
-        if gcm_job['input_format'] in input_formats and  output_format == gcm_job['output_format']:
+        if gcm_job['input_format'] in input_formats and output_format == gcm_job['output_format']:
             if gcm_job['resource_type'] in resource_types:
                 return converter_name, converter_class
             if 'other' in resource_types:
@@ -152,20 +188,27 @@ def get_converter_module(gcm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
 # end if get_converter_module function
 
 
-def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, converter_class) -> None:
+def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, converter_class:Type[Converter]) -> None:
     """
     :param dict param_dict: Will be updated for build log!
-    :param str converter_name:
-
+    :param str source_dir: Directory of the download source files
+    :param str converter_name: Name of the converter
+    :param class converter_class: Class of the converter
     Updates param_dict as a side-effect.
     """
     AppSettings.logger.debug(f"do_converting( {len(param_dict)} fields, {source_dir}, {converter_name}, {converter_class} )")
     param_dict['status'] = 'converting'
 
-    cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
-    converter = converter_class( param_dict['resource_type'],
-                                 source_dir=source_dir,
-                                 cdn_file_key=cdn_file_key) # Key for uploading
+    if 'cdn.door43.org/' in param_dict['output']:
+        cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
+    else:
+        cdn_file_key = param_dict['output']
+    converter = converter_class(param_dict['resource_type'],
+                                source_dir=source_dir,
+                                source_url=param_dict['source'],
+                                cdn_file_key=cdn_file_key, #  Key for uploading
+                                identifier=param_dict['identifier'],
+                                options={'debug_mode_flag': debug_mode_flag})
     convert_result_dict = converter.run()
     converter.close() # do cleanup after run
     param_dict['converter_success'] = convert_result_dict['success']
@@ -216,6 +259,7 @@ def download_source_file(source_url, destination_folder):
     str_filelist_adjusted = str_filelist if len(str_filelist)<1500 \
                             else f'{str_filelist[:1000]} …… {str_filelist[-500:]}'
     AppSettings.logger.debug(f"Destination folder '{destination_folder}' now has: {str_filelist_adjusted}")
+    return os.path.join(destination_folder, str_filelist_adjusted)
 #end of download_source_file function
 
 
@@ -248,14 +292,25 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     AppSettings.logger.info(f"PROCESSING {pj_prefix+' ' if pj_prefix else ''}job: {queued_json_payload}")
     job_descriptive_name = f"{queued_json_payload['resource_type']}({queued_json_payload['input_format']})"
     if 'identifier' in queued_json_payload and queued_json_payload['identifier'] \
-    and queued_json_payload['identifier'] != queued_json_payload['job_id']:
+            and queued_json_payload['identifier'] != queued_json_payload['job_id']:
         job_descriptive_name = f"{queued_json_payload['identifier']} {job_descriptive_name}"
+
+    if 'identifier' not in queued_json_payload or len(queued_json_payload['identifier'].split('--')) < 3:
+        if 'door43.org/' in queued_json_payload['source'] and queued_json_payload['source']:
+            parts = queued_json_payload['source'].split('door43.org/')[1].split('/')
+            owner = repo = ref = ''
+            if len(parts) >= 2:
+                owner = parts[0]
+                repo = parts[1]
+            if len(parts) >= 4:
+                ref = parts[3].split('.')[0]
+            queued_json_payload['identifier'] = f'{owner}--{repo}--{ref}'
 
     # Create a build log
     build_log_dict = queued_json_payload.copy()
     # Delete fields from our response which have already been used
     #   or are unneeded in the build log and in our response
-    for fieldname in ('callback', 'source', 'input_format', 'user_token', 'queue_name',
+    for fieldname in ('callback', 'input_format', 'user_token', 'queue_name',
                                 'tx_job_queued_at', 'eta', 'tx_retry_count'):
         if fieldname in build_log_dict:
             del build_log_dict[fieldname]
@@ -280,7 +335,8 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
 
     # Download and unzip the specified source file
     AppSettings.logger.debug(f"Getting source file from {queued_json_payload['source']} …")
-    download_source_file(queued_json_payload['source'], base_temp_dir_name)
+    if not debug_mode_flag or not len(os.listdir(base_temp_dir_name)):
+        download_source_file(queued_json_payload['source'], base_temp_dir_name)
 
     # Find correct source folder
     source_folder_path = base_temp_dir_name
@@ -464,3 +520,11 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
 # end of job function
 
 # end of webhook.py for tX HTML Job Handler
+
+
+if __name__ == '__main__':
+    tempfile.tempdir = '/tmp'
+    print(sys.argv[1])
+    with open(sys.argv[1]) as f:
+        data = json.load(f)
+    process_tx_job("dev", data)

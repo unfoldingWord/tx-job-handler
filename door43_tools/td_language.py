@@ -1,5 +1,5 @@
 import json
-
+from urllib.parse import urlencode
 from general_tools import url_utils
 
 
@@ -44,3 +44,15 @@ class TdLanguage:
         languages = TdLanguage.get_languages()
         if lang in languages:
             return languages[lang]
+
+    @staticmethod
+    def search_languages(q):
+        url = 'https://td.unfoldingword.org/ac/langnames/?' + urlencode({'q': q})
+        contents = url_utils.get_url(url, catch_exception=True)
+        if contents:
+            return json.loads(contents)
+        else:
+            return None
+
+
+

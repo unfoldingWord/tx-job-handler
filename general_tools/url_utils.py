@@ -1,10 +1,9 @@
 from typing import Dict, Any, Optional, Union, Callable
 import json
 import shutil
-import sys
 import ssl
 from contextlib import closing
-import logging
+from urllib.parse import urlencode
 from time import sleep
 
 import urllib.request as urllib2

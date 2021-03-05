@@ -1,0 +1,109 @@
+html, body {
+    font-size: 12px;
+}
+
+@page:first {
+    counter-reset: page -1;
+}
+
+.obs-page {
+    page: footer;
+}
+
+@page {
+    size: 5.25in 8in;
+    margin: 28pt 28pt;
+    @top-left {
+        content: '';
+        height: 0;
+        margin: 0;
+        padding: 0;
+    }
+    @top-right {
+        content: '';
+        height: 0;
+        margin: 0;
+        padding: 0;
+    }
+    @bottom-center {
+        content: counter(page);
+    }
+}
+
+@page footer {
+    @bottom-center {
+        content: counter(page);
+    }
+}
+
+.cover img {
+    padding-top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+}
+
+.cover .language {
+    padding-top: 260px;
+    font-size: 16px;
+}
+
+.obs-frame-even {
+    padding-top: 5px;
+}
+
+.obs-img {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    max-height: none;
+    display: inline;
+}
+
+div.obs-text > p:first-child {
+    margin-top: 0 !important;
+}
+
+.obs-text,
+#front,
+#back {
+    line-height: 1.2em;
+    text-align: justify;
+}
+
+.cover {
+    padding-top: 90px;
+    text-align: center;
+}
+
+#contents > ul > li > a {
+    font-weight: normal !important;
+}
+
+#contents {
+    font-size: 16px;
+}
+
+#back {
+    font-size: 16px;
+}
+
+article .section-header {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#contents h1 {
+    font-size: 16em;
+}
+
+article .section-header {
+    padding-top: 200px;
+}
+
+.bible-reference {
+    padding: 5px 0 0 0 !important;
+}

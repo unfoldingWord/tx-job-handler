@@ -26,3 +26,10 @@ markdown2==2.3.10
 
 # BeautifulSoup is used by converters/md2html_converter.py
 beautifulsoup4==4.9.3
+
+# used by pdf converter
+jsonpickle==1.5.1
+weasyprint==52.2
+gitea-client==1.0.9
+giteapy==1.0.8
+googletrans==4.0.0rc1

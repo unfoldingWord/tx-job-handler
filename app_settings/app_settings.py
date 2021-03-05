@@ -78,8 +78,14 @@ class AppSettings:
     prefixable_vars = ['name', 'cdn_bucket_name', 'linter_messaging_name',]
 
     # Credentials—get the secret ones from environment variables
-    aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
-    aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
+    if 'AWS_ACCESS_KEY_ID' in os.environ:
+        aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
+    else:
+        aws_access_key_id = None
+    if 'AWS_SECRET_ACCESS_KEY' in os.environ:
+        aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
+    else:
+        aws_secret_access_key = None
     aws_region_name = 'us-west-2'
 
     # Handlers

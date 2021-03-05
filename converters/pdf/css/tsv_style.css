@@ -1,0 +1,70 @@
+.verse-note-reference {
+    font-weight: normal;
+    font-size: .8em;
+}
+
+.verse-question {
+    padding-top: 15px;
+}
+
+a.split,
+span.split {
+    text-decoration: underline;
+}
+
+span.nested-link {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+}
+
+span.nested-link > span.nested-link {
+  text-decoration-line: underline;
+  text-decoration-style: double;
+}
+
+span.nested-link > span.nested-link > span.nested-link {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+}
+
+span.nested-link > span.nested-link > span.nested-link > span.nested-link {
+  text-decoration-line: none;
+}
+
+.no-notes, .no-questions {
+    font-style: italic;
+}
+
+article table td {
+    vertical-align: top;
+}
+
+div.notes .col1 {
+    width: 35%;
+    float: right;
+    border: 1px dashed lightgray;
+    margin: 0 10px 10px 10px;
+    padding: 5px;
+}
+
+div.notes .bible-resource-title {
+    margin-bottom: 0;
+    color: #555;
+}
+
+span.notes.highlight {
+    font-weight: bold;
+}
+
+span.notes.highlight span.highlight {
+    text-decoration: underline;
+    font-weight: 900;
+}
+
+span.note.highlight span.highlight span.highlight {
+    text-decoration: double;
+}
+
+.study-questions {
+    padding-top: 15px;
+}
