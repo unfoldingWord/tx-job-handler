@@ -55,9 +55,7 @@ class AlignedBiblePdfConverter(PdfConverter):
     @property
     def file_id_project_str(self):
         if self.project_id and self.project_id != 'all':
-            chapter_str = f'-{self.pad(self.chapter)}' if self.chapter else ''
-            book_number_str = f'{self.book_number.zfill(2)}-' if self.project_id not in ['ot', 'nt'] else ''
-            return f'_{book_number_str}{self.project_id.upper()}{chapter_str}'
+            return super().file_id_project_str.upper()
         else:
             return ''
 

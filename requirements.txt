@@ -33,3 +33,4 @@ weasyprint==52.2
 gitea-client==1.0.9
 giteapy==1.0.8
 googletrans==4.0.0rc1
+cssutils==1.0.2

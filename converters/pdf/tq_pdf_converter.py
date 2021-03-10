@@ -29,13 +29,6 @@ class TqPdfConverter(PdfConverter):
             self.book_number = BOOK_NUMBERS[self.project_id]
         super().__init__(*args, **kwargs)
 
-    @property
-    def file_id_project_str(self):
-        if self.project_id:
-            return f'_{self.book_number.zfill(2)}-{self.project_id.upper()}'
-        else:
-            return ''
-
     def get_appendix_rcs(self):
         pass
 

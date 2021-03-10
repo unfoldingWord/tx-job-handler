@@ -18,11 +18,17 @@ from door43_tools.subjects import OBS_STUDY_QUESTIONS
 from glob import glob
 from bs4 import BeautifulSoup
 from general_tools import obs_tools
-from .obs_sn_sq_pdf_converter import ObsSnSqPdfConverter
+from .obs_sn_pdf_converter import ObsSnPdfConverter
 
 
-class ObsSqPdfConverter(ObsSnSqPdfConverter):
+class ObsSqPdfConverter(ObsSnPdfConverter):
     my_subject = OBS_STUDY_QUESTIONS
+
+    def get_sample_text(self):
+        md_file = os.path.join(self.main_resource.repo_dir, 'content', '01.md')
+        html = markdown2.markdown_path(md_file)
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup.find('p').text
 
     @property
     def name(self):
@@ -40,7 +46,7 @@ class ObsSqPdfConverter(ObsSnSqPdfConverter):
         obs_sq_html = f'''
 <section id="{self.lang_code}-obs-sq">
     <div class="resource-title-page">
-        <img src="{self.resources[f'{self.lang_code}_obs-sq'].logo_url}" class="logo" alt="OBS">
+        <img src="{self.resources[f'obs-sq'].logo_url}" class="logo" alt="OBS">
         <h1 class="section-header">{self.simple_title}</h1>
     </div>
 '''

@@ -8,6 +8,7 @@ html, body {
 
 .obs-page {
     page: footer;
+    text-align: center;
 }
 
 @page {
@@ -38,14 +39,13 @@ html, body {
 
 .cover img {
     padding-top: 0 !important;
-    width: 100% !important;
+    width: 450px !important;
     max-width: none !important;
     max-height: none !important;
-    margin: 0 !important;
 }
 
 .cover .language {
-    padding-top: 260px;
+    padding-top: 200px;
     font-size: 16px;
 }
 
@@ -54,8 +54,7 @@ html, body {
 }
 
 .obs-img {
-    width: 100%;
-    margin: 0;
+    width: 450px;
     padding: 0;
     max-width: none;
     max-height: none;
@@ -74,7 +73,7 @@ div.obs-text > p:first-child {
 }
 
 .cover {
-    padding-top: 90px;
+    padding-top: 115px;
     text-align: center;
 }
 
@@ -82,16 +81,12 @@ div.obs-text > p:first-child {
     font-weight: normal !important;
 }
 
-#contents {
-    font-size: 16px;
-}
-
 #back {
     font-size: 16px;
 }
 
 article .section-header {
-    font-size: 18px;
+    font-size: 18px !important;
     font-weight: bold;
     text-align: center;
 }
@@ -106,4 +101,15 @@ article .section-header {
 
 .bible-reference {
     padding: 5px 0 0 0 !important;
+    text-align: left !important;
+    font-size: 0.9em !important;;
+}
+
+#contents h1 {
+    font-size: 20px !important;
+    font-weight: normal !important;
+}
+
+.obs-frame:nth-child(2) p {
+    margin-bottom: 0 !important;
 }

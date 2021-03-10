@@ -2,15 +2,11 @@ from typing import Dict, Any, Optional, Union, Callable
 import json
 import shutil
 import ssl
-from contextlib import closing
-from urllib.parse import urlencode
-from time import sleep
-
 import urllib.request as urllib2
+from contextlib import closing
+from time import sleep
 from urllib.error import HTTPError
-
 from app_settings.app_settings import AppSettings
-
 
 
 def get_url(url:str, catch_exception:bool=False) -> Union[str,bool]:

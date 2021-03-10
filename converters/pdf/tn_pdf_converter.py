@@ -22,6 +22,7 @@ from .pdf_converter import represent_int
 from door43_tools.bible_books import BOOK_CHAPTER_VERSES
 from general_tools.alignment_tools import flatten_alignment
 from general_tools.file_utils import load_json_object, get_latest_version_path, get_child_directories
+from bs4 import BeautifulSoup
 
 QUOTES_TO_IGNORE = ['general information:', 'connecting statement:']
 
@@ -38,6 +39,17 @@ class TnPdfConverter(TsvPdfConverter):
     @property
     def name(self):
         return 'tn'
+
+    def get_sample_text(self):
+        book_filename = f'{self.lang_code}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
+        book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
+        if not os.path.isfile(book_filepath):
+            return
+        book_data = OrderedDict()
+        reader = self.unicode_csv_reader(open(book_filepath))
+        html = markdown2.markdown_path(first_frame)
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup.find('p').text
 
     def get_body_html(self):
         self.log.info('Creating TN for {0}...'.format(self.file_project_and_ref))
@@ -70,8 +82,8 @@ class TnPdfConverter(TsvPdfConverter):
                 'contextId': None,
                 'row': row_count,
                 'alignments': {
-                    self.ult_id: None,
-                    self.ust_id: None
+                    self.ult: None,
+                    self.ust: None
                 }
             }
             found = False
@@ -118,13 +130,13 @@ class TnPdfConverter(TsvPdfConverter):
                     context_id['quoteString'] = verse_data['OrigQuote']
                     verse_data['contextId'] = context_id
                     verse_data['alignments'] = {
-                        self.ult_id: self.get_aligned_text(self.ult_id, context_id),
-                        self.ust_id: self.get_aligned_text(self.ust_id, context_id)
+                        self.ult: self.get_aligned_text(self.ult, context_id),
+                        self.ust: self.get_aligned_text(self.ust, context_id)
                     }
-                if verse_data['alignments'][self.ult_id]:
-                    tn_title = flatten_alignment(verse_data['alignments'][self.ult_id]) + f' ({self.ult_id.upper()})'
-                    if verse_data['alignments'][self.ust_id]:
-                        tn_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust_id]) + f' ({self.ust_id.upper()})'
+                if verse_data['alignments'][self.ult]:
+                    tn_title = flatten_alignment(verse_data['alignments'][self.ult]) + f' ({self.ult.upper()})'
+                    if verse_data['alignments'][self.ust]:
+                        tn_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust]) + f' ({self.ust.upper()})'
                 else:
                     tn_title = f'{verse_data["GLQuote"]}'
             tn_rc = self.create_rc(tn_rc_link, title=tn_title)
@@ -207,25 +219,25 @@ class TnPdfConverter(TsvPdfConverter):
         tn_title = f'{self.project_title} {chapter}:{verse}'
         tn_rc_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         tn_rc = self.add_rc(tn_rc_link, title=tn_title)
-        ult_with_tw_words = self.get_scripture_with_tw_words(self.ult_id, chapter, verse)
-        # ult_with_tw_words = self.get_scripture_with_tn_quotes(self.ult_id, chapter, verse, rc, ult_with_tw_words)
-        ust_with_tw_words = self.get_scripture_with_tw_words(self.ust_id, chapter, verse)
-        # ust_with_tw_words = self.get_scripture_with_tn_quotes(self.ust_id, chapter, verse, rc, ust_with_tw_words)
+        ult_with_tw_words = self.get_scripture_with_tw_words(self.ult, chapter, verse)
+        # ult_with_tw_words = self.get_scripture_with_tn_quotes(self.ult, chapter, verse, rc, ult_with_tw_words)
+        ust_with_tw_words = self.get_scripture_with_tw_words(self.ust, chapter, verse)
+        # ust_with_tw_words = self.get_scripture_with_tn_quotes(self.ust, chapter, verse, rc, ust_with_tw_words)
 
         tn_article = f'''
                 <article id="{tn_rc.article_id}">
                     <h4 class="section-header no-toc">{tn_title}</h4>
                     <div class="notes">
                             <div class="col1">
-                                <h3 class="bible-resource-title">{self.ult_id.upper()}</h3>
+                                <h3 class="bible-resource-title">{self.ult.upper()}</h3>
                                 <div class="bible-text">{ult_with_tw_words}</div>
-                                <h3 class="bible-resource-title">{self.ust_id.upper()}</h3>
+                                <h3 class="bible-resource-title">{self.ust.upper()}</h3>
                                 <div class="bible-text">{ust_with_tw_words}</div>
                             </div>
                             <div class="col2">
                                 {self.get_tn_article_text(chapter, verse)}
-                                {self.get_tw_html_list(self.ult_id, chapter, verse, ult_with_tw_words)}
-                                {self.get_tw_html_list(self.ust_id, chapter, verse, ust_with_tw_words)}
+                                {self.get_tw_html_list(self.ult, chapter, verse, ult_with_tw_words)}
+                                {self.get_tw_html_list(self.ust, chapter, verse, ust_with_tw_words)}
                             </div>
                     </div>
                 </article>
@@ -312,8 +324,8 @@ class TnPdfConverter(TsvPdfConverter):
                     verse = str(group_data['contextId']['reference']['verse'])
                     group_data['contextId']['rc'] = tw_rc_link
                     group_data['alignments'] = {
-                        self.ult_id: self.get_aligned_text(self.ult_id, group_data['contextId']),
-                        self.ust_id: self.get_aligned_text(self.ust_id, group_data['contextId'])
+                        self.ult: self.get_aligned_text(self.ult, group_data['contextId']),
+                        self.ust: self.get_aligned_text(self.ust, group_data['contextId'])
                     }
                     if chapter not in words_data:
                         words_data[chapter] = OrderedDict()

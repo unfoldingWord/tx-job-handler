@@ -168,8 +168,8 @@ const args = yargs.argv;
 const resourcesDir = args.resources_dir
 const reposDir = args.repos_dir
 const lang = args.l || args.language || 'en';
-const ultId = args.ult_id;
-const ustId = args.ust_id;
+const ultId = args.ult;
+const ustId = args.ust;
 
 if (!fs.existsSync(reposDir)) {
   throw Error('Parent of resources path does not exist: ' + reposDir);

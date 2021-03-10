@@ -32,8 +32,7 @@ class TsvPdfConverter(PdfConverter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.ult = None
-        self.ust = None
+        self.alignment_bibles = []
         self.project_id = None
 
         self.resources_dir = None
@@ -52,34 +51,6 @@ class TsvPdfConverter(PdfConverter):
     @property
     def name(self):
         return 'tsv'
-
-    @property
-    def book_number(self):
-        return int(BOOK_NUMBERS[self.project_id])
-
-    @property
-    def book_number_padded(self):
-        return self.pad(self.book_number)
-
-    @property
-    def ol_bible_id(self):
-        if self.book_number >= 40:
-            return NT_OL_BIBLE_ID
-        else:
-            return OT_OL_BIBLE_ID
-
-    def ol_lang_code(self):
-        if self.book_number >= 40:
-            return NT_OL_LANG_CODE
-        else:
-            return OT_OL_LANG_CODE
-
-    @property
-    def file_id_project_str(self):
-        if self.project_id:
-            return f'_{self.book_number_padded}-{self.project_id.upper()}'
-        else:
-            return ''
 
     def setup_resources(self):
         super().setup_resources()
@@ -173,6 +144,8 @@ class TsvPdfConverter(PdfConverter):
         return usfm
 
     def populate_book_data(self, bible_id, lang_code=None):
+        if bible_id in self.book_data:
+            return
         if not lang_code:
             lang_code = self.lang_code
         bible_path = os.path.join(self.resources_dir, lang_code, 'bibles', bible_id)

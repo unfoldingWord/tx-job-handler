@@ -20,16 +20,19 @@ import shutil
 import general_tools.html_tools as html_tools
 import googletrans
 import json
+from cssutils import parseStyle
+from cssutils.css import CSSStyleDeclaration
 from bs4 import BeautifulSoup
 from abc import abstractmethod
 from weasyprint import HTML
-from general_tools.font_utils import get_font_html
-from general_tools.file_utils import write_file, read_file, load_json_object, unzip, symlink
-from general_tools.url_utils import download_file
+from general_tools.font_utils import get_font_html_with_local_fonts
+from general_tools.file_utils import write_file, read_file, load_json_object, unzip
+from general_tools.url_utils import download_file, get_url
 from .resource import Resource, Resources, DEFAULT_REF, DEFAULT_OWNER, OWNERS
 from .rc_link import ResourceContainerLink
 from converters.converter import Converter
 from door43_tools.dcs_api import DcsApi
+from door43_tools.bible_books import BOOK_NUMBERS
 from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT
 
 STAGE_PROD = 'prod'
@@ -46,6 +49,8 @@ DEFAULT_LANG_CODE = 'en'
 DEFAULT_STAGE = 'prod'
 DEFAULT_ULT_ID = 'ult'
 DEFAULT_UST_ID = 'ust'
+
+TW_CATS = ['kt', 'names', 'other']
 
 APPENDIX_LINKING_LEVEL = 1
 APPENDIX_RESOURCES = ['ta', 'tw']
@@ -85,9 +90,10 @@ class PdfConverter(Converter):
         self.rcs = {}
         self.appendix_rcs = {}
         self.all_rcs = {}
-        self.translations = {}
+        self.locale = {}
         self.pdf_converters_dir = os.path.dirname(os.path.realpath(__file__))
         self.style_sheets = []
+        self._font_html = ''
 
         self._project = None
 
@@ -173,7 +179,9 @@ class PdfConverter(Converter):
 
     @property
     def file_id_project_str(self):
-        if self.project_id:
+        if self.project_id in BOOK_NUMBERS:
+            return f'_{self.book_number_padded}-{self.project_id.upper()}'
+        elif self.project_id and len(self.projects) > 1:
             return f'_{self.project_id}'
         else:
             return ''
@@ -181,13 +189,18 @@ class PdfConverter(Converter):
     @property
     def ref(self):
         if self.main_resource:
-            return self.main_resource.ref
+            return f'v{self.main_resource.version}'
+            # return self.main_resource.ref
         else:
             return self._repo_ref or DEFAULT_REF
 
     @property
     def lang_code(self):
         return self.manifest_dict['dublin_core']['language']['identifier']
+
+    @property
+    def projects(self):
+        return self.main_resource.projects
 
     @property
     def project(self):
@@ -229,6 +242,46 @@ class PdfConverter(Converter):
     def bad_hightlights_file(self):
         return os.path.join(self.output_dir, f'{self.file_project_and_ref}_bad_highlights.html')
 
+    @property
+    def font_html(self):
+        if not self._font_html:
+            self._font_html = get_font_html_with_local_fonts(self.lang_code, self.output_dir)
+        return self._font_html
+
+    @property
+    def head_html(self):
+        html = f'''{self.font_html}
+        <meta name="keywords" content={json.dumps(f'{self.main_resource.identifier},{self.main_resource.type},{self.lang_code},{self.main_resource.language_title},unfoldingWord')} />
+        <meta name="author" content={json.dumps(self.owner)} />
+        <meta name="dcterms.created" content={json.dumps(self.main_resource.issued)} />
+'''
+        return html
+
+    @property
+    def book_number(self):
+        if self.project_id and self.project_id in BOOK_NUMBERS:
+            return int(BOOK_NUMBERS[self.project_id])
+        else:
+            return 0
+
+    @property
+    def book_number_padded(self):
+        return self.pad(self.book_number)
+
+    @property
+    def ol_bible_id(self):
+        if self.book_number >= 40:
+            return NT_OL_BIBLE_ID
+        else:
+            return OT_OL_BIBLE_ID
+
+    @property
+    def ol_lang_code(self):
+        if self.book_number >= 40:
+            return NT_OL_LANG_CODE
+        else:
+            return OT_OL_LANG_CODE
+
     def pad(self, num, project_id=None):
         if not project_id:
             project_id = self.project_id
@@ -243,17 +296,17 @@ class PdfConverter(Converter):
             self.style_sheets.append(style_sheet)
 
     def translate(self, key):
-        if not self.translations:
+        if not self.locale:
             locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.lang_code}.json')
             if os.path.isfile(locale_file):
-                self.translations = load_json_object(locale_file)
+                self.locale = load_json_object(locale_file)
             else:
                 self.log.warning(f'No locale file for {self.lang_code}. Using English (en) with Google translate')
-                self.translations = self.get_translations_with_google()
-        if key not in self.translations:
+                self.locale = self.get_locale_with_google()
+        if key not in self.locale['translations']:
             self.log.error(f"No translation for `{key}`")
             exit(1)
-        return self.translations[key]
+        return self.locale['translations'][key]
 
     def determine_google_language(self):
         if self.lang_code in googletrans.LANGUAGES:
@@ -270,26 +323,24 @@ class PdfConverter(Converter):
             else:
                 return None
 
-    def get_translations_with_google(self):
-        en_file = os.path.join(self.pdf_converters_dir, 'locale', 'en.json')
-        en_translations = load_json_object(en_file)
+    def get_locale_with_google(self):
+        en_locale_file = os.path.join(self.pdf_converters_dir, 'locale', 'en.json')
+        locale = load_json_object(en_locale_file)
         google_lang = self.determine_google_language()
-        if not google_lang:
-            self.log.warning(f"No Google Language found for {self.lang_code}. Using English (en) locale!")
-            return en_translations
-        google_lang_file = os.path.join(self.pdf_converters_dir, 'locale', f'{google_lang}.json')
-        if os.path.exists(google_lang_file):
-            return load_json_object(google_lang_file)
-        google_translations = {}
+        locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.lang_code}.json')
+        if os.path.exists(locale_file):
+            return load_json_object(locale_file)
+        locale['source'] = locale['target']
+        locale['target'] = self.lang_code
+        locale['translator'] = 'google'
+        locale['google_lang'] = google_lang
         translator = googletrans.Translator()
-        for key, value in en_translations.items():
+        for key, value in locale['translations'].items():
             translation = translator.translate(value, src='en', dest=google_lang)
             if translation and translation.text:
-                google_translations[key] = translation.text
-            else:
-                google_translations[key] = value
-        write_file(google_lang_file, json.dumps(google_translations, sort_keys=True, indent=2, ensure_ascii=False))
-        return google_translations
+                locale['translations'][key] = translation.text
+        write_file(locale_file, json.dumps(locale, sort_keys=True, indent=2, ensure_ascii=False))
+        return locale
 
     @staticmethod
     def create_rc(rc_link, article='', title=None, linking_level=0, article_id=None):
@@ -341,10 +392,14 @@ class PdfConverter(Converter):
 
     def setup_style_sheets(self):
         self.add_style_sheet('css/style.css')
-        possible_styles = [self.lang_code, self.name, self.main_resource.identifier, f'{self.lang_code}_{self.name}']
-        for style in possible_styles:
-            style_file = f'css/{style}_style.css'
-            style_path = os.path.join(self.pdf_converters_dir, f'css/{style}_style.css')
+        possible_styles = {
+            'lang': self.lang_code,
+            'resource': self.name,
+            'lang_resource': f'{self.lang_code}_{self.resource_name}'
+        }
+        for directory, style in possible_styles.items():
+            style_file = f'css/{directory}/{style}_style.css'
+            style_path = os.path.join(self.pdf_converters_dir, style_file)
             if os.path.exists(style_path):
                 self.add_style_sheet(style_file)
         css_dir = os.path.join(self.output_dir, 'css')
@@ -387,6 +442,9 @@ class PdfConverter(Converter):
 
             self.log.info('Generating body HTML...')
             body_html = self.get_body_html()
+            body_html = self.add_fit_to_page_wrappers(body_html)
+            if not body_html:
+                return False
             self.log.info('Generating appendix RCs...')
             self.get_appendix_rcs()
             self.all_rcs = {**self.rcs, **self.appendix_rcs}
@@ -416,7 +474,7 @@ class PdfConverter(Converter):
             body_html = '\n'.join([cover_html, license_html, toc_html, body_html])
             body_html = self.download_all_images(body_html)
             head = '\n'.join([f'<link href="{style}" rel="stylesheet">' for style in self.style_sheets])
-            head += get_font_html(self.lang_code)
+            head += self.head_html
             html = html_template.safe_substitute(lang=self.lang_code, title=title, head=head, body=body_html)
             write_file(self.html_file, html)
             self.save_errors_html()
@@ -425,14 +483,67 @@ class PdfConverter(Converter):
         else:
             self.log.info(f'HTML file {self.html_file} is already there. Not generating. Use -r to force regeneration.')
 
+    @classmethod
+    def add_fit_to_page_wrappers(cls, html):
+        if 'fit-to-page' not in html:
+            return html
+        soup = BeautifulSoup(html, 'html.parser')
+        elements = soup.find_all(class_="fit-to-page")
+        if not elements:
+            return html
+        for i, element in enumerate(elements):
+            span = soup.new_tag("span", id=f"fit-to-page-{i+1}")
+            for content in reversed(element.contents):
+                span.insert(0, content.extract())
+            element.append(span)
+        return str(soup)
+
     def generate_pdf_file(self):
-        if not os.path.exists(self.pdf_file):
+        if not os.path.exists(self.html_file):
+            self.log.error('No HTML to process. Not generating PDF.')
+            return
+        if not os.path.exists(self.pdf_file) or self.debug_mode:
             self.log.info(f'Generating PDF file {self.pdf_file}...')
             # Convert HTML to PDF with weasyprint
             base_url = f'file://{self.output_dir}'
-            HTML(filename=self.html_file, base_url=base_url).write_pdf(self.pdf_file)
-            self.log.info('Generated PDF file.')
-            self.log.info(f'PDF file located at {self.pdf_file}')
+            all_pages_fitted = False
+            soup = BeautifulSoup(read_file(self.html_file), 'html.parser')
+            all_pages_fit = False
+            doc = None
+            tries = 0
+            while not all_pages_fit and tries < 10:
+                all_pages_fit = True
+                tries += 1
+                doc = HTML(string=str(soup), base_url=base_url).render()
+                for page_idx, page in enumerate(doc.pages):
+                    for anchor in page.anchors:
+                        if anchor.startswith('fit-to-page-'):
+                            if anchor not in doc.pages[page_idx-1].anchors:
+                                continue
+                            all_pages_fit = False
+                            diff = .05
+                            element = soup.find(id=anchor)
+                            if not element:
+                                continue
+                            if element.has_attr('style'):
+                                style = parseStyle(element['style'])
+                            else:
+                                style = CSSStyleDeclaration()
+                            if 'font-size' in style and style['font-size'] and style['font-size'].endswith('em'):
+                                font_size = float(style['font-size'].removesuffix('em'))
+                            else:
+                                font_size = 1.0
+                            font_size_str = f'{"%.2f"%(font_size - diff)}em'
+                            style['font-size'] = font_size_str
+                            css = style.cssText
+                            element['style'] = css
+                            self.log.info(f'RESIZING {anchor} to {font_size_str}...')
+                            write_file(os.path.join(self.output_dir, f'{self.file_project_and_ref}_resized.html'),
+                                       str(soup))
+            if doc:
+                doc.write_pdf(self.pdf_file)
+                self.log.info('Generated PDF file.')
+                self.log.info(f'PDF file located at {self.pdf_file}')
         else:
             self.log.info(
                 f'PDF file {self.pdf_file} is already there. Not generating. Use -r to force regeneration.')
@@ -578,7 +689,7 @@ class PdfConverter(Converter):
                     os.makedirs(os.path.dirname(full_file_path), exist_ok=True)
                     self.log.info(f'Downloading {url} to {full_file_path}...')
                     download_file(url, full_file_path)
-                    img['src'] = file_path
+                img['src'] = file_path
         return str(soup)
 
     @abstractmethod
@@ -678,9 +789,9 @@ class PdfConverter(Converter):
 
     def get_cover_html(self):
         version_str = f'{self.translate("version")} {self.version}'
-        if self.main_resource.ref == DEFAULT_REF:
-           version_str += f' ({DEFAULT_REF} - {self.main_resource.last_commit_sha})'
-        if self.project_id:
+        # if self.main_resource.ref == DEFAULT_REF:
+        #    version_str += f' ({DEFAULT_REF} - {self.main_resource.last_commit_sha})'
+        if self.project_id and self.project_title:
             project_title_html = f'<h2 class="cover-project">{self.project_title}</h2>'
             version_title_html = f'<h3 class="cover-version">{version_str}</h3>'
         else:
@@ -712,9 +823,9 @@ class PdfConverter(Converter):
             issued = resource.issued
 
             version_str = version
-            if resource.ref == DEFAULT_REF:
-                version_str += f' ({DEFAULT_REF} - {resource.last_commit_sha})'
-                issued = f'{resource.last_commit_date} (last commit)'
+            # if resource.ref == DEFAULT_REF:
+            #     version_str += f' ({DEFAULT_REF} - {resource.last_commit_sha})'
+            #     issued = f'{resource.last_commit_date} (last commit)'
               
             license_html += f'''
         <div class="resource-info">
@@ -727,7 +838,10 @@ class PdfConverter(Converter):
     <div id="license">
 '''
         license_file = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
-        license_html += markdown2.markdown_path(license_file)
+        if os.path.exists(license_file):
+            license_html += markdown2.markdown_path(license_file)
+        else:
+            license_html += markdown2.markdown(get_url('https://raw.githubusercontent.com/unfoldingWord/dcs/master/options/license/CC-BY-SA-4.0.md'))
         license_html += '''
     </div>
 </article>
@@ -1041,16 +1155,22 @@ class PdfConverter(Converter):
         fix = None
         if not os.path.exists(file_path):
             bad_names = {
-                'live': 'bible/kt/life'
+                'live': 'bible/kt/life',
+                'idol': 'bible/kt/falsegod',
+                'believer': 'bible/kt/believe',
             }
+            path2 = ''
             if len(rc.extra_info) and rc.extra_info[-1] in bad_names:
                 path2 = bad_names[rc.extra_info[-1]]
-            elif rc.path.startswith('bible/other/'):
-                path2 = re.sub(r'^bible/other/', r'bible/kt/', rc.path)
+                file_path = os.path.join(self.resources[rc.resource].repo_dir, rc.project, f'{path2}.md')
             else:
-                path2 = re.sub(r'^bible/kt/', r'bible/other/', rc.path)
-            fix = 'change to rc://{0}/tw/dict/{1}'.format(self.lang_code, path2)
-            file_path = os.path.join(self.resources[rc.resource].repo_dir, rc.project, f'{path2}.md')
+                for tw_cat in TW_CATS:
+                    path2 = re.sub(r'^[^/]+/', rf'{tw_cat}/', rc.path)
+                    file_path = os.path.join(self.resources[rc.resource].repo_dir, rc.project, f'{path2}.md')
+                    if os.path.isfile(file_path):
+                        break
+            if os.path.isfile(file_path) and path2:
+                fix = f'change to rc://{self.lang_code}/tw/dict/{rc.project}/{path2}'
         if os.path.isfile(file_path):
             if fix:
                 self.add_error_message(source_rc, rc.rc_link, fix)
@@ -1242,13 +1362,13 @@ class PdfConverter(Converter):
                     self.log.error(f"Unable to find repo directory after unzipping {resource.zipball_url}")
         else:
             resource.repo_dir = repo_dir
-        # need to make all resources have the same language code in their dir names for processing
-        if resource.language_id != self.lang_code and resource.subject != GREEK_NEW_TESTAMENT and \
-                resource.subject != HEBREW_OLD_TESTAMENT:
-            # Create a symlink to the resource so processBibles.js can process it
-            new_repo_dir = os.path.join(self.download_dir, f'{self.lang_code}_{resource.identifier}')
-            if not os.path.exists(new_repo_dir):
-                symlink(resource.repo_dir, new_repo_dir)
+        # # need to make all resources have the same language code in their dir names for processing
+        # if resource.language_id != self.lang_code and resource.subject != GREEK_NEW_TESTAMENT and \
+        #         resource.subject != HEBREW_OLD_TESTAMENT:
+        #     # Create a symlink to the resource so processBibles.js can process it
+        #     new_repo_dir = os.path.join(self.download_dir, f'{self.lang_code}_{resource.identifier}')
+        #     if not os.path.exists(new_repo_dir):
+        #         symlink(resource.repo_dir, new_repo_dir)
     # end of download_source_file function
 
 

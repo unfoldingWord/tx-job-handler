@@ -50,15 +50,15 @@ from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
 from door43_tools.subjects import SUBJECT_ALIASES
-from door43_tools.subjects import ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES, OBS_STUDY_NOTES, OBS_STUDY_QUESTIONS, OBS_TRANSLATION_NOTES, \
-    TRANSLATION_ACADEMY, TRANSLATION_WORDS, TRANSLATION_QUESTIONS, TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, \
-    TSV_TRANSLATION_NOTES
+from door43_tools.subjects import ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES, OBS_STUDY_NOTES, OBS_STUDY_QUESTIONS, \
+    OBS_TRANSLATION_NOTES, TRANSLATION_ACADEMY, TRANSLATION_WORDS, TRANSLATION_QUESTIONS, TSV_STUDY_NOTES, \
+    TSV_STUDY_QUESTIONS, TSV_TRANSLATION_NOTES
 from converters.pdf.bible_pdf_converter import BiblePdfConverter
 from converters.pdf.obs_pdf_converter import ObsPdfConverter
-from converters.pdf.obs_sn_sq_pdf_converter import ObsSnSqPdfConverter
+from converters.pdf.obs_sn_pdf_converter import ObsSnPdfConverter
 from converters.pdf.obs_sq_pdf_converter import ObsSqPdfConverter
 from converters.pdf.obs_tn_pdf_converter import ObsTnPdfConverter
-# from converters.pdf.obs_tq_pdf_converter import ObsTqPdfConverter
+from converters.pdf.obs_tq_pdf_converter import ObsTqPdfConverter
 from converters.pdf.sn_pdf_converter import SnPdfConverter
 from converters.pdf.sq_pdf_converter import SqPdfConverter
 from converters.pdf.ta_pdf_converter import TaPdfConverter
@@ -108,7 +108,7 @@ CONVERTER_TABLE = (
                     'other',),                                                      'html'),
     (BIBLE,                 BiblePdfConverter,   ('usfm'),  SUBJECT_ALIASES[BIBLE] + SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
     (OPEN_BIBLE_STORIES,    ObsPdfConverter,     ('md','markdown','txt','text'), SUBJECT_ALIASES[OPEN_BIBLE_STORIES], 'pdf'),
-    (OBS_STUDY_NOTES,       ObsSnSqPdfConverter, ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
+    (OBS_STUDY_NOTES, ObsSnPdfConverter, ('md', 'markdown', 'txt', 'text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
     (OBS_STUDY_QUESTIONS,   ObsSqPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_STUDY_QUESTIONS], 'pdf'),
     (OBS_TRANSLATION_NOTES, ObsTnPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_TRANSLATION_NOTES], 'pdf'),
     # (OBS_TRANSLATION_QUESTIONS,    ObsTqPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_TRANSLATION_QUESTIONS], 'pdf'),

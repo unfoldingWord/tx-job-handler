@@ -11,13 +11,13 @@
 This script generates the HTML and PDF for OBS
 """
 import os
-import string
 import markdown2
+from bs4 import BeautifulSoup
 from door43_tools.subjects import OPEN_BIBLE_STORIES
+from general_tools.file_utils import copy_tree, read_file, write_file
 from .pdf_converter import PdfConverter
-from general_tools.file_utils import read_file
+from general_tools.url_utils import get_url
 from general_tools import obs_tools
-from weasyprint import HTML
 
 
 class ObsPdfConverter(PdfConverter):
@@ -26,6 +26,15 @@ class ObsPdfConverter(PdfConverter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._title = None
+
+    def get_sample_text(self):
+        md_file = os.path.join(self.main_resource.repo_dir, 'content', '01.md')
+        if os.path.exists(md_file):
+            html = markdown2.markdown_path(md_file)
+            soup = BeautifulSoup(html, 'html.parser')
+            paragraphs = soup.find_all('p')
+            if len(paragraphs) > 1:
+                return paragraphs[1].text
 
     @property
     def title(self):
@@ -38,78 +47,82 @@ class ObsPdfConverter(PdfConverter):
     def toc_title(self):
         return f'<h1>{self.main_resource.title}</h1>'
 
-    def get_page_template(self, obs_chapter_data, frame_idx):
-        frame1 = obs_chapter_data['frames'][frame_idx]
-        page_template_html = f'''
-    <article class="obs-page">
-        <div class="obs-frame no-break obs-frame-odd">
-            <img src="{frame1['image']}" class="obs-img"/>
-            <div class="obs-text no-break" style="font-size: $font_size">
-                {frame1['text']}
-            </div>
-'''
-        if frame_idx + 1 < len(obs_chapter_data['frames']):
-            frame2 = obs_chapter_data['frames'][frame_idx + 1]
-            page_template_html += f'''
-        </div>
-        <div class="obs-frame no-break obs-frame-even">
-            <img src="{frame2['image']}" class="obs-img"/>
-            <div class="obs-text no-break" style="font-size: $font_size">
-                {frame2['text']}
-            </div>
-'''
-        # If this page is at the end of the chapter, need the bible reference
-        if frame_idx + 2 >= len(obs_chapter_data['frames']) and obs_chapter_data['bible_reference']:
-            page_template_html += f'''
-            <div class="bible-reference no-break"  style="font-size: $bible_reference_font_size">{obs_chapter_data['bible_reference']}</div>
-'''
-        page_template_html += '''
-        </div>
-    </article>
-'''
-        page_template_html = self.download_all_images(page_template_html)
-        return string.Template(page_template_html)
+    @property
+    def head_html(self):
+        html = super().head_html + f'''
+        <meta name="description" content="unrestricted visual Bible stories" />
+ '''
+        return html
 
     def get_body_html(self):
+        if not self.get_sample_text():
+            return ''
+        image_dir = os.path.join(self.output_dir, 'images', 'cdn.door43.org', 'obs', 'jpg', '360px')
+        if not os.path.exists(image_dir):
+            en_image_dir = os.path.join(self.converter_dir, '..', '..', '..', 'unfoldingWord', 'en', 'obs',
+                                        'Output', 'images', 'cdn.door43.org', 'obs', 'jpg', '360px')
+            if os.path.exists(en_image_dir):
+                os.makedirs(image_dir)
+                copy_tree(en_image_dir, image_dir)
+
         self.log.info('Generating OBS html...')
-        obs_html = '''
-<article class="blank-page">
-</article>        
+        html = f'''
+<article class="blank-page no-footer">
+</article>
 '''
-        stylesheets = [os.path.join(self.output_res_dir, style) for style in self.style_sheets]
-        for chapter_num in range(1, 51):
-            chapter_num = str(chapter_num).zfill(2)
-            obs_chapter_data = obs_tools.get_obs_chapter_data(self.main_resource.repo_dir, chapter_num)
+        for chapter in range(1, 51):
+            chapter_str = str(chapter).zfill(2)
+            obs_chapter_data = obs_tools.get_obs_chapter_data(self.main_resource.repo_dir, chapter_str)
             chapter_title = obs_chapter_data['title']
-            obs_html += f'''
+            html += f'''
 <article class="obs-chapter-title-page no-header-footer">
-    <h1 id="{self.lang_code}-obs-{chapter_num}" class="section-header">{chapter_title}</h1>
+    <h1 id="{chapter_str}" class="section-header">{chapter_title}</h1>
 </article>
 '''
             frames = obs_chapter_data['frames']
             for frame_idx in range(0, len(frames), 2):
-                page_template = self.get_page_template(obs_chapter_data, frame_idx)
-                font_size_em = 1.0
-                frames_str = f'{chapter_num}:{str(frame_idx+1).zfill(2)}'
-                has_two_frames = True
+                frames_str = f'{chapter_str}:{str(frame_idx+1).zfill(2)}'
                 if frame_idx < len(frames) - 1:
                     frames_str += f'-{str(frame_idx+2).zfill(2)}'
-                else:
-                    has_two_frames = False
-                self.log.info(f'Fitting {frames_str} to page with font_size={font_size_em}em...')
-                while has_two_frames:  # mimic do-while loop with break
-                    # See if the page fits on one printed page. If not, reduce font size by .05em
-                    # Bible reference font size is always .1em less than the text font size
-                    page_html = page_template.safe_substitute(font_size=f'{font_size_em}em',
-                                                              bible_reference_font_size=f'{font_size_em-0.1}em')
-                    doc = HTML(string=page_html, base_url=self.output_res_dir).render(stylesheets=stylesheets)
-                    if len(doc.pages) > 1:
-                        font_size_em -= .05
-                        self.log.info(f'REfitting {frames_str} to page with font_size={font_size_em}em...')
+                article_id = frames_str.replace(':', '-')
+                frame1 = obs_chapter_data['frames'][frame_idx]
+                html += f'''
+                    <article class="obs-page" id="fit-to-page-{article_id}">
+                        <div class="obs-frame no-break obs-frame-odd">
+                            <img src="{frame1['image']}" class="obs-img"/>
+                            <div class="obs-text no-break">
+                                {frame1['text']}
+                            </div>
+                '''
+                if frame_idx + 1 < len(obs_chapter_data['frames']):
+                    frame2 = obs_chapter_data['frames'][frame_idx + 1]
+                    soup = BeautifulSoup(frame2['text'], 'html.parser')
+                    span = soup.new_tag("span", id=f"{article_id}-frame-2")
+                    p = soup.find('p')
+                    if p:
+                        p.append(span)
                     else:
-                        obs_html += page_html
-                        break
-        return obs_html
+                        soup.append(span)
+                    html += f'''
+                        </div>
+                        <div class="obs-frame no-break obs-frame-even">
+                            <img src="{frame2['image']}" class="obs-img"/>
+                            <div class="obs-text no-break">
+                                {str(soup)}
+                            </div>
+                '''
+                # If this page is at the end of the chapter, need the bible reference
+                if frame_idx + 2 >= len(obs_chapter_data['frames']) and obs_chapter_data['bible_reference']:
+                    html += f'''
+                            <div id="{article_id}-bible" class="bible-reference no-break">
+                                {obs_chapter_data['bible_reference']}
+                            </div>
+                '''
+                html += f'''
+                        </div>
+                    </article>
+                '''
+        return html
 
     def get_cover_html(self):
         cover_html = f'''
@@ -127,7 +140,10 @@ class ObsPdfConverter(PdfConverter):
 
     def get_license_html(self):
         front_path = os.path.join(self.main_resource.repo_dir, 'content', 'front', 'intro.md')
-        front_html = markdown2.markdown_path(front_path)
+        if os.path.exists(front_path):
+            front_html = markdown2.markdown_path(front_path)
+        else:
+            front_html = markdown2.markdown(get_url('https://git.door43.org/api/v1/repos/unfoldingword/en_obs/raw/content/front/intro.md'))
         license_html = f'''
 <article id="front" class="no-footer">
   {front_html}
@@ -138,7 +154,10 @@ class ObsPdfConverter(PdfConverter):
 
     def get_contributors_html(self):
         back_path = os.path.join(self.main_resource.repo_dir, 'content', 'back', 'intro.md')
-        back_html = markdown2.markdown_path(back_path)
+        if os.path.exists(back_path):
+            back_html = markdown2.markdown_path(back_path)
+        else:
+            back_html = markdown2.markdown(get_url('https://git.door43.org/api/v1/repos/unfoldingword/en_obs/raw/content/back/intro.md'))
         back_html = f'''
 <article id="back" class="obs-page">
   {back_html}

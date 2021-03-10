@@ -52,8 +52,8 @@ class SnSqPdfConverter(TsvPdfConverter):
     def get_body_html(self):
         self.log.info('Creating SN for {0}...'.format(self.file_project_and_ref))
         self.process_bibles()
-        self.populate_book_data(self.ult_id)
-        self.populate_book_data(self.ust_id)
+        for bible in self.alignment_bibles:
+            self.populate_book_data(bible.idenitifer)
         self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
         self.populate_sn_book_data()
         self.populate_sq_book_data()
@@ -75,11 +75,10 @@ class SnSqPdfConverter(TsvPdfConverter):
             verse_data = {
                 'contextId': None,
                 'row': row_count,
-                'alignments': {
-                    self.ult_id: None,
-                    self.ust_id: None
-                }
+                'alignments': {}
             }
+            for bible in self.alignment_bibles:
+                verse_data['alignments'][bible.identifier] = None
             found = False
             for idx, field in enumerate(header):
                 field = field.strip()
@@ -118,14 +117,13 @@ class SnSqPdfConverter(TsvPdfConverter):
                     context_id['rc'] += f'/{verse_data["ID"]}'
                     context_id['quoteString'] = verse_data['OrigQuote']
                     verse_data['contextId'] = context_id
-                    verse_data['alignments'] = {
-                        self.ult_id: self.get_aligned_text(self.ult_id, context_id),
-                        self.ust_id: self.get_aligned_text(self.ust_id, context_id)
-                    }
-                if verse_data['alignments'][self.ult_id]:
-                    sn_title = flatten_alignment(verse_data['alignments'][self.ult_id]) + f' ({self.ult_id.upper()})'
-                    if verse_data['alignments'][self.ust_id]:
-                        sn_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust_id]) + f' ({self.ust_id.upper()})'
+                    verse_data['alignments'] = {}
+                    for bible in self.alignment_bibles:
+                        verse_data['alignments'][bible.identifier] = self.get_aligned_text(bible.identifier, context_id)
+                if verse_data['alignments'][self.ult]:
+                    sn_title = flatten_alignment(verse_data['alignments'][self.ult]) + f' ({self.ult.upper()})'
+                    if verse_data['alignments'][self.ust]:
+                        sn_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust]) + f' ({self.ust.upper()})'
                 else:
                     sn_title = f'{verse_data["GLQuote"]}'
             sn_rc = self.create_rc(sn_rc_link, title=sn_title)
@@ -153,8 +151,8 @@ class SnSqPdfConverter(TsvPdfConverter):
                 'contextId': None,
                 'row': row_count,
                 'alignments': {
-                    self.ult_id: None,
-                    self.ust_id: None
+                    self.ult: None,
+                    self.ust: None
                 }
             }
             found = False
@@ -196,13 +194,13 @@ class SnSqPdfConverter(TsvPdfConverter):
                     context_id['quoteString'] = verse_data['OrigQuote']
                     verse_data['contextId'] = context_id
                     verse_data['alignments'] = {
-                        self.ult_id: self.get_aligned_text(self.ult_id, context_id),
-                        self.ust_id: self.get_aligned_text(self.ust_id, context_id)
+                        self.ult: self.get_aligned_text(self.ult, context_id),
+                        self.ust: self.get_aligned_text(self.ust, context_id)
                     }
-                if verse_data['alignments'][self.ult_id]:
-                    sq_title = flatten_alignment(verse_data['alignments'][self.ult_id]) + f' ({self.ult_id.upper()})'
-                    if verse_data['alignments'][self.ust_id]:
-                        sq_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust_id]) + f' ({self.ust_id.upper()})'
+                if verse_data['alignments'][self.ult]:
+                    sq_title = flatten_alignment(verse_data['alignments'][self.ult]) + f' ({self.ult.upper()})'
+                    if verse_data['alignments'][self.ust]:
+                        sq_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust]) + f' ({self.ust.upper()})'
                 else:
                     sq_title = f'{verse_data["GLQuote"]}'
             sq_rc = self.create_rc(sq_rc_link, title=sq_title)
@@ -322,19 +320,19 @@ class SnSqPdfConverter(TsvPdfConverter):
         sn_rc = self.add_rc(sn_rc_link, title=sn_title)
         sq_rc_link = f'rc://{self.lang_code}/sq/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         sq_rc = self.add_rc(sq_rc_link, title=sn_title)
-        ult_text = self.get_plain_scripture(self.ult_id, chapter, verse)
-        ult_text = self.get_scripture_with_sn_quotes(self.ult_id, chapter, verse, self.create_rc(f'rc://{self.lang_code}/ult/bible/{self.project_id}/{chapter}/{verse}', ult_text), ult_text)
-        ust_text = self.get_plain_scripture(self.ust_id, chapter, verse)
-        ust_text = self.get_scripture_with_sn_quotes(self.ust_id, chapter, verse, self.create_rc(f'rc://{self.lang_code}/ust/bible/{self.project_id}/{chapter}/{verse}', ult_text), ust_text)
+        ult_text = self.get_plain_scripture(self.ult, chapter, verse)
+        ult_text = self.get_scripture_with_sn_quotes(self.ult, chapter, verse, self.create_rc(f'rc://{self.lang_code}/ult/bible/{self.project_id}/{chapter}/{verse}', ult_text), ult_text)
+        ust_text = self.get_plain_scripture(self.ust, chapter, verse)
+        ust_text = self.get_scripture_with_sn_quotes(self.ust, chapter, verse, self.create_rc(f'rc://{self.lang_code}/ust/bible/{self.project_id}/{chapter}/{verse}', ult_text), ust_text)
 
         sn_article = f'''
                 <article id="{sn_rc.article_id}">
                     <h4 class="section-header no-toc" header-level="2">{sn_title}</h4>
                     <div class="notes">
                             <div class="col1">
-                                <h3 class="bible-resource-title">{self.ult_id.upper()}</h3>
+                                <h3 class="bible-resource-title">{self.ult.upper()}</h3>
                                 <div class="bible-text">{ult_text}</div>
-                                <h3 class="bible-resource-title">{self.ust_id.upper()}</h3>
+                                <h3 class="bible-resource-title">{self.ust.upper()}</h3>
                                 <div class="bible-text">{ust_text}</div>
                             </div>
                             <div class="col2">

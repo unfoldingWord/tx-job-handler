@@ -29,7 +29,9 @@ LOGO_MAP = {
     'tw': 'utw',
     'tq': 'utq',
     'obs-tn': 'obs',
+    'obs-tq': 'obs',
     'obs-sn': 'obs',
+    'obs-sn-sq': 'obs',
     'obs-sq': 'obs'
 }
 
@@ -102,7 +104,11 @@ class Resource(object):
 
     @property
     def identifier(self):
-        return self.manifest['dublin_core']['identifier']
+        manifest_identifier = self.manifest['dublin_core']['identifier']
+        if manifest_identifier and manifest_identifier.count('_'):
+            return manifest_identifier.split('_')[1]
+        else:
+            return manifest_identifier
 
     @property
     def title(self):
