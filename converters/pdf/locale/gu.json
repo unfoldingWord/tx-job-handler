@@ -1,0 +1,25 @@
+{
+  "google_lang": "gu",
+  "source": "en",
+  "target": "gu",
+  "translations": {
+    "contributors": "ફાળો આપનારા",
+    "copyrights_and_licensing": "કૉપિરાઇટ્સ અને લાઇસન્સિંગ",
+    "date": "તારીખ",
+    "go_back_to": "ત્યાં પાછા જાઓ",
+    "in_order_to_understand_this_topic": "આ મુદ્દાને સમજવા માટે, તે વાંચવું સારું રહેશે",
+    "new_testament": "નવા કરાર",
+    "next_we_recommend_you_learn_about": "આગળ અમે તમને ભલામણ કરીએ છીએ",
+    "no_notes_for_this_verse": "આ શ્લોક માટે કોઈ નોંધ નથી.",
+    "no_questions_for_this_verse": "આ શ્લોક માટે કોઈ પ્રશ્નો નથી.",
+    "no_study_notes_for_this_frame": "આ ફ્રેમ માટે કોઈ અભ્યાસ નોંધો નથી",
+    "old_testament": "ઓલ્ડ ટેસ્ટામેન્ટ",
+    "published_by": "દ્વારા પ્રકાશિત",
+    "study_notes": "અભ્યાસ નોંધો",
+    "study_questions": "અભ્યાસ પ્રશ્નો",
+    "table_of_contents": "સમાવિષ્ટોનું કોષ્ટક",
+    "this_page_answers_the_question": "આ પૃષ્ઠ પ્રશ્નનો જવાબ આપે છે",
+    "version": "આવૃત્તિ"
+  },
+  "translator": "google"
+}

@@ -1,0 +1,25 @@
+{
+  "google_lang": "ru",
+  "source": "en",
+  "target": "ru",
+  "translations": {
+    "contributors": "Вкладчик",
+    "copyrights_and_licensing": "Авторские права и лицензирование",
+    "date": "Дата",
+    "go_back_to": "Вернуться к",
+    "in_order_to_understand_this_topic": "Чтобы понять эту тему, было бы хорошо читать",
+    "new_testament": "Новый Завет",
+    "next_we_recommend_you_learn_about": "Далее мы рекомендуем узнать о",
+    "no_notes_for_this_verse": "Там нет записей для этого стиха.",
+    "no_questions_for_this_verse": "Нет вопросов для этого стиха.",
+    "no_study_notes_for_this_frame": "Нет примечаний для этого кадра",
+    "old_testament": "Ветхий Завет",
+    "published_by": "Опубликовано",
+    "study_notes": "Изучать ноты",
+    "study_questions": "Исследование вопросов",
+    "table_of_contents": "Оглавление",
+    "this_page_answers_the_question": "Эта страница отвечает на вопрос",
+    "version": "Версия"
+  },
+  "translator": "google"
+}
