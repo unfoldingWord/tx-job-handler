@@ -249,6 +249,13 @@ class PdfConverter(Converter):
         return self._font_html
 
     @property
+    def language_direction(self):
+        if self.main_resource and self.main_resource.language_direction:
+            return self.main_resource.language_direction
+        else:
+            return 'auto'
+
+    @property
     def head_html(self):
         html = f'''{self.font_html}
         <meta name="keywords" content={json.dumps(f'{self.main_resource.identifier},{self.main_resource.type},{self.lang_code},{self.main_resource.language_title},unfoldingWord')} />
@@ -479,7 +486,8 @@ class PdfConverter(Converter):
             body_html = self.download_all_images(body_html)
             head = '\n'.join([f'<link href="{style}" rel="stylesheet">' for style in self.style_sheets])
             head += self.head_html
-            html = html_template.safe_substitute(lang=self.lang_code, title=title, head=head, body=body_html)
+            html = html_template.safe_substitute(lang=self.lang_code, dir=self.language_direction, title=title,
+                                                 head=head, body=body_html)
             write_file(self.html_file, html)
             self.save_errors_html()
             self.save_bad_highlights_html()

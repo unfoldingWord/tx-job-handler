@@ -123,6 +123,10 @@ class Resource(object):
         return self.manifest['dublin_core']['language']['identifier']
 
     @property
+    def language_direction(self):
+        return self.manifest['dublin_core']['language']['direction']
+
+    @property
     def simple_title(self):
         return self.title.replace('unfoldingWord® ', '')
 

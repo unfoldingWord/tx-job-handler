@@ -110,10 +110,15 @@ h1.section-header {
 
 #contents ul {
     list-style: none;
-    padding-left: 0;
+    padding: 0;
+    padding-inline-start: 0;
 }
 #contents ul ul {
     padding-left: 10px;
+}
+[dir="rtl"] #contents ul ul {
+    padding-left: 0;
+    padding-right: 10px;
 }
 #contents ul li {
     width: 100%;
@@ -132,10 +137,13 @@ h1.section-header {
     font-weight: bold;
 }
 #contents ul a span {
-    padding-bottom: 3px;
     background-color: white;
-    margin-right: 25px;
-    padding-right: 2px;
+    margin: 0 25px 0 0;
+    padding: 0 2px 3px 0;
+}
+[dir="rtl"] #contents ul a span {
+    margin: 0 0 0 25px;
+    padding: 0 0 3px 2px;
 }
 #contents ul a::after {
     position: absolute;
@@ -146,26 +154,12 @@ h1.section-header {
     padding-left: 2px;
     padding-right: 10px;
 }
-/*#contents ul li a span {*/
-/*    background-color: white;*/
-/*    padding-bottom: 1px;*/
-/*    text-indent: 2em;*/
-/*    line-height: 1em;*/
-/*    margin-right: 2em;*/
-/*}*/
-/*#contents ul li div.toc-item a::before {*/
-/*    content: target-text(attr(href));*/
-/*}*/
-/*#contents ul li a::after {*/
-/*    color: inherit;*/
-/*    content: target-counter(attr(href), page);*/
-/*    float: right;*/
-/*    background-color: white;*/
-/*    text-align: right;*/
-/*    width: 1.65em;*/
-/*    padding-top: 2px;*/
-/*    line-height: 1em;*/
-/*}*/
+[dir="rtl"] #contents ul a::after {
+    left: 0 !important;
+    right: auto !important;
+    padding-right: 2px;
+    padding-left: 10px;
+}
 
 h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid !important;
@@ -272,6 +266,10 @@ blockquote {
     color: #444;
     border-left: 4px solid #ddd;
 }
+[dir="rtl"] blockquote {
+    border-left: none;
+    border-right: 4px solid #ddd;
+}
 blockquote > :first-child {
     margin-top: 0;
 }
@@ -281,8 +279,8 @@ blockquote > :last-child {
 
 table {
     overflow: auto;
-    margin-left:auto;
-    margin-right:auto;
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: 10px;
     border-collapse: collapse;
     border-spacing: 0;
@@ -408,14 +406,20 @@ code {
     float: right;
     width: 250px;
 }
+[dir="rtl"] .top-box {
+    margin: 0 5px 3px 0;
+    float: left;
+}
 
 .bottom-box {
     clear: both;
     display: block;
     float: left;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 0 20px;
     white-space: nowrap;
+}
+[dir="rtl"] .bottom-box {
+    float: right;
 }
 
 #contributors {
@@ -443,6 +447,9 @@ code {
     padding: 0;
     margin: 0 0 0 2em;
     text-indent: -2em
+}
+[dir="rtl"] #contributors .contributors-list .contributor {
+    margin: 0 2em 0 0;
 }
 
 .resource-info {
