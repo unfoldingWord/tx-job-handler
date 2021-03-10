@@ -406,7 +406,11 @@ class PdfConverter(Converter):
         if not os.path.exists(css_dir):
             os.makedirs(css_dir)
         for style_file in self.style_sheets:
-            shutil.copy(os.path.join(self.pdf_converters_dir, style_file), css_dir)
+            new_style_file = os.path.join(self.output_dir, style_file)
+            new_style_file_dir = os.path.dirname(new_style_file)
+            if not os.path.exists(new_style_file_dir):
+                os.makedirs(new_style_file_dir)
+            shutil.copy(os.path.join(self.pdf_converters_dir, style_file), new_style_file)
 
     def setup_wp_logger(self):
         self.wp_logger = logging.getLogger('weasyprint')

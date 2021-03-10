@@ -67,7 +67,7 @@ class ObsSnPdfConverter(PdfConverter):
 
     @property
     def file_project_id(self):
-        return f'{self.lang_code}_obs-sn'
+        return f'{self.lang_code}_{self.project_id}'
 
     def generate_all_files(self):
         for project in ['obs-sn', 'obs-sn-sq']:
