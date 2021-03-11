@@ -34,6 +34,7 @@ from converters.converter import Converter
 from door43_tools.dcs_api import DcsApi
 from door43_tools.bible_books import BOOK_NUMBERS
 from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT
+from app_settings.app_settings import AppSettings
 
 STAGE_PROD = 'prod'
 STAGE_PREPROD = 'preprod'
@@ -83,6 +84,7 @@ class PdfConverter(Converter):
 
         self.wp_logger = None
         self.wp_logger_handler = None
+        self.output_logger_handler = None
 
         self.images_dir = None
 
@@ -102,9 +104,7 @@ class PdfConverter(Converter):
         self.api = DcsApi(self.dcs_domain, debug=self.debug_mode)
 
     def __del__(self):
-        if self.wp_logger_handler:
-            self.wp_logger.removeHandler(self.wp_logger_handler)
-            self.wp_logger_handler.close()
+        self.finish_up()
 
     @property
     def owner(self):
@@ -390,7 +390,7 @@ class PdfConverter(Converter):
             }
 
     def finish_up(self):
-        pass
+        self.close_loggers()
 
     def setup_images_dir(self):
         self.log.info('Setting up directories...')
@@ -420,16 +420,41 @@ class PdfConverter(Converter):
                 os.makedirs(new_style_file_dir)
             shutil.copy(os.path.join(self.pdf_converters_dir, style_file), new_style_file)
 
-    def setup_wp_logger(self):
+    def setup_loggers(self):
+        output_log = os.path.join(self.output_dir, f'{self.file_project_and_unique_ref}_output.log')
+        if os.path.exists(output_log):
+            os.unlink(output_log)
+        self.output_logger_handler = logging.FileHandler(output_log)
+        if self.debug_mode:
+            self.output_logger_handler.setLevel(logging.DEBUG)
+        else:
+            self.output_logger_handler.setLevel(logging.INFO)
+        AppSettings.logger.addHandler(self.output_logger_handler)
+        self.log.info(f'Logging output to {output_log}')
+
         self.wp_logger = logging.getLogger('weasyprint')
         if self.debug_mode:
             self.wp_logger.setLevel(logging.DEBUG)
         else:
             self.wp_logger.setLevel(logging.WARNING)
-        log_file = os.path.join(self.output_dir, f'{self.file_project_and_unique_ref}_weasyprint.log')
-        self.wp_logger_handler = logging.FileHandler(log_file)
+        weasyprint_log = os.path.join(self.output_dir, f'{self.file_project_and_unique_ref}_weasyprint.log')
+        if os.path.exists(weasyprint_log):
+            os.unlink(weasyprint_log)
+        self.wp_logger_handler = logging.FileHandler(weasyprint_log)
+        if self.debug_mode:
+            self.wp_logger_handler.setLevel(logging.DEBUG)
+        else:
+            self.wp_logger_handler.setLevel(logging.INFO)
         self.wp_logger.addHandler(self.wp_logger_handler)
-        self.log.info(f'Logging WeasyPrint output to {log_file}')
+        self.log.info(f'Logging WeasyPrint output to {weasyprint_log}')
+
+    def close_loggers(self):
+        if self.wp_logger_handler:
+            self.wp_logger.removeHandler(self.wp_logger_handler)
+            self.wp_logger_handler.close()
+        if self.output_logger_handler:
+            AppSettings.logger.removeHandler(self.output_logger_handler)
+            self.output_logger_handler.close()
 
     def generate_all_files(self):
         for project in self.main_resource.projects:
@@ -1229,7 +1254,7 @@ class PdfConverter(Converter):
         self.setup_resources()
         self.setup_images_dir()
         self.setup_style_sheets()
-        self.setup_wp_logger()
+        self.setup_loggers()
         self.generate_all_files()
         self.finish_up()
         return True
