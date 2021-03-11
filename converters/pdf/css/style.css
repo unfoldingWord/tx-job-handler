@@ -8,7 +8,8 @@ body {
 .manual-cover h2,
 .resource-title-page h1,
 h1.section-header {
-    string-set: header-left content()
+    string-set: header-left content();
+    /* NOTE: string-set: header-left content(), header-right ""; but then first page doesn't have the h2 heading */
 }
 
 .header-right {

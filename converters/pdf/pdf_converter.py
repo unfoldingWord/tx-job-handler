@@ -1025,7 +1025,7 @@ class PdfConverter(Converter):
         if html:
             html = f'''
 <section>
-    <article id="{self.lang_code}-{resource.identifier}-appendix-cover" class="resource-title-page break">
+    <article id="{self.lang_code}-{resource.identifier}-appendix-cover" class="resource-title-page no-header break">
         <img src="{resource.logo_url}" alt="{resource.identifier.upper()}">
         <h1 class="section-header">{resource.title}</h1>
         <h2 class="cover-version">{self.translate("version")} {resource.version}</h2>
