@@ -57,10 +57,7 @@ class ObsTqPdfConverter(PdfConverter):
     def get_obs_tq_html(self):
         obs_tq_html = f'''
 <section id="obs-sn">
-    <div class="resource-title-page no-header">
-        <img src="{self.resources['obs'].logo_url}" class="logo" alt="OBS">
-        <h1 class="section-header">{self.simple_title}</h1>
-    </div>
+    <h1 class="section-header">{self.simple_title}</h1>
 '''
         obs_tq_chapter_dirs = sorted(glob(os.path.join(self.main_resource.repo_dir, 'content', '*')))
         for obs_tq_chapter_dir in obs_tq_chapter_dirs:

@@ -18,6 +18,8 @@ from door43_tools.subjects import OBS_STUDY_NOTES
 from bs4 import BeautifulSoup
 from .pdf_converter import PdfConverter
 from general_tools import obs_tools, alignment_tools
+from general_tools.url_utils import download_file
+from general_tools.file_utils import unzip
 
 
 class ObsSnPdfConverter(PdfConverter):
@@ -69,6 +71,15 @@ class ObsSnPdfConverter(PdfConverter):
     def file_project_id(self):
         return f'{self.lang_code}_{self.project_id}'
 
+    def setup_images_dir(self):
+        super().setup_images_dir()
+        jpg_dir = os.path.join(self.images_dir, 'cdn.door43.org', 'obs', 'jpg')
+        if not os.path.exists(jpg_dir):
+            download_file('http://cdn.door43.org/obs/jpg/obs-images-360px-compressed.zip', os.path.join(self.images_dir,
+                                                                                                        'images.zip'))
+            unzip(os.path.join(self.images_dir, 'images.zip'), jpg_dir)
+            os.unlink(os.path.join(self.images_dir, 'images.zip'))
+
     def generate_all_files(self):
         for project in ['obs-sn', 'obs-sn-sq']:
             self.project_id = project
@@ -90,10 +101,7 @@ class ObsSnPdfConverter(PdfConverter):
         self.log.info('Generating OBS SN html...')
         obs_sn_html = f'''
         <section id="{self.lang_code}-obs-sn">
-            <div class="resource-title-page no-header">
-                <img src="{self.resources[f'obs-sn'].logo_url}" class="logo" alt="OBS">
-                <h1 class="section-header">{self.simple_title}</h1>
-            </div>
+            <h1 class="section-header">{self.simple_title}</h1>
         '''
         for chapter in range(1, 51):
             chapter_num = str(chapter).zfill(2)
@@ -159,10 +167,7 @@ class ObsSnPdfConverter(PdfConverter):
         self.log.info('Generating OBS SN SQ html...')
         obs_sn_sq_html = f'''
 <section id="{self.lang_code}-obs-sn">
-    <div class="resource-title-page no-header">
-        <img src="{self.resources[f'obs-sn'].logo_url}" class="logo" alt="OBS">
-        <h1 class="section-header">{self.simple_title}</h1>
-    </div>
+    <h1 class="section-header">{self.simple_title}</h1>
 '''
         intro_file = os.path.join(self.resources[f'obs-sq'].repo_dir, 'content', '00.md')
         if os.path.isfile(intro_file):

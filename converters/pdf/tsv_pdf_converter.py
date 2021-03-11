@@ -14,15 +14,13 @@ import os
 import re
 import csv
 import subprocess
+import markdown2
 from abc import abstractmethod
-
 from bs4 import BeautifulSoup
 from collections import OrderedDict
-from .pdf_converter import PdfConverter, OT_OL_BIBLE_ID, NT_OL_BIBLE_ID, \
-    OT_OL_LANG_CODE, NT_OL_LANG_CODE
+from .pdf_converter import PdfConverter
 from tx_usfm_tools.singleFilelessHtmlRenderer import SingleFilelessHtmlRenderer
 from door43_tools.subjects import ALIGNED_BIBLE, BIBLE
-from door43_tools.bible_books import BOOK_NUMBERS
 from general_tools.alignment_tools import get_alignment, flatten_quote
 from general_tools.file_utils import read_file, load_json_object, get_latest_version_path, get_child_directories
 from general_tools.usfm_utils import unalign_usfm
@@ -42,15 +40,29 @@ class TsvPdfConverter(PdfConverter):
         self.open_quote = False
         self.next_follows_quote = False
 
-        self.add_style_sheet('css/tsv_style.css')
+        self.ult = None
+        self.ust = None
+
+        self.add_style_sheet('css/resource/tsv_style.css')
+
+    def get_sample_text(self):
+        project = self.projects[0]
+        book_filepath = os.path.abspath(os.path.join(self.main_resource.repo_dir, project['path']))
+        if not os.path.isfile(book_filepath):
+            return ''
+        reader = self.unicode_csv_reader(open(book_filepath))
+        next(reader)
+        row = next(reader)
+        html = markdown2.markdown(row[-1].replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n').replace('</br>', ''))
+        soup = BeautifulSoup(html, 'html.parser')
+        p = soup.find('p')
+        if not p:
+            p = soup
+        return p.text
 
     @abstractmethod
     def get_body_html(self):
         pass
-
-    @property
-    def name(self):
-        return 'tsv'
 
     def setup_resources(self):
         super().setup_resources()

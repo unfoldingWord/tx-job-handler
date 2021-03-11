@@ -74,6 +74,7 @@ class PdfConverter(Converter):
                 self._repo_ref = parts[2]
 
         self.resources = Resources()
+        self.relation_resources = Resources()
         self.project_id = None
 
         if not os.path.isdir(self.source_dir):
@@ -219,7 +220,7 @@ class PdfConverter(Converter):
     def get_project_title(self, project):
         if not project:
             project = self.project
-        if not project:
+        if not project or len(self.projects) == 1:
             return ''
         if self.main_resource.title in project['title']:
             return project['title'].replace(f' {self.main_resource.title}', '')
@@ -442,7 +443,7 @@ class PdfConverter(Converter):
             self.generate_pdf_file()
 
     def generate_html_file(self):
-        if not os.path.exists(self.html_file):
+        if not os.path.exists(self.html_file) or self.debug_mode:
             self.log.info(f'Creating HTML file for {self.file_project_and_ref}...')
 
             self.log.info('Generating cover page HTML...')
@@ -533,7 +534,9 @@ class PdfConverter(Converter):
                             if anchor not in doc.pages[page_idx-1].anchors:
                                 continue
                             all_pages_fit = False
-                            diff = .05
+                            diff = 0.05
+                            if page.anchors[anchor][1] > 90:
+                                diff = 0.1
                             element = soup.find(id=anchor)
                             if not element:
                                 continue
@@ -549,7 +552,7 @@ class PdfConverter(Converter):
                             style['font-size'] = font_size_str
                             css = style.cssText
                             element['style'] = css
-                            self.log.info(f'RESIZING {anchor} to {font_size_str}...')
+                            self.log.info(f'RESIZING {anchor} to {font_size_str}... ({diff}, {page.anchors[anchor]}')
                             write_file(os.path.join(self.output_dir, f'{self.file_project_and_ref}_resized.html'),
                                        str(soup))
             if doc:
@@ -602,7 +605,7 @@ class PdfConverter(Converter):
         with open(os.path.join(self.pdf_converters_dir, 'templates/pdf_template.html')) as template_file:
             html_template = string.Template(template_file.read())
         html = html_template.safe_substitute(title=f'ERRORS FOR {self.file_project_and_unique_ref}',
-                                             lang=self.lang_code, link='', body=errors_html)
+                                             lang=self.lang_code, body=errors_html, head=self.head_html, dir='ltr')
         write_file(self.errors_file, html)
 
         self.log.info(f'ERRORS HTML file can be found at {self.errors_file}')
@@ -651,8 +654,9 @@ class PdfConverter(Converter):
 '''
         with open(os.path.join(self.pdf_converters_dir, 'templates/pdf_template.html')) as template_file:
             html_template = string.Template(template_file.read())
-        html = html_template.safe_substitute(title=f'BAD HIGHLIGHTS FOR {self.file_project_and_unique_ref}', link='',
-                                             body=bad_highlights_html, lang=self.lang_code)
+        html = html_template.safe_substitute(title=f'BAD HIGHLIGHTS FOR {self.file_project_and_unique_ref}',
+                                             body=bad_highlights_html, lang=self.lang_code, head=self.head_html,
+                                             dir='ltr')
         write_file(self.bad_hightlights_file, html)
         self.log.info(f'BAD HIGHLIGHTS file can be found at {self.bad_hightlights_file}')
 
@@ -676,9 +680,9 @@ class PdfConverter(Converter):
 
         # Next process require resources
         for subject in REQUIRED_RESOURCES[self.my_subject]:
-            if self.already_have_subject(subject):
-                continue
-            resource = self.find_resource(subject=subject)
+            resource = self.find_relation_resource(subject)
+            if not resource or resource.identifier in self.resources:
+                resource = self.find_resource(subject=subject)
             self.resources[resource.identifier] = resource
         for resource_name, resource in self.resources.items():
             self.setup_resource(resource)
@@ -688,6 +692,12 @@ class PdfConverter(Converter):
             if resource.subject == subject:
                 return True
         return False
+
+    def find_relation_resource(self, subject):
+        for resource in self.relation_resources.values():
+            if resource.subject == subject and resource.identifier not in self.resources:
+                return resource
+        return None
 
     def download_all_images(self, html):
         soup = BeautifulSoup(html, 'html.parser')
@@ -1167,9 +1177,10 @@ class PdfConverter(Converter):
         fix = None
         if not os.path.exists(file_path):
             bad_names = {
-                'live': 'bible/kt/life',
-                'idol': 'bible/kt/falsegod',
-                'believer': 'bible/kt/believe',
+                'live': 'kt/life',
+                'idol': 'kt/falsegod',
+                'believer': 'kt/believe',
+                'holi': 'kt/holy',
             }
             path2 = ''
             if len(rc.extra_info) and rc.extra_info[-1] in bad_names:
@@ -1183,6 +1194,8 @@ class PdfConverter(Converter):
                         break
             if os.path.isfile(file_path) and path2:
                 fix = f'change to rc://{self.lang_code}/tw/dict/{rc.project}/{path2}'
+            else:
+                fix = None
         if os.path.isfile(file_path):
             if fix:
                 self.add_error_message(source_rc, rc.rc_link, fix)
@@ -1223,10 +1236,10 @@ class PdfConverter(Converter):
 
     def process_relation_resources(self):
         for relation in self.main_resource.relation:
+            lang = self.lang_code
             if '/' in relation:
-                lang, resource_name = relation.split('/')[0:2]
+                _, resource_name = relation.split('/')[0:2]
             else:
-                lang = self.lang_code
                 resource_name = relation
             if '?' in resource_name:
                 resource_name, version = resource_name.split('?')[0:2]
@@ -1251,17 +1264,18 @@ class PdfConverter(Converter):
                         entry = entries['data'][0]
                 resource = Resource(subject=entry['subject'], owner=entry['owner'], repo_name=entry['repo'],
                                     ref=entry['branch_or_tag_name'], zipball_url=entry['zipball_url'], api=self.api)
-                self.resources[resource.identifier] = resource
+                self.relation_resources[resource.identifier] = resource
 
     def find_catalog_entry(self, subject):
         entries = self.find_catalog_entries(subject)
         if len(entries):
             return entries[0]
 
-    def find_catalog_entries(self, subject):
+    def find_catalog_entries(self, subject, lang=None):
         stage = self.stage
         owner = self.owner
-        lang = self.lang_code
+        if not lang:
+            lang = self.lang_code
 
         if subject == GREEK_NEW_TESTAMENT:
             stage = STAGE_PROD
@@ -1323,9 +1337,9 @@ class PdfConverter(Converter):
                 return response['data']
         return []
 
-    def find_resources(self, subject):
+    def find_resources(self, subject, lang=None):
         resources = Resources()
-        entries = self.find_catalog_entries(subject)
+        entries = self.find_catalog_entries(subject, lang)
         if len(entries):
             for entry in entries:
                 resource = Resource(subject=subject, owner=entry['owner'], repo_name=entry['repo'],
@@ -1333,15 +1347,14 @@ class PdfConverter(Converter):
                 resources[resource.identifier] = resource
         return resources
 
-    def find_resource(self, subject):
-        # if self.debug_mode:
-        #     repo_name = f'{self.lang_code}_{SUBJECT_ALIASES[subject][0]}'
-        #     repo_dir = os.path.join(self.download_dir, repo_name)
-        #     if os.path.exists(repo_dir):
-        #         return Resource(subject=subject, owner=self.owner, repo_name=repo_name, repo_dir=repo_dir, api=self.api)
+    def find_resource(self, subject, lang=None):
         resources = self.find_resources(subject)
         if len(resources):
-            return resources.first
+            for identifier, resource in resources.items():
+                if identifier not in self.resources:
+                    return resource
+        if not lang:
+            return self.find_resource(subject, DEFAULT_LANG_CODE)
         else:
             return None
 

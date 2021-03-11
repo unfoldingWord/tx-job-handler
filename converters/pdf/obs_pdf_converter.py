@@ -14,9 +14,9 @@ import os
 import markdown2
 from bs4 import BeautifulSoup
 from door43_tools.subjects import OPEN_BIBLE_STORIES
-from general_tools.file_utils import copy_tree, read_file, write_file
+from general_tools.file_utils import copy_tree, read_file, unzip
 from .pdf_converter import PdfConverter
-from general_tools.url_utils import get_url
+from general_tools.url_utils import get_url, download_file
 from general_tools import obs_tools
 
 
@@ -54,17 +54,18 @@ class ObsPdfConverter(PdfConverter):
  '''
         return html
 
+    def setup_images_dir(self):
+        super().setup_images_dir()
+        jpg_dir = os.path.join(self.images_dir, 'cdn.door43.org', 'obs', 'jpg')
+        if not os.path.exists(jpg_dir):
+            download_file('http://cdn.door43.org/obs/jpg/obs-images-360px-compressed.zip', os.path.join(self.images_dir,
+                                                                                                        'images.zip'))
+            unzip(os.path.join(self.images_dir, 'images.zip'), jpg_dir)
+            os.unlink(os.path.join(self.images_dir, 'images.zip'))
+
     def get_body_html(self):
         if not self.get_sample_text():
             return ''
-        image_dir = os.path.join(self.output_dir, 'images', 'cdn.door43.org', 'obs', 'jpg', '360px')
-        if not os.path.exists(image_dir):
-            en_image_dir = os.path.join(self.converter_dir, '..', '..', '..', 'unfoldingWord', 'en', 'obs',
-                                        'Output', 'images', 'cdn.door43.org', 'obs', 'jpg', '360px')
-            if os.path.exists(en_image_dir):
-                os.makedirs(image_dir)
-                copy_tree(en_image_dir, image_dir)
-
         self.log.info('Generating OBS html...')
         html = f'''
 <article class="blank-page no-footer">

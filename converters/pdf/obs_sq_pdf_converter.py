@@ -18,10 +18,10 @@ from door43_tools.subjects import OBS_STUDY_QUESTIONS
 from glob import glob
 from bs4 import BeautifulSoup
 from general_tools import obs_tools
-from .obs_sn_pdf_converter import ObsSnPdfConverter
+from .pdf_converter import PdfConverter
 
 
-class ObsSqPdfConverter(ObsSnPdfConverter):
+class ObsSqPdfConverter(PdfConverter):
     my_subject = OBS_STUDY_QUESTIONS
 
     def get_sample_text(self):
@@ -29,18 +29,6 @@ class ObsSqPdfConverter(ObsSnPdfConverter):
         html = markdown2.markdown_path(md_file)
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
-
-    @property
-    def name(self):
-        return self.main_resource.identifier
-
-    @property
-    def title(self):
-        return self.main_resource.title
-
-    @property
-    def simple_title(self):
-        return self.main_resource.simple_title
 
     def get_body_html(self):
         obs_sq_html = f'''
@@ -102,3 +90,21 @@ class ObsSqPdfConverter(ObsSnPdfConverter):
 '''
             obs_sq_html += article_html
         return obs_sq_html
+
+    def fix_links(self, html):
+        # Changes references to chapter/frame in links
+        # <a href="1/10">Text</a> => <a href="rc://obs-sn/help/obs/01/10">Text</a>
+        # <a href="10-1">Text</a> => <a href="rc://obs-sn/help/obs/10/01">Text</a>
+        html = re.sub(r'href="(\d)/(\d+)"', r'href="0\1/\2"', html)  # prefix 0 on single-digit chapters
+        html = re.sub(r'href="(\d+)/(\d)"', r'href="\1/0\2"', html)  # prefix 0 on single-digit frames
+        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.lang_code}/obs/book/obs/\1/\2"', html)
+
+        # Changes references to chapter/frame that are just chapter/frame prefixed with a #
+        # #1:10 => <a href="rc://en/obs/book/obs/01/10">01:10</a>
+        # #10/1 => <a href="rc://en/obs/book/obs/10/01">10:01</a>
+        # #10/12 => <a href="rc://en/obs/book/obs/10/12">10:12</a>
+        html = re.sub(r'#(\d)[:/-](\d+)', r'#0\1-\2', html)  # prefix 0 on single-digit chapters
+        html = re.sub(r'#(\d+)[:/-](\d)\b', r'#\1-0\2', html)  # prefix 0 on single-digit frames
+        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.lang_code}/obs/book/obs/\1/\2">\1:\2</a>', html)
+
+        return html

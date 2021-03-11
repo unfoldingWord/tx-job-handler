@@ -31,10 +31,6 @@ class SnPdfConverter(TsvPdfConverter):
         super().__init__(*args, **kwargs)
         self.sn_book_data = OrderedDict()
 
-    @property
-    def name(self):
-        return 'sn'
-
     def get_appendix_rcs(self):
         return
 

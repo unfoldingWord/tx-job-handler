@@ -13,9 +13,9 @@ This script generates the HTML and PDF TQ documents
 import os
 import markdown2
 from glob import glob
+from bs4 import BeautifulSoup
 from door43_tools.subjects import TRANSLATION_QUESTIONS
 from .pdf_converter import PdfConverter
-from door43_tools.bible_books import BOOK_NUMBERS
 from general_tools.html_tools import increment_headers
 
 
@@ -24,10 +24,13 @@ class TqPdfConverter(PdfConverter):
 
     def __init__(self, *args, **kwargs):
         self.project_id = kwargs['project_id']
-        self.book_number = None
-        if self.project_id:
-            self.book_number = BOOK_NUMBERS[self.project_id]
         super().__init__(*args, **kwargs)
+
+    def get_sample_text(self):
+        md_file = os.path.join(self.main_resource.repo_dir, self.project_id, '01.md')
+        html = markdown2.markdown_path(md_file)
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup.find('p').text
 
     def get_appendix_rcs(self):
         pass
@@ -42,16 +45,8 @@ class TqPdfConverter(PdfConverter):
             projects = [self.main_resource.find_project(self.project_id)]
         else:
             projects = self.main_resource.projects
-        # for project_idx, project in enumerate(projects):
-        #   project_id = project['identifier']
-# REMOVE FROM HERE TO "REMOVE TO HERE" and uncomment above to use the manifest projects once they are sorted
-        if self.project_id:
-            project_ids = [self.project_id]
-        else:
-            project_ids = BOOK_NUMBERS.keys()
-        for project_idx, project_id in enumerate(project_ids):
-            project = self.main_resource.find_project(project_id)
-# REMOVE TO HERE
+        for project_idx, project in enumerate(projects):
+            project_id = project['identifier']
             book_title = self.get_project_title(project)
             project_dir = os.path.join(self.main_resource.repo_dir, project_id)
             chapter_dirs = sorted(glob(os.path.join(project_dir, '*')))

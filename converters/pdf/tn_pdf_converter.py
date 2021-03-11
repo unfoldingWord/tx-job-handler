@@ -19,10 +19,9 @@ from glob import glob
 from collections import OrderedDict
 from .tsv_pdf_converter import TsvPdfConverter
 from .pdf_converter import represent_int
-from door43_tools.bible_books import BOOK_CHAPTER_VERSES
+from door43_tools.bible_books import BOOK_CHAPTER_VERSES, BOOK_NUMBERS
 from general_tools.alignment_tools import flatten_alignment
 from general_tools.file_utils import load_json_object, get_latest_version_path, get_child_directories
-from bs4 import BeautifulSoup
 
 QUOTES_TO_IGNORE = ['general information:', 'connecting statement:']
 
@@ -35,21 +34,6 @@ class TnPdfConverter(TsvPdfConverter):
         self.tw_words_data = OrderedDict()
         self.tn_groups_data = OrderedDict()
         self.tn_book_data = OrderedDict()
-
-    @property
-    def name(self):
-        return 'tn'
-
-    def get_sample_text(self):
-        book_filename = f'{self.lang_code}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
-        book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
-        if not os.path.isfile(book_filepath):
-            return
-        book_data = OrderedDict()
-        reader = self.unicode_csv_reader(open(book_filepath))
-        html = markdown2.markdown_path(first_frame)
-        soup = BeautifulSoup(html, 'html.parser')
-        return soup.find('p').text
 
     def get_body_html(self):
         self.log.info('Creating TN for {0}...'.format(self.file_project_and_ref))

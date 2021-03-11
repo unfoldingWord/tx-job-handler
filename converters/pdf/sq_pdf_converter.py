@@ -37,10 +37,6 @@ class SqPdfConverter(TsvPdfConverter):
         super().__init__(*args, **kwargs)
         self.sq_book_data = OrderedDict()
 
-    @property
-    def name(self):
-        return 'sq'
-
     def get_appendix_rcs(self):
         return
 
