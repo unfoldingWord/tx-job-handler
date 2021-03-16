@@ -153,21 +153,11 @@ def download_source_file(source_url, destination_folder):
 #end of download_source_file function
 
 
-def process_obs_helps(pj_prefix, lang=None, subject=None):
+def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, stage='latest', regenerate=None, dcs_domain='https://git.door43.org', debug=True):
     AppSettings.logger.info(f"PROCESSING {pj_prefix+' ' if pj_prefix else ''}obs_helps: {subject} {lang}")
 
     tempfile.tempdir = '/tmp'
-    if not subject:
-        subject = [OPEN_BIBLE_STORIES, OBS_TRANSLATION_QUESTIONS, OBS_TRANSLATION_NOTES, OBS_STUDY_QUESTIONS, OBS_STUDY_NOTES]
-        # subject = [OBS_TRANSLATION_NOTES, OBS_TRANSLATION_QUESTIONS]
-        # subject = [OBS_TRANSLATION_NOTES]
-        # subject = [OBS_STUDY_NOTES, OPEN_BIBLE_STORIES]
-        # subject = [OPEN_BIBLE_STORIES]
-        # subject = [OBS_TRANSLATION_QUESTIONS]
-    stage = 'latest'
-    owner = ['Door43-Catalog']
-    regenerate = 'none'
-    api = DcsApi(dcs_domain="https://git.door43.org", debug=True)
+    api = DcsApi(dcs_domain=dcs_domain, debug=debug)
 
     response = api.query_catalog(subjects=subject, owners=owner, langs=lang, stage=stage, order='desc')
 
@@ -256,4 +246,5 @@ def process_obs_helps(pj_prefix, lang=None, subject=None):
 
 
 if __name__ == '__main__':
-    process_obs_helps("dev", *sys.argv[1:])
+    process_pdfs("dev", *sys.argv[1:])
+
