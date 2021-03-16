@@ -39,6 +39,16 @@ class DcsApi(object):
             print("Exception when calling RepositoryApi->repo_get_raw_file: %s\n" % e)
             return None
 
+    def get_repo(self, owner, repo_name):
+        try:
+            # Currently just gets the manifest of the master branch
+            # Todo: when DCS goes to Gitea 1.14 and giteapy adds ref= to the raw file contents param, add to the below
+            response = self.repo_api.repo_get(owner, repo_name)
+            return response
+        except ApiException as e:
+            print("Exception when calling RepositoryApi->repo_get: %s\n" % e)
+            return None
+
     def get_catalog_entry(self, owner, repo_name, ref=None):
         if not ref:
             ref = DEFAULT_BRANCH
@@ -70,7 +80,7 @@ class DcsApi(object):
 
     def query_catalog(self, search=None, owners=None, repos=None, tags=None, langs=None, stage=None,
                       subjects=None, checking_levels=None, books=None, include_history=False,
-                      include_metadata=True, show_ingredients=False, sort=None, order=None, page=1, limit=50):
+                      include_metadata=True, show_ingredients=False, sort=None, order=None, page=1, limit=1000):
         query = {
             'q': search,
             'owner': owners,

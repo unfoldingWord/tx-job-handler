@@ -34,7 +34,10 @@ class ObsPdfConverter(PdfConverter):
             soup = BeautifulSoup(html, 'html.parser')
             paragraphs = soup.find_all('p')
             if len(paragraphs) > 1:
-                return paragraphs[1].text
+                for p in paragraphs[1:]:
+                    if p.text:
+                        return p.text
+            return soup.text
 
     @property
     def title(self):
