@@ -129,10 +129,12 @@ h1.section-header {
 }
 #contents ul a {
     display: inline-block;
-    width: 100%;
+    width: 85%;
     border-bottom: 2px dotted #555555;
     text-decoration: none;
     color: #000 !important;
+    margin-left: 20px;
+    text-indent: -20px;
 }
 #contents > ul > li > a {
     font-weight: bold;

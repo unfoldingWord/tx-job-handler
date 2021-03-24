@@ -577,9 +577,9 @@ class PdfConverter(Converter):
                             style['font-size'] = font_size_str
                             css = style.cssText
                             element['style'] = css
-                            self.log.info(f'RESIZING {anchor} to {font_size_str}... ({diff}, {page.anchors[anchor]}')
-                            write_file(os.path.join(self.output_dir, f'{self.file_project_and_ref}_resized.html'),
-                                       str(soup))
+                            self.log.info(f'RESIZING {anchor} to {font_size_str}... ({diff}, {page.anchors[anchor]})')
+                    write_file(os.path.join(self.output_dir, f'{self.file_project_and_ref}_resized.html'),
+                               str(soup))
             if doc:
                 doc.write_pdf(self.pdf_file)
                 self.log.info('Generated PDF file.')

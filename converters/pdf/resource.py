@@ -12,7 +12,6 @@
 Class for a resource
 """
 import os
-from datetime import datetime
 from dateutil import parser
 from door43_tools.dcs_api import DcsApi
 from collections import OrderedDict

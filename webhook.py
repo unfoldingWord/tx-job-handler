@@ -353,7 +353,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
             source_folder_path = tryFolder
     if source_folder_path != base_temp_dir_name:
         AppSettings.logger.info(f"Source folder '{source_folder_path}'"
-                                   f" contains {os.listdir(source_folder_path)}")
+                                f" contains {os.listdir(source_folder_path)}")
 
     # Save some stats
     stats_client.incr(f"{job_handler_stats_prefix}.jobs.HTML.input.{queued_json_payload['input_format']}")

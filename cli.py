@@ -16,6 +16,7 @@
 from typing import Dict, Tuple, Any, Optional, Type
 import os
 import sys
+import argparse
 import traceback
 import tempfile
 from glob import glob
@@ -25,6 +26,7 @@ from rq_settings import prefix, debug_mode_flag
 from general_tools.file_utils import unzip, remove_tree
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
+from door43_tools.bible_books import BOOK_NUMBERS
 
 from converters.converter import Converter
 
@@ -153,33 +155,69 @@ def download_source_file(source_url, destination_folder):
 #end of download_source_file function
 
 
-def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, stage='latest', regenerate=None, dcs_domain='https://git.door43.org', debug=True):
-    AppSettings.logger.info(f"PROCESSING {pj_prefix+' ' if pj_prefix else ''}obs_helps: {subject} {lang}")
+def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, repos=None, project_ids=None, stage=None,
+                 regenerate=None, working_dir=None, tags=None, dcs_domain='https://git.door43.org', debug=True):
+    AppSettings.logger.info(f"PROCESSING {pj_prefix+' ' if pj_prefix else ''}obs_helps: {subjects} {langs}")
 
-    tempfile.tempdir = '/tmp'
+    # stage = 'latest'
+    # langs = ['en']
+    # repos = ['en_obs']
+    # owners = ['Door43-Catalog']
+    debug = True
+
     api = DcsApi(dcs_domain=dcs_domain, debug=debug)
 
-    response = api.query_catalog(subjects=subject, owners=owner, langs=lang, stage=stage, order='desc')
+    if stage:
+        response = api.query_catalog(subjects=subjects, owners=owners, repos=repos, langs=langs, tags=tags, stage=stage)
+        if 'ok' not in response or 'data' not in response or not len(response['data']):
+            AppSettings.logger.error(f'No entries for {subjects}')
+            exit(1)
+    else:
+        if repos:
+            langs = None
+            subjects = None
+        response = api.repo_search(langs=langs, subjects=subjects, owners=owners, repos=repos, books=project_ids)
 
     if 'ok' not in response or 'data' not in response or not len(response['data']):
-        AppSettings.logger.error(f'No entries for {subject}')
+        AppSettings.logger.error(f'No entries for {subjects}')
         exit(1)
 
-    print("TO BE GENERATED:")
-    for entry in response['data']:
-        print(f"  {entry['lang_code']} :: {entry['subject']} :: {entry['owner']} :: {entry['repo']}")
+    tempfile.tempdir = os.path.join('/tmp', 'working')
+    if working_dir:
+        tempfile.tempdir = working_dir
 
-    for entry in response['data']:
-        AppSettings.logger.debug(f"entry: {entry}")
+    AppSettings.logger.info("TO BE GENERATED:")
+
+    data = []
+    for item in response['data']:
+        repo = api.get_repo(item['owner']['login'], item['name'])
+        if 'branch_or_tag_name' in item:
+            tag = item['branch_or_tag_name']
+        else:
+            if tags:
+                tag = tags[0]
+            else:
+                tag = 'master'
+
+        if 'zipball_url' in item:
+            repo['zipball_url'] = item['zipball_url']
+        else:
+            repo['zipball_url'] = f"{repo['html_url']}/archive/{tag}.zip"
+
+        repo['subject'] = item['subject']
+        repo['lang_code'] = item['lang_code'] if 'lang_code' in item else item['language']
+        data.append(repo)
+
+        AppSettings.logger.info(f"  lang:{repo['language']} :: subject:{repo['subject']} :: owner:{repo['owner']['login']} :: repo:{repo['name']}")
+
         # Setup a temp folder to use
         # Move everything down one directory level for simple delete
-        outdir = os.path.join(entry['owner'], entry['lang_code'], entry['repo'].split('_')[1])
-        base_temp_dir_name = os.path.join('/tmp', 'working', entry['subject'], outdir)
+        outdir = os.path.join(repo['owner']['login'], repo['lang_code'], repo['name'].split('_')[1])
+        base_temp_dir_name = os.path.join(tempfile.tempdir, outdir)
         output_dir = os.path.join(base_temp_dir_name, 'Output')
         pdfs = glob(os.path.join(output_dir, '*.pdf'))
         if len(pdfs) > 0 and regenerate != 'all':
             if regenerate == 'none':
-                upload_and_update(entry, output_dir)
                 continue
             reply = str(input(f"{pdfs[0]} exists. Generate PDF anyway? " + ' (y/N/all/none): ')).lower().strip()
             if not reply or reply[0] != 'y' and reply != 'all':
@@ -188,31 +226,29 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, stage='lates
                 continue
             if reply == 'all':
                 regenerate = 'all'
+        os.makedirs(base_temp_dir_name, exist_ok=True)
         AppSettings.logger.debug(f"base_temp_dir_name = {base_temp_dir_name}")
-        if entry['subject'] == OPEN_BIBLE_STORIES:
-            outdir = os.path.join(entry['owner'], entry['lang_code'], entry['repo'].split('_')[1])
-            base_temp_dir_name = os.path.join('/tmp', 'working', entry['subject'], outdir)
-        try:
-            os.makedirs(base_temp_dir_name)
-        except Exception as e:
-            AppSettings.logger.critical(f"SetupTempFolder threw an exception: {e}: {traceback.format_exc()}")
-            AppSettings.logger.critical(f"Oh, folder {base_temp_dir_name} already existed!")
-            AppSettings.logger.info(f"It contained {os.listdir(base_temp_dir_name)}")
 
         # Download and unzip the specified source file
-        AppSettings.logger.debug(f"Getting source file from {entry['zipball_url']} …")
-        download_source_file(entry['zipball_url'], base_temp_dir_name)
+        AppSettings.logger.debug(f"Getting source file from {repo['zipball_url']} …")
+        zipball_url = repo['zipball_url']
+        download_source_file(zipball_url, base_temp_dir_name)
+
+        if not repo["subject"] and repo["name"].endswith('_obs') or '_obs_' in repo["name"] and
+            not os.path.exists(os.path.join(base_temp_dir_name, )):
+            manifest_yaml_file = os.path.join(base_temp_dir)
+
 
         # Find correct source folder
-        source_folder_path = os.path.join(base_temp_dir_name, entry['repo'])
+        source_folder_path = os.path.join(base_temp_dir_name, repo['name'])
 
-        converter_name, converter = get_converter_module(entry)
+        converter_name, converter = get_converter_module(item)
         AppSettings.logger.info(f"Got converter = {converter_name}")
         build_log_dict = {
-            'resource_type': entry['subject'],
-            'identifier': f"{entry['owner']}--{entry['repo']}--{entry['branch_or_tag_name']}",
-            'output': os.path.join('/tmp', 'working', entry['subject'], outdir, f'{entry["repo"]}-{entry["branch_or_tag_name"]}.zip'),
-            'source': entry['zipball_url']
+            'resource_type': item['subject'],
+            'identifier': f"{item['owner']}--{item['repo']}--{tag}",
+            'output': os.path.join(tempfile.tempdir, outdir, f'{item["repo"]}-{tag}.zip'),
+            'source': item['zipball_url']
         }
 
         if converter:
@@ -221,7 +257,7 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, stage='lates
             build_log_dict['convert_module'] = converter_name
             do_converting(build_log_dict, source_folder_path, converter_name, converter)
         else:
-            error_message = f"No converter was found to convert {entry['subject']}"
+            error_message = f"No converter was found to convert {item['subject']}"
             AppSettings.logger.error(error_message)
             build_log_dict['convert_module'] = 'NO CONVERTER'
             build_log_dict['converter_success'] = 'false'
@@ -239,12 +275,50 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, stage='lates
         str_build_log_adjusted = str_build_log if len(str_build_log)<1500 \
             else f'{str_build_log[:1000]} …… {str_build_log[-500:]}'
 
-        upload_and_update(entry, output_dir)
-
         AppSettings.logger.info(f"Finished: {str_build_log_adjusted}")
 #end of process_obs_helps
 
 
 if __name__ == '__main__':
-    process_pdfs("dev", *sys.argv[1:])
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('-r', '--regenerate', dest='regenerate', action='store_true',
+                        help='Regenerate PDF even if exists.')
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true',
+                        help='Turn debugging mode on. Prints debug messages and uses the QA DCS server.')
+    parser.add_argument('-l', '--lang', dest='langs', required=False, action='append',
+                        help='Language Code. Can specify multiple -l\'s, e.g. -l en -l fr. Default: en')
+    parser.add_argument('-p', '--project_id', metavar='PROJECT ID', dest='project_ids', required=False,
+                        action='append',
+                        help='Project ID for resources with projects, such as a Bible book (-p gen). Can specify multiple -p\'s. Default: None (different converters will handle no or multiple projects differently, such as compiling all into one PDF, or running for each project.)')
+    parser.add_argument('-w', '--working', dest='working_dir', required=False,
+                        help='Working directory where multiple repos can be cloned into. Default: a temp directory that gets removed on exit')
+    parser.add_argument('--owners', dest='owners', default=['unfoldingWord', 'Door43-Catalog'], required=False,
+                        help=f'Owner of the resource repo on GitHub. Default: unfoldingWord, Door43-Catalog')
+    parser.add_argument('--repo', dest='repos', required=False,
+                        help=f'Repo name. Can be multiple.')
+    parser.add_argument('-s', '--subject', dest='subjects', action='append', required=False,
+                        help='Subject to generate. Can give multiple. Ex.: -s "Open Bible Stories" -s "Translation Notes"')
+    parser.add_argument('--tags', dest='tags', default=None, required=False,
+                        help='The tags to use. If not specified, uses latest version or master if stage is "latest"')
+    parser.add_argument('--stage', dest='stage', default=None, required=False,
+                        help='The stage of the resource. If set, will use thec catalog rather than repo search.')
+    args = parser.parse_args(sys.argv[1:])
 
+    project_ids = args.project_ids
+    if not project_ids or 'all' in project_ids[0]:
+        project_id = '' if not project_ids else project_ids[0]
+        project_ids_map = {'': BOOK_NUMBERS.keys(), 'all': BOOK_NUMBERS.keys()}
+        if project_id in project_ids_map:
+            project_ids = project_ids_map[project_id]
+        elif not project_ids:
+            project_ids = [None]
+
+    prefix = ''
+    dcs_domain = 'https://git.door43.org'
+    if args.debug:
+        prefix = 'dev'
+        dcs_domain = 'https://qa.door43.org'
+
+    args_map = vars(args)
+    args_map['dcs_domain'] = dcs_domain
+    process_pdfs(prefix, **args_map)

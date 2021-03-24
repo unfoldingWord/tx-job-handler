@@ -31,6 +31,9 @@ class AlignedBiblePdfConverter(PdfConverter):
         self.chapters = self.parse_chapters(chapter)
         super().__init__(*args, **kwargs)
 
+    def get_sample_text(self):
+        return "REPLACE THIS"
+
     @property
     def book_number(self):
         if self.project_id and self.project_id not in ['all', 'ot', 'nt']:

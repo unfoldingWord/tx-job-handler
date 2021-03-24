@@ -40,14 +40,11 @@ class DcsApi(object):
             return None
 
     def get_repo(self, owner, repo_name):
-        try:
-            # Currently just gets the manifest of the master branch
-            # Todo: when DCS goes to Gitea 1.14 and giteapy adds ref= to the raw file contents param, add to the below
-            response = self.repo_api.repo_get(owner, repo_name)
-            return response
-        except ApiException as e:
-            print("Exception when calling RepositoryApi->repo_get: %s\n" % e)
-            return None
+        url = f"{self.api_base_url}/repos/{owner}/{repo_name}"
+        print(url)
+        response = requests.get(url)
+        return response.json()
+
 
     def get_catalog_entry(self, owner, repo_name, ref=None):
         if not ref:
@@ -101,6 +98,27 @@ class DcsApi(object):
         }
         query = {k: v for k, v in query.items() if v is not None}
         url = f"{self.catalog_url}/?{urlencode(query, doseq=True)}"
+        print(url)
+        response = requests.get(url)
+        return response.json()
+
+    def repo_search(self, q=None, owners=None, repos=None, langs=None, subjects=None, books=None,
+                    include_metadata=True, sort=None, order=None, page=1, limit=1000):
+        query = {
+            'q': q,
+            'owner': owners,
+            'repo': repos,
+            'lang': langs,
+            'subject': subjects,
+            'book': books,
+            'includeMetadata': include_metadata,
+            'sort': sort,
+            'order': order,
+            'page': page,
+            'limit': limit,
+        }
+        query = {k: v for k, v in query.items() if v is not None}
+        url = f"{self.api_base_url}/repos/search?{urlencode(query, doseq=True)}"
         print(url)
         response = requests.get(url)
         return response.json()
