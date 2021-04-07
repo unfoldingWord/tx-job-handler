@@ -54,14 +54,14 @@ info:
 runDev: checkEnvVariables
 	# This runs the rq job handler
 	#   which removes and then processes jobs from the local redis dev- queue
-	QUEUE_PREFIX="dev-" rq worker --config rq_settings --name tX_Dev_HTML_Job_Handler
+	QUEUE_PREFIX="dev-" rq worker --config rq_settings --name tX_Dev_Job_Handler
 
 runDevDebug: checkEnvVariables
 	# This runs the rq job handler
 	#   which removes and then processes jobs from the local redis dev- queue
         # Without docker:
-        # QUEUE_PREFIX="dev-" REDIS_URL="redis://127.0.0.1:6379" DEBUG_MODE="true" rq worker --config rq_settings --name tX_Dev_HTML_Job_Handler
-	docker run -e QUEUE_PREFIX="dev-" -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e DEBUG_MODE=true -e REDIS_URL="redis://door43-enqueue-job_redis_1:6379" -e GOGS_USER_TOKEN -v ${PWD}:/scripts --name tX_Dev_HTML_Job_Handler --rm --network "tx-net" python:3 /bin/bash -c "cd /scripts; pip install -r requirements.txt; rq worker --config rq_settings --name tX_Dev_HTML_Job_Handler"
+        # QUEUE_PREFIX="dev-" REDIS_URL="redis://127.0.0.1:6379" DEBUG_MODE="true" rq worker --config rq_settings --name tX_Dev_Job_Handler
+	docker run -e QUEUE_PREFIX="dev-" -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e DEBUG_MODE=true -e REDIS_URL="redis://door43-enqueue-job_redis_1:6379" -e GOGS_USER_TOKEN -v ${PWD}:/scripts --name tX_Dev_Job_Handler --rm --network "tx-net" python:3 /bin/bash -c "cd /scripts; pip install -r requirements.txt; rq worker --config rq_settings --name tX_Dev_Job_Handler"
 
 runDevDebugPDF: checkEnvVariables
 	# This runs the rq job handler
@@ -74,7 +74,7 @@ run:
 	# This runs the rq job handler
 	#   which removes and then processes jobs from the production redis queue
 	# TODO: Can the AWS redis url go in here (i.e., is it public)?
-	REDIS_URL="dadada" rq worker --config rq_settings --name tX_HTML_Job_Handler
+	REDIS_URL="dadada" rq worker --config rq_settings --name tX_Job_Handler
 
 imageDev:
 	docker build --file Dockerfile-developBranch --tag unfoldingword/tx_job_handler:develop .

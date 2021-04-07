@@ -39,6 +39,7 @@ coverage.xml
 
 # Editors
 .vscode/
+.idea
 
 # Flask stuff:
 instance/
@@ -76,3 +77,4 @@ sonar-project.properties
 
 # Script to set environment variables
 setENVs.sh
+

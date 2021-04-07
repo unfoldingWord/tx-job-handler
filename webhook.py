@@ -477,7 +477,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         job_descriptive_name = process_tx_job(prefix, queued_json_payload)
     except Exception as e:
         # Catch most exceptions here so we can log them to CloudWatch
-        prefixed_name = f"{prefix}tX_HTML_Job_Handler"
+        prefixed_name = f"{prefix}tX_Job_Handler"
         AppSettings.logger.critical(f"{prefixed_name} threw an exception while processing: {queued_json_payload}")
         AppSettings.logger.critical(f"{e}: {traceback.format_exc()}")
         AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
