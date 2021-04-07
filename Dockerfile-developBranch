@@ -1,7 +1,7 @@
 # NOTE: This docker container is built automatically
 #       from Travis-CI after passing unit tests
 
-FROM python:alpine
+FROM python:3
 
 COPY . /code
 WORKDIR /code
