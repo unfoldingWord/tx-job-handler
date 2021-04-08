@@ -7,13 +7,13 @@ from urllib.parse import urlencode
 DEFAULT_BRANCH = 'master'
 PRODUCTION_DCS_DOMAIN = "https://qa.door43.org"
 QA_DCS_DOMAIN = "https://qa.door43.org"
-API_LATEST_VERSION = 1
-CATALOG_NEXT_LATEST_VERSION = 4
+API_VERSION = 1
+CATALOG_NEXT_VERSION = 5
 
 
 class DcsApi(object):
-    def __init__(self, dcs_domain=None, api_version=API_LATEST_VERSION,
-                 catalog_version=CATALOG_NEXT_LATEST_VERSION, debug=False):
+    def __init__(self, dcs_domain=None, api_version=API_VERSION,
+                 catalog_version=CATALOG_NEXT_VERSION, debug=False):
         self.dcs_domain = dcs_domain
         if dcs_domain:
             self.cs_domain = dcs_domain

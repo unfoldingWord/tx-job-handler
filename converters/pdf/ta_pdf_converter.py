@@ -12,6 +12,8 @@ This script generates the HTML and PDF TA documents
 """
 import os
 import yaml
+import markdown2
+from bs4 import BeautifulSoup
 from door43_tools.subjects import TRANSLATION_ACADEMY
 from .pdf_converter import PdfConverter
 from general_tools.file_utils import read_file
@@ -25,6 +27,17 @@ class TaPdfConverter(PdfConverter):
         self.section_count = 0
         self.config = None
         self.toc_html = ''
+
+    def get_sample_text(self):
+        files = [os.path.join(self.main_resource.repo_dir, 'intro', 'translation-guidelines', '01.md'),
+                 os.path.join(self.main_resource.repo_dir, 'translate', 'figs-verbs', '01.md'),
+                 os.path.join(self.main_resource.repo_dir, 'translate', 'transle-help', '01.md')]
+        for file in files:
+            if os.path.exists(file):
+                html = markdown2.markdown_path(file)
+                soup = BeautifulSoup(html, 'html.parser')
+                return soup.find('p').text
+        return ''
 
 #     def get_toc_from_yaml(self):
 #         toc_html = ''

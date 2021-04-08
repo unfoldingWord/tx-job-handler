@@ -197,7 +197,7 @@ class PdfConverter(Converter):
 
     @property
     def lang_code(self):
-        return self.manifest_dict['dublin_core']['language']['identifier']
+        return self.main_resource.manifest['dublin_core']['language']['identifier']
 
     @property
     def projects(self):
@@ -1284,10 +1284,10 @@ class PdfConverter(Converter):
             if entry:
                 if not version:
                     # get the latest version if one, else use DEFAULT_BRANCH
-                    entries = self.api.query_catalog(owners=[entry['owner']], repos=[entry['repo']])
+                    entries = self.api.query_catalog(owners=[entry['owner']], repos=[entry['name']])
                     if 'data' in entries and len(entries['data']):
                         entry = entries['data'][0]
-                resource = Resource(subject=entry['subject'], owner=entry['owner'], repo_name=entry['repo'],
+                resource = Resource(subject=entry['subject'], owner=entry['owner'], repo_name=entry['name'],
                                     ref=entry['branch_or_tag_name'], zipball_url=entry['zipball_url'], api=self.api)
                 self.relation_resources[resource.identifier] = resource
 
@@ -1367,7 +1367,7 @@ class PdfConverter(Converter):
         entries = self.find_catalog_entries(subject, lang)
         if len(entries):
             for entry in entries:
-                resource = Resource(subject=subject, owner=entry['owner'], repo_name=entry['repo'],
+                resource = Resource(subject=subject, owner=entry['owner'], repo_name=entry['name'],
                                     ref=entry['branch_or_tag_name'], zipball_url=entry['zipball_url'], api=self.api)
                 resources[resource.identifier] = resource
         return resources

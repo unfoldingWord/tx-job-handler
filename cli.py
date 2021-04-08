@@ -72,9 +72,9 @@ if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
 
 
-def get_converter_module(entry) -> Tuple[Optional[str],Any]:
+def get_converter_module(subject) -> Tuple[Optional[str],Any]:
     for converter_name, converter_class, input_formats, resource_types, output_format in CONVERTER_TABLE:
-        if entry['subject'] == converter_name:
+        if subject == converter_name:
             return converter_name, converter_class
     # Didn't find one
     return None, None
@@ -167,20 +167,30 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, repos=None, 
 
     api = DcsApi(dcs_domain=dcs_domain, debug=debug)
 
+    items = []
+
     if stage:
         response = api.query_catalog(subjects=subjects, owners=owners, repos=repos, langs=langs, tags=tags, stage=stage)
         if 'ok' not in response or 'data' not in response or not len(response['data']):
             AppSettings.logger.error(f'No entries for {subjects}')
             exit(1)
+        items = response['data']
     else:
         if repos:
             langs = None
             subjects = None
         response = api.repo_search(langs=langs, subjects=subjects, owners=owners, repos=repos, books=project_ids)
-
-    if 'ok' not in response or 'data' not in response or not len(response['data']):
-        AppSettings.logger.error(f'No entries for {subjects}')
-        exit(1)
+        if 'ok' not in response or 'data' not in response or not len(response['data']):
+            AppSettings.logger.error(f'No entries for {subjects}')
+            exit(1)
+        for repo in response['data']:
+            tag = tags[0] if tags else 'master'
+            item = {
+                'repo': repo,
+                'branch_or_tag_name': tag,
+                'zipball_url': f"{repo['html_url']}/archive/{tag}.zip",
+            }
+            items.append(item)
 
     tempfile.tempdir = os.path.join('/tmp', 'working')
     if working_dir:
@@ -188,31 +198,13 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, repos=None, 
 
     AppSettings.logger.info("TO BE GENERATED:")
 
-    data = []
-    for item in response['data']:
-        repo = api.get_repo(item['owner']['login'], item['name'])
-        if 'branch_or_tag_name' in item:
-            tag = item['branch_or_tag_name']
-        else:
-            if tags:
-                tag = tags[0]
-            else:
-                tag = 'master'
-
-        if 'zipball_url' in item:
-            repo['zipball_url'] = item['zipball_url']
-        else:
-            repo['zipball_url'] = f"{repo['html_url']}/archive/{tag}.zip"
-
-        repo['subject'] = item['subject']
-        repo['lang_code'] = item['lang_code'] if 'lang_code' in item else item['language']
-        data.append(repo)
-
-        AppSettings.logger.info(f"  lang:{repo['language']} :: subject:{repo['subject']} :: owner:{repo['owner']['login']} :: repo:{repo['name']}")
+    for item in items:
+        repo = item['repo']
+        AppSettings.logger.info(f"  lang:{repo['language']} :: subject:{repo['subject']} :: owner:{repo['owner']['username']} :: item:{repo['name']}")
 
         # Setup a temp folder to use
         # Move everything down one directory level for simple delete
-        outdir = os.path.join(repo['owner']['login'], repo['lang_code'], repo['name'].split('_')[1])
+        outdir = os.path.join(repo['owner']['username'], repo['language'], repo['name'].split('_')[1])
         base_temp_dir_name = os.path.join(tempfile.tempdir, outdir)
         output_dir = os.path.join(base_temp_dir_name, 'Output')
         pdfs = glob(os.path.join(output_dir, '*.pdf'))
@@ -230,24 +222,19 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, repos=None, 
         AppSettings.logger.debug(f"base_temp_dir_name = {base_temp_dir_name}")
 
         # Download and unzip the specified source file
-        AppSettings.logger.debug(f"Getting source file from {repo['zipball_url']} …")
-        zipball_url = repo['zipball_url']
+        AppSettings.logger.debug(f"Getting source file from {item['zipball_url']} …")
+        zipball_url = item['zipball_url']
         download_source_file(zipball_url, base_temp_dir_name)
-
-        if not repo["subject"] and repo["name"].endswith('_obs') or '_obs_' in repo["name"] and
-            not os.path.exists(os.path.join(base_temp_dir_name, )):
-            manifest_yaml_file = os.path.join(base_temp_dir)
-
 
         # Find correct source folder
         source_folder_path = os.path.join(base_temp_dir_name, repo['name'])
 
-        converter_name, converter = get_converter_module(item)
+        converter_name, converter = get_converter_module(repo['subject'])
         AppSettings.logger.info(f"Got converter = {converter_name}")
         build_log_dict = {
-            'resource_type': item['subject'],
-            'identifier': f"{item['owner']}--{item['repo']}--{tag}",
-            'output': os.path.join(tempfile.tempdir, outdir, f'{item["repo"]}-{tag}.zip'),
+            'resource_type': repo['subject'],
+            'identifier': f"{repo['owner']['username']}--{repo['name']}--{item['branch_or_tag_name']}",
+            'output': os.path.join(tempfile.tempdir, outdir, f"{repo['name']}-item['branch_or_tag_name].zip"),
             'source': item['zipball_url']
         }
 
@@ -257,7 +244,7 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, repos=None, 
             build_log_dict['convert_module'] = converter_name
             do_converting(build_log_dict, source_folder_path, converter_name, converter)
         else:
-            error_message = f"No converter was found to convert {item['subject']}"
+            error_message = f"No converter was found to convert {repo['subject']}"
             AppSettings.logger.error(error_message)
             build_log_dict['convert_module'] = 'NO CONVERTER'
             build_log_dict['converter_success'] = 'false'
@@ -292,8 +279,8 @@ if __name__ == '__main__':
                         help='Project ID for resources with projects, such as a Bible book (-p gen). Can specify multiple -p\'s. Default: None (different converters will handle no or multiple projects differently, such as compiling all into one PDF, or running for each project.)')
     parser.add_argument('-w', '--working', dest='working_dir', required=False,
                         help='Working directory where multiple repos can be cloned into. Default: a temp directory that gets removed on exit')
-    parser.add_argument('--owners', dest='owners', default=['unfoldingWord', 'Door43-Catalog'], required=False,
-                        help=f'Owner of the resource repo on GitHub. Default: unfoldingWord, Door43-Catalog')
+    parser.add_argument('--owner', dest='owners', default=['unfoldingWord', 'Door43-Catalog'], required=False,
+                        help=f'Owner of the resource repo on GitHub. Can be multiple. Default: unfoldingWord, Door43-Catalog')
     parser.add_argument('--repo', dest='repos', required=False,
                         help=f'Repo name. Can be multiple.')
     parser.add_argument('-s', '--subject', dest='subjects', action='append', required=False,
