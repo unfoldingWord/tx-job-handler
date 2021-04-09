@@ -171,13 +171,13 @@ def do_linting(param_dict:Dict[str,Any], source_dir:str, linter_name:str, linter
 # end of do_linting function
 
 
-def get_converter_module(gcm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
+def get_converter_module(gcm_job:Dict[str,Any], output_format:str) -> Tuple[Optional[str],Any]:
     """
     :param dict gcm_job:
     :return TxModule:
     """
-    for converter_name, converter_class, input_formats, resource_types, output_format in CONVERTER_TABLE:
-        if gcm_job['input_format'] in input_formats and output_format == gcm_job['output_format']:
+    for converter_name, converter_class, input_formats, resource_types, opf in CONVERTER_TABLE:
+        if gcm_job['input_format'] in input_formats and opf == output_format:
             if gcm_job['resource_type'] in resource_types:
                 return converter_name, converter_class
             if 'other' in resource_types:
@@ -188,7 +188,7 @@ def get_converter_module(gcm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
 # end if get_converter_module function
 
 
-def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, converter_class:Type[Converter]) -> None:
+def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, converter_class:Type[Converter], file_key_suffix:str) -> None:
     """
     :param dict param_dict: Will be updated for build log!
     :param str source_dir: Directory of the download source files
@@ -203,6 +203,10 @@ def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, 
         cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
     else:
         cdn_file_key = param_dict['output']
+    if file_key_suffix:
+        parts = list(cdn_file_key.rpartition('.'))
+        parts.insert(1, file_key_suffix)
+        cdn_file_key = ''.join(parts)
     converter = converter_class(param_dict['resource_type'],
                                 source_dir=source_dir,
                                 source_url=param_dict['source'],
@@ -365,8 +369,10 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
                                 f" '{queued_json_payload['resource_type']}'")
     linter_name, linter = get_linter_module(queued_json_payload)
     AppSettings.logger.info(f"Got linter = {linter_name}")
-    converter_name, converter = get_converter_module(queued_json_payload)
-    AppSettings.logger.info(f"Got converter = {converter_name}")
+    door43_pages_converter_name, door43_pages_converter = get_converter_module(queued_json_payload, queued_json_payload['output_format'])
+    AppSettings.logger.info(f"Got door43_pages_converter = {door43_pages_converter_name}")
+    pdf_converter_name, pdf_converter = get_converter_module(queued_json_payload, 'pdf')
+    AppSettings.logger.info(f"Got pdf_converter = {pdf_converter_name}")
 
     # Run the linter first
     if linter:
@@ -383,13 +389,12 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
         build_log_dict['linter_success'] = 'false'
         build_log_dict['linter_warnings'] = [warning_message]
 
-    # Now run the converter
-    if converter:
+    # Now run the door43_pages_converter
+    if door43_pages_converter:
         build_log_dict['status'] = 'converting'
         build_log_dict['message'] = 'tX job converting…'
-        build_log_dict['convert_module'] = converter_name
-        # Log dict gets updated by the following line
-        do_converting(build_log_dict, source_folder_path, converter_name, converter)
+        build_log_dict['convert_module'] = door43_pages_converter_name
+        do_converting(build_log_dict, source_folder_path, door43_pages_converter_name, door43_pages_converter, '')
     else:
         error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
                         f" from {queued_json_payload['input_format']} to {queued_json_payload['output_format']}"
@@ -399,6 +404,20 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
         build_log_dict['converter_info'] = []
         build_log_dict['converter_warnings'] = []
         build_log_dict['converter_errors'] = [error_message]
+
+    # Now run the pdf_converter if door43_pages_converter exists
+    if pdf_converter and door43_pages_converter:
+        build_log_dict['pdf_convert_module'] = pdf_converter_name
+        do_converting(build_log_dict, source_folder_path, pdf_converter_name, pdf_converter, '_pdf')
+    else:
+        error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
+                        f" from {queued_json_payload['input_format']} to pdf"
+        AppSettings.logger.error(error_message)
+        build_log_dict['pdf_convert_module'] = 'NO CONVERTER'
+        build_log_dict['pdf_converter_success'] = 'false'
+        build_log_dict['pdf_converter_info'] = []
+        build_log_dict['pdf_converter_warnings'] = []
+        build_log_dict['pdf_converter_errors'] = [error_message]
 
     build_log_dict['status'] = 'finished'
     build_log_dict['message'] = 'tX job completed.'
@@ -523,6 +542,9 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Syntax: webhook.py <payload_file>.json")
+        exit(1)
     tempfile.tempdir = '/tmp'
     print(sys.argv[1])
     with open(sys.argv[1]) as f:

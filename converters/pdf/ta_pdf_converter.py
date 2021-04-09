@@ -80,6 +80,16 @@ class TaPdfConverter(PdfConverter):
         ta_html = self.get_ta_html()
         return ta_html
 
+    def generate_all_files(self):
+        self.project_id = ''
+        self.errors = {}
+        self.bad_highlights = {}
+        self.rcs = {}
+        self.appendix_rcs = {}
+        self.all_rcs = {}
+        self.generate_html_file()
+        self.generate_pdf_file()
+
     def get_ta_html(self):
         ta_html = f'''
 <section id="{self.lang_code}-ta-man">
