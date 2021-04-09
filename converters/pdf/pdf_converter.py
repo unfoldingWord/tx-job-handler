@@ -64,16 +64,6 @@ class PdfConverter(Converter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self._repo_owner = None
-        self._repo_name = None
-        self._repo_ref = None
-        if self.identifier:
-            parts = self.identifier.split('--')
-            if len(parts) == 3:
-                self._repo_owner = parts[0]
-                self._repo_name = parts[1]
-                self._repo_ref = parts[2]
-
         self.resources = Resources()
         self.relation_resources = Resources()
         self.project_id = None

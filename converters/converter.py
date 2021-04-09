@@ -21,7 +21,7 @@ class Converter(metaclass=ABCMeta):
     #   (but usually it's not copied across by the preprocessors anyway).
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json'] #, 'readme.md']
 
-    def __init__(self, repo_subject:str, source_url:str, source_dir:str, cdn_file_key:Optional[str]=None, options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None) -> None:
+    def __init__(self, repo_subject:str, source_url:str, source_dir:str, cdn_file_key:Optional[str]=None, options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None, repo_owner:Optional[str], , repo_name:Optional[str], repo_ref:Optional[str]) -> None:
         """
         :param string source:
         :param string repo_subject:
@@ -41,6 +41,10 @@ class Converter(metaclass=ABCMeta):
         self.options = options if options else {}
         self.debug_mode = self.options.get('debug_mode_flag', False)
         self.identifier = identifier
+        self._repo_owner = repo_owner
+        self._repo_name = repo_name
+        self._repo_ref = repo_ref
+
 
         self.log = ConvertLogger()
         if not os.path.isdir(self.source_dir):

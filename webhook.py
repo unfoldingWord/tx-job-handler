@@ -212,7 +212,10 @@ def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, 
                                 source_url=param_dict['source'],
                                 cdn_file_key=cdn_file_key, #  Key for uploading
                                 identifier=param_dict['identifier'],
-                                options={'debug_mode_flag': debug_mode_flag})
+                                options={'debug_mode_flag': debug_mode_flag},
+                                repo_owner=param_dict['repo_owner'],
+                                repo_name=param_dict['repo_name'],
+                                repo_ref=param_dict['repo_ref'])
     convert_result_dict = converter.run()
     converter.close() # do cleanup after run
     param_dict['converter_success'] = convert_result_dict['success']
