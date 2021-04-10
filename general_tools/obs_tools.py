@@ -10,6 +10,7 @@ def get_obs_chapter_data(obs_dir, chapter_num):
         'bible_reference': None
     }
     obs_chapter_file = os.path.join(obs_dir, f'{chapter_num}.md')
+    print(f"OBS File: {obs_chapter_file}: {os.path.isfile(obs_chapter_file)}")
     if os.path.isfile(obs_chapter_file):
         soup = BeautifulSoup(markdown2.markdown_path(obs_chapter_file), 'html.parser')
         obs_chapter_data['title'] = soup.h1.text

@@ -28,7 +28,7 @@ class ObsPdfConverter(PdfConverter):
         self._title = None
 
     def get_sample_text(self):
-        md_file = os.path.join(self.main_resource.repo_dir, 'content', '01.md')
+        md_file = os.path.join(self.main_resource.repo_dir, '01.md')
         if os.path.exists(md_file):
             html = markdown2.markdown_path(md_file)
             soup = BeautifulSoup(html, 'html.parser')
@@ -60,8 +60,6 @@ class ObsPdfConverter(PdfConverter):
             os.unlink(os.path.join(self.images_dir, 'images.zip'))
 
     def get_body_html(self):
-        if not self.get_sample_text():
-            return ''
         self.log.info('Generating OBS html...')
         html = f'''
 <article class="blank-page no-footer">
