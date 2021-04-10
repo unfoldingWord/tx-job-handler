@@ -687,7 +687,7 @@ class PdfConverter(Converter):
         self.log.info('Setting up resources...')
         # Setup Main Resource
         resource = Resource(subject=self.my_subject, repo_name=self.repo_name, owner=self.owner, ref=self.ref,
-                            zipball_url=self.source_url, api=self.api)
+                            zipball_url=self.source_url, api=self.api, repo_dir=self.source_dir)
         self.resources[resource.identifier] = resource
 
         # First process relation resource
