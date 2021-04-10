@@ -529,6 +529,7 @@ class PdfConverter(Converter):
     def generate_pdf_file(self):
         if not os.path.exists(self.html_file):
             self.log.error('No HTML to process. Not generating PDF.')
+            self.keep_files = True
             return
         if not os.path.exists(self.pdf_file) or self.debug_mode:
             self.log.info(f'Generating PDF file {self.pdf_file}...')

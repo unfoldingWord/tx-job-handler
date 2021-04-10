@@ -51,6 +51,7 @@ class Converter(metaclass=ABCMeta):
         self._repo_ref = repo_ref
         self.repo_data_url = repo_data_url
 
+        self.keep_files = False
         self.log = ConvertLogger()
         if not os.path.isdir(self.source_dir):
             self.log.error(f"No such folder: {self.source_dir}")
@@ -81,7 +82,7 @@ class Converter(metaclass=ABCMeta):
             os.mkdir(self.files_dir)
         # self.input_zip_file = None  # If set, won't download the repo archive. Used for testing
         self.output_dir = os.path.join(self.converter_dir, 'Output/')
-        if os.path.exists(self.output_dir) and not debug_mode_flag:
+        if os.path.exists(self.output_dir) and not debug_mode_flag and not self.keep_files:
             shutil.rmtree(self.output_dir)
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
