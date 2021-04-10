@@ -464,8 +464,8 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
 
     if prefix and debug_mode_flag:
         AppSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
-    else:
-        remove_tree(base_temp_dir_name)  # cleanup
+    # else:
+    #     remove_tree(base_temp_dir_name)  # cleanup
     str_build_log = str(build_log_dict)
     str_build_log_adjusted = str_build_log if len(str_build_log)<1500 \
                             else f'{str_build_log[:1000]} …… {str_build_log[-500:]}'
