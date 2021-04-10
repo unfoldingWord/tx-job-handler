@@ -686,8 +686,11 @@ class PdfConverter(Converter):
             return
         self.log.info('Setting up resources...')
         # Setup Main Resource
+        repo_dir = None
+        if self.my_subject == "Open Bible Stories":
+            repo_dir = self.source_dir # Use the massaged OBS dir from door43-job-handler to handle tS repos as well
         resource = Resource(subject=self.my_subject, repo_name=self.repo_name, owner=self.owner, ref=self.ref,
-                            zipball_url=self.source_url, api=self.api, repo_dir=self.source_dir)
+                            zipball_url=self.source_url, api=self.api, repo_dir=repo_dir)
         self.resources[resource.identifier] = resource
 
         # First process relation resource

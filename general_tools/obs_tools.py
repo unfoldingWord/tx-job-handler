@@ -9,10 +9,9 @@ def get_obs_chapter_data(obs_dir, chapter_num):
         'frames': [],
         'bible_reference': None
     }
-    obs_chapter_file = os.path.join(obs_dir, 'content', f'{chapter_num}.md')
+    obs_chapter_file = os.path.join(obs_dir, f'{chapter_num}.md')
     if os.path.isfile(obs_chapter_file):
-        soup = BeautifulSoup(markdown2.markdown_path(os.path.join(obs_dir, 'content', f'{chapter_num}.md')),
-                             'html.parser')
+        soup = BeautifulSoup(markdown2.markdown_path(obs_chapter_file), 'html.parser')
         obs_chapter_data['title'] = soup.h1.text
         paragraphs = soup.find_all('p')
         frame = {
