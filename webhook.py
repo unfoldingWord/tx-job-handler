@@ -215,7 +215,9 @@ def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, 
                                 options={'debug_mode_flag': debug_mode_flag},
                                 repo_owner=param_dict['repo_owner'],
                                 repo_name=param_dict['repo_name'],
-                                repo_ref=param_dict['repo_ref'])
+                                repo_ref=param_dict['repo_ref'],
+                                repo_data_url=param_dict['repo_data_url'],
+                                dcs_domain=param_dict['dcs_domain'])
     convert_result_dict = converter.run()
     converter.close() # do cleanup after run
     param_dict['converter_success'] = convert_result_dict['success']

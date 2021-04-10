@@ -21,7 +21,7 @@ class Converter(metaclass=ABCMeta):
     #   (but usually it's not copied across by the preprocessors anyway).
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json'] #, 'readme.md']
 
-    def __init__(self, repo_subject:str, source_url:str, source_dir:str, cdn_file_key:Optional[str]=None, options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None, repo_owner:Optional[str]=None, repo_name:Optional[str]=None, repo_ref:Optional[str]=None) -> None:
+    def __init__(self, repo_subject:str, source_url:str, source_dir:str, cdn_file_key:Optional[str]=None, options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None, repo_owner:Optional[str]=None, repo_name:Optional[str]=None, repo_ref:Optional[str]=None, repo_data_url:Optional[str]=None, dcs_domain:Optional[str]=None) -> None:
         """
         :param string source:
         :param string repo_subject:
@@ -29,6 +29,11 @@ class Converter(metaclass=ABCMeta):
         :param string cdn_file_key: # NOTE: For S3 upload, not a complete URL
         :param dict options:
         :param string identifier:
+        :param string repo_owner:
+        :param string repo_name:
+        :param string repo_ref:
+        :param string repo_data_url:
+        :param string dcs_domain:
         """
         AppSettings.logger.debug(f"Converter.__init__(rs={repo_subject}, source_dir={source_dir}, cdn_file_key={cdn_file_key}, options={options}, id={identifier})")
         # self.source_zip = source_zip
@@ -50,9 +55,15 @@ class Converter(metaclass=ABCMeta):
             self.log.error(f"No such folder: {self.source_dir}")
             return
 
-        self.dcs_domain = None
-        if 'door43.org/' in self.source_url:
-            self.dcs_domain = self.source_url.split('door43.org/')[0] + 'door43.org'
+        self.dcs_domain = dcs_domain
+        if not self.dcs_domain:
+            if 'dev-cdn.door43.org' in self.source_url:
+                self.dcs_domain = 'https://develop.door43.org'
+            elif 'door43.org/' in self.source_url and 'cdn' not in self.source_url:
+                self.dcs_domain = self.source_url.split('door43.org/')[0] + 'door43.org'
+            else:
+                self.dcs_domain = 'https://git.door43.org'
+
         if self.debug_mode:
             self.converter_dir = os.path.join(tempfile.tempdir, f'tX_{repo_subject}_converter_debug',
                                               os.path.dirname(self.cdn_file_key))
