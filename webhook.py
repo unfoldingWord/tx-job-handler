@@ -412,11 +412,11 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
         build_log_dict['converter_errors'] = [error_message]
 
     # Now run the pdf_converter if door43_pages_converter exists
-    pdf_thread = None
+    pdf_converter_thread = None
     if pdf_converter and door43_pages_converter:
         build_log_dict['pdf_convert_module'] = pdf_converter_name
-        pdf_thread = threading.Thread(target=do_converting, args=(build_log_dict, source_folder_path, pdf_converter_name, pdf_converter, '_pdf',))
-        pdf_thread.start()
+        pdf_converter_thread = threading.Thread(target=do_converting, args=(build_log_dict, source_folder_path, pdf_converter_name, pdf_converter, '_pdf',))
+        pdf_converter_thread.start()
     else:
         error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
                         f" from {queued_json_payload['input_format']} to pdf"
