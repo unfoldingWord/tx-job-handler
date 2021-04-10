@@ -49,6 +49,7 @@ class Converter(metaclass=ABCMeta):
         self._repo_owner = repo_owner
         self._repo_name = repo_name
         self._repo_ref = repo_ref
+        self.repo_data_url = repo_data_url
 
         self.log = ConvertLogger()
         if not os.path.isdir(self.source_dir):
