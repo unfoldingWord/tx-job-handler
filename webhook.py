@@ -20,6 +20,7 @@ import json
 from datetime import datetime, timedelta, date
 from time import time
 import sys
+import threading
 sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 import traceback
 
@@ -411,9 +412,11 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
         build_log_dict['converter_errors'] = [error_message]
 
     # Now run the pdf_converter if door43_pages_converter exists
+    pdf_thread = None
     if pdf_converter and door43_pages_converter:
         build_log_dict['pdf_convert_module'] = pdf_converter_name
-        do_converting(build_log_dict, source_folder_path, pdf_converter_name, pdf_converter, '_pdf')
+        pdf_thread = threading.Thread(target=do_converting, args=(build_log_dict, source_folder_path, pdf_converter_name, pdf_converter, '_pdf',))
+        pdf_thread.start()
     else:
         error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
                         f" from {queued_json_payload['input_format']} to pdf"
@@ -462,10 +465,14 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     else:
         AppSettings.logger.info("No callback requested.")
 
+    # Now we wait for the PDF thread as that wasn't needed for the callback, but don't want to clean up until it is done
+    if pdf_converter_thread:
+        pdf_converter_thread.join()
+        
     if prefix and debug_mode_flag:
         AppSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
-    # else:
-    #     remove_tree(base_temp_dir_name)  # cleanup
+    else:
+        remove_tree(base_temp_dir_name)  # cleanup
     str_build_log = str(build_log_dict)
     str_build_log_adjusted = str_build_log if len(str_build_log)<1500 \
                             else f'{str_build_log[:1000]} …… {str_build_log[-500:]}'

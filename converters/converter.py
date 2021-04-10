@@ -51,7 +51,6 @@ class Converter(metaclass=ABCMeta):
         self._repo_ref = repo_ref
         self.repo_data_url = repo_data_url
 
-        self.keep_files = False
         self.log = ConvertLogger()
         if not os.path.isdir(self.source_dir):
             self.log.error(f"No such folder: {self.source_dir}")
