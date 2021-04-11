@@ -690,8 +690,10 @@ class PdfConverter(Converter):
         if self.my_subject == "Open Bible Stories":
             repo_dir = self.source_dir # Use the massaged OBS dir from door43-job-handler to handle tS repos as well
         zipball_url = self.repo_data_url
-        if not zipball_url.endswith('.zip'):
-            zipball_url += '.zip'
+        if not self.repo_data_url.endswith('.zip'):
+            zipball_url = self.repo_data_url.replace('/commit/', '/archive') + '.zip'
+        else:
+            zipball_url = self.repo_data_url
         resource = Resource(subject=self.my_subject, repo_name=self.repo_name, owner=self.owner, ref=self.ref,
                             zipball_url=zipball_url, api=self.api, repo_dir=repo_dir)
         self.resources[resource.identifier] = resource
