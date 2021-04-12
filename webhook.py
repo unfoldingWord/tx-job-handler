@@ -377,8 +377,6 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     AppSettings.logger.info(f"Got linter = {linter_name}")
     door43_pages_converter_name, door43_pages_converter = get_converter_module(queued_json_payload, queued_json_payload['output_format'])
     AppSettings.logger.info(f"Got door43_pages_converter = {door43_pages_converter_name}")
-    pdf_converter_name, pdf_converter = get_converter_module(queued_json_payload, 'pdf')
-    AppSettings.logger.info(f"Got pdf_converter = {pdf_converter_name}")
 
     # Run the linter first
     if linter:
@@ -410,22 +408,6 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
         build_log_dict['converter_info'] = []
         build_log_dict['converter_warnings'] = []
         build_log_dict['converter_errors'] = [error_message]
-
-    # Now run the pdf_converter if door43_pages_converter exists
-    pdf_converter_thread = None
-    if pdf_converter and door43_pages_converter:
-        build_log_dict['pdf_convert_module'] = pdf_converter_name
-        pdf_converter_thread = threading.Thread(target=do_converting, args=(build_log_dict, source_folder_path, pdf_converter_name, pdf_converter, '_pdf',))
-        pdf_converter_thread.start()
-    else:
-        error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
-                        f" from {queued_json_payload['input_format']} to pdf"
-        AppSettings.logger.error(error_message)
-        build_log_dict['pdf_convert_module'] = 'NO CONVERTER'
-        build_log_dict['pdf_converter_success'] = 'false'
-        build_log_dict['pdf_converter_info'] = []
-        build_log_dict['pdf_converter_warnings'] = []
-        build_log_dict['pdf_converter_errors'] = [error_message]
 
     build_log_dict['status'] = 'finished'
     build_log_dict['message'] = 'tX job completed.'
@@ -465,10 +447,6 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     else:
         AppSettings.logger.info("No callback requested.")
 
-    # Now we wait for the PDF thread as that wasn't needed for the callback, but don't want to clean up until it is done
-    if pdf_converter_thread:
-        pdf_converter_thread.join()
-        
     if prefix and debug_mode_flag:
         AppSettings.logger.debug(f"Temp folder '{base_temp_dir_name}' has been left on disk for debugging!")
     else:
