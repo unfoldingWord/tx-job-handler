@@ -189,7 +189,7 @@ def get_converter_module(gcm_job:Dict[str,Any], output_format:str) -> Tuple[Opti
 # end if get_converter_module function
 
 
-def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, converter_class:Type[Converter], file_key_suffix:str) -> None:
+def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, converter_class:Type[Converter]) -> None:
     """
     :param dict param_dict: Will be updated for build log!
     :param str source_dir: Directory of the download source files
@@ -204,10 +204,6 @@ def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, 
         cdn_file_key = param_dict['output'].split('cdn.door43.org/')[1] # Get the last part
     else:
         cdn_file_key = param_dict['output']
-    if file_key_suffix:
-        parts = list(cdn_file_key.rpartition('.'))
-        parts.insert(1, file_key_suffix)
-        cdn_file_key = ''.join(parts)
     converter = converter_class(param_dict['resource_type'],
                                 source_dir=source_dir,
                                 source_url=param_dict['source'],
@@ -398,7 +394,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
         build_log_dict['status'] = 'converting'
         build_log_dict['message'] = 'tX job converting…'
         build_log_dict['convert_module'] = door43_pages_converter_name
-        do_converting(build_log_dict, source_folder_path, door43_pages_converter_name, door43_pages_converter, '')
+        do_converting(build_log_dict, source_folder_path, door43_pages_converter_name, door43_pages_converter)
     else:
         error_message = f"No converter was found to convert {queued_json_payload['resource_type']}" \
                         f" from {queued_json_payload['input_format']} to {queued_json_payload['output_format']}"
