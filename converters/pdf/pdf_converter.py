@@ -1032,7 +1032,7 @@ class PdfConverter(Converter):
                         rc.set_article(None)
                 else:
                     self.add_error_message(source_rc, rc.rc_link)
-                    self.log.error(f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc.rc_link}: {rc.rc_link}')
+                    self.log.warning(f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc.rc_link}: {rc.rc_link}')
                     del self.appendix_rcs[rc.rc_link]
 
     def get_appendix_html(self, resource):
@@ -1074,7 +1074,7 @@ class PdfConverter(Converter):
                 else:
                     message = '01.md file exists but no content'
             self.add_error_message(source_rc, rc.rc_link, message)
-            self.log.error(f'TA ARTICLE NOT FOUND: {article_file} - {message}')
+            self.log.warning(f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc}: {rc.rc_link}')
             return
         top_box = ''
         bottom_box = ''
@@ -1130,7 +1130,7 @@ class PdfConverter(Converter):
                     if not os.path.exists(rec_article_dir):
                         bad_rc_link = f"{rc.project}/config.yaml -> '{rc.path}' -> 'recommended' -> '{recommended}'"
                         self.add_error_message(rc, bad_rc_link)
-                        self.log.error(f'RECOMMENDED NOT FOUND FOR {bad_rc_link}')
+                        self.log.warning(f'RECOMMENDED ARTICLE NOT FOUND FOR {bad_rc_link}')
                         continue
                     rec_rc_link = f'rc://{self.lang_code}/ta/man/{rec_project}/{recommended}'
                     lis += f'''
