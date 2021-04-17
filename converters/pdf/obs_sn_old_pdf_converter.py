@@ -43,7 +43,7 @@ class ObsSnPdfConverter(ObsSnPdfConverter):
     def get_body_html(self):
         self.log.info('Generating OBS SN html...')
         obs_sn_html = f'''
-<section id="{self.lang_code}-obs-sn">
+<section id="{self.language_id}-obs-sn">
     <div class="resource-title-page no-header">
         <img src="{self.resources[f'obs-sn'].logo_url}" class="logo" alt="OBS">
         <h1 class="section-header">{self.simple_title}</h1>
@@ -53,7 +53,7 @@ class ObsSnPdfConverter(ObsSnPdfConverter):
             chapter_num = str(chapter).zfill(2)
             sn_chapter_dir = os.path.join(self.resources[f'obs-sn'].repo_dir, 'content', chapter_num)
             chapter_data = obs_tools.get_obs_chapter_data(self.resources['obs'].repo_dir, chapter_num)
-            obs_sn_html += f'<article id="{self.lang_code}-obs-sn-{chapter_num}">\n\n'
+            obs_sn_html += f'<article id="{self.language_id}-obs-sn-{chapter_num}">\n\n'
             obs_sn_html += f'<h2 class="section-header">{chapter_data["title"]}</h2>\n'
             if 'bible_reference' in chapter_data and chapter_data['bible_reference']:
                 obs_sn_html += f'''
@@ -72,10 +72,10 @@ class ObsSnPdfConverter(ObsSnPdfConverter):
                     notes_html = f'<div class="no-notes-message">({no_study_notes})</div>'
 
                 # HANDLE RC LINKS FOR OBS SN FRAMES
-                obs_sn_rc_link = f'rc://{self.lang_code}/obs-sn/help/obs/{chapter_num}/{frame_num}'
+                obs_sn_rc_link = f'rc://{self.language_id}/obs-sn/help/obs/{chapter_num}/{frame_num}'
                 obs_sn_rc = self.add_rc(obs_sn_rc_link, title=frame_title, article=notes_html)
                 # HANDLE RC LINKS FOR OBS FRAMES
-                obs_rc_link = f'rc://{self.lang_code}/obs/bible/obs/{chapter_num}/{frame_num}'
+                obs_rc_link = f'rc://{self.language_id}/obs/bible/obs/{chapter_num}/{frame_num}'
                 self.add_rc(obs_rc_link, title=frame_title, article_id=obs_sn_rc.article_id)
 
                 obs_text = ''

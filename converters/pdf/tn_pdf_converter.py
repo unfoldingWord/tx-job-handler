@@ -40,7 +40,7 @@ class TnPdfConverter(TsvPdfConverter):
         self.process_bibles()
         for resource in self.resources.values():
             if resource.subject == ALIGNED_BIBLE:
-                self.populate_book_data(resource.identifier, resource.lang_code)
+                self.populate_book_data(resource.identifier, resource.language_id)
         self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
         self.populate_tw_words_data()
         self.populate_tn_groups_data()
@@ -52,7 +52,7 @@ class TnPdfConverter(TsvPdfConverter):
         return html
 
     def populate_tn_book_data(self):
-        book_filename = f'{self.lang_code}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
+        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return
@@ -88,7 +88,7 @@ class TnPdfConverter(TsvPdfConverter):
             occurrence = 1
             if represent_int(verse_data['Occurrence']) and int(verse_data['Occurrence']) > 0:
                 occurrence = int(verse_data['Occurrence'])
-            tn_rc_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
+            tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
             tn_title = f'{verse_data["GLQuote"]}'
             if verse_data['OrigQuote']:
                 context_id = None
@@ -104,7 +104,7 @@ class TnPdfConverter(TsvPdfConverter):
                             'chapter': int(chapter),
                             'verse': int(verse)
                         },
-                        'rc': f'rc://{self.lang_code}/{self.name}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
+                        'rc': f'rc://{self.language_id}/{self.name}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
                         'quote': verse_data['OrigQuote'],
                         'occurrence': occurrence,
                         'quoteString': verse_data['OrigQuote']
@@ -135,8 +135,8 @@ class TnPdfConverter(TsvPdfConverter):
 
     def get_tn_html(self):
         tn_html = f'''
-<section id="{self.lang_code}-{self.name}-{self.project_id}" class="{self.name}">
-    <article id="{self.lang_code}-{self.name}-{self.project_id}-cover" class="resource-title-page">
+<section id="{self.language_id}-{self.name}-{self.project_id}" class="{self.name}">
+    <article id="{self.language_id}-{self.name}-{self.project_id}-cover" class="resource-title-page">
         <img src="{self.main_resource.logo_url}" class="logo" alt="UTN">
         <h1 class="section-header">{self.title}</h1>
         <h2 class="section-header no-header">{self.project_title}</h2>
@@ -148,7 +148,7 @@ class TnPdfConverter(TsvPdfConverter):
             book_intro = self.fix_tn_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
             # HANDLE FRONT INTRO RC LINKS
-            book_intro_rc_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/front/intro'
+            book_intro_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/front/intro'
             book_intro_rc = self.add_rc(book_intro_rc_link, title=book_intro_title)
             book_intro = f'''
     <article id="{book_intro_rc.article_id}">
@@ -161,7 +161,7 @@ class TnPdfConverter(TsvPdfConverter):
             self.log.info(f'Chapter {chapter}...')
             chapter_title = f'{self.project_title} {chapter}'
             # HANDLE INTRO RC LINK
-            chapter_rc_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(chapter)}'
+            chapter_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}'
             chapter_rc = self.add_rc(chapter_rc_link, title=chapter_title)
             tn_html += f'''
     <section id="{chapter_rc.article_id}" class="chapter">
@@ -176,7 +176,7 @@ class TnPdfConverter(TsvPdfConverter):
                 chapter_intro_title = html_tools.get_title_from_html(chapter_intro)
                 chapter_intro = self.fix_tn_links(chapter_intro, chapter)
                 # HANDLE INTRO RC LINK
-                chapter_intro_rc_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
+                chapter_intro_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
                 chapter_intro_rc = self.add_rc(chapter_intro_rc_link, title=chapter_intro_title)
                 chapter_intro = f'''
         <article id="{chapter_intro_rc.article_id}">
@@ -201,7 +201,7 @@ class TnPdfConverter(TsvPdfConverter):
 
     def get_tn_article(self, chapter, verse):
         tn_title = f'{self.project_title} {chapter}:{verse}'
-        tn_rc_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
+        tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         tn_rc = self.add_rc(tn_rc_link, title=tn_title)
         ult_with_tw_words = self.get_scripture_with_tw_words(self.ult, chapter, verse)
         # ult_with_tw_words = self.get_scripture_with_tn_quotes(self.ult, chapter, verse, rc, ult_with_tw_words)
@@ -301,7 +301,7 @@ class TnPdfConverter(TsvPdfConverter):
             files = glob(files_path)
             for file in files:
                 base = os.path.splitext(os.path.basename(file))[0]
-                tw_rc_link = f'rc://{self.lang_code}/tw/dict/bible/{group}/{base}'
+                tw_rc_link = f'rc://{self.language_id}/tw/dict/bible/{group}/{base}'
                 tw_group_data = load_json_object(file)
                 for group_data in tw_group_data:
                     chapter = str(group_data['contextId']['reference']['chapter'])
@@ -319,7 +319,7 @@ class TnPdfConverter(TsvPdfConverter):
         self.tw_words_data = words_data
 
     def populate_tn_groups_data(self):
-        tn_resource_path = os.path.join(self.resources_dir, self.lang_code, 'translationHelps', 'translationNotes')
+        tn_resource_path = os.path.join(self.resources_dir, self.language_id, 'translationHelps', 'translationNotes')
         if not tn_resource_path:
             self.log.error(f'{tn_resource_path} not found!')
             exit(1)
@@ -340,7 +340,7 @@ class TnPdfConverter(TsvPdfConverter):
                     context_id = occurrence['contextId']
                     chapter = str(context_id['reference']['chapter'])
                     verse = str(context_id['reference']['verse'])
-                    tn_rc_link = f'rc://{self.lang_code}/{self.name}/help/{group}/{base}/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
+                    tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{group}/{base}/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
                     context_id['rc'] = tn_rc_link
                     if chapter not in groups_data:
                         groups_data[chapter] = OrderedDict()

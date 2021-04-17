@@ -85,12 +85,12 @@ class ObsTnPdfConverter(PdfConverter):
                                     break
                         if category:
                             self._tw_cat[chapter['id']][frame['id']].append(
-                                f'rc://{self.lang_code}/tw/dict/bible/{category}/{term}')
+                                f'rc://{self.language_id}/tw/dict/bible/{category}/{term}')
                         if not category or term != item['id']:
                             fix = None
                             if term != item['id']:
                                 fix = f'change to: {term}'
-                            source_rc_link = f'rc://{self.lang_code}/tw_cat/{chapter["id"]}/{frame["id"]}'
+                            source_rc_link = f'rc://{self.language_id}/tw_cat/{chapter["id"]}/{frame["id"]}'
                             source_rc = self.create_rc(source_rc_link)
                             self.add_error_message(source_rc, item['id'], fix)
         return self._tw_cat
@@ -116,7 +116,7 @@ class ObsTnPdfConverter(PdfConverter):
                 chapter_num = os.path.basename(obs_tn_chapter_dir)
                 chapter_data = obs_tools.get_obs_chapter_data(self.resources['obs'].repo_dir, chapter_num)
                 obs_tn_html += f'''
-    <article id="{self.lang_code}-obs-tn-{chapter_num}">
+    <article id="{self.language_id}-obs-tn-{chapter_num}">
         <h2 class="section-header">{chapter_data['title']}</h2>
 '''
                 frames = [None] + chapter_data['frames']  # first item of '' if there are intro notes from the 00.md file
@@ -132,10 +132,10 @@ class ObsTnPdfConverter(PdfConverter):
                         continue
 
                     # HANDLE RC LINKS FOR OBS FRAME
-                    frame_rc_link = f'rc://{self.lang_code}/obs/book/obs/{chapter_num}/{frame_num}'
+                    frame_rc_link = f'rc://{self.language_id}/obs/book/obs/{chapter_num}/{frame_num}'
                     frame_rc = self.add_rc(frame_rc_link, title=frame_title)
                     # HANDLE RC LINKS FOR NOTES
-                    notes_rc_link = f'rc://{self.lang_code}/obs-tn/help/{chapter_num}/{frame_num}'
+                    notes_rc_link = f'rc://{self.language_id}/obs-tn/help/{chapter_num}/{frame_num}'
                     notes_rc = self.add_rc(notes_rc_link, title=frame_title, article=notes_html)
 
                     obs_text = ''
@@ -148,8 +148,8 @@ class ObsTnPdfConverter(PdfConverter):
                                 alignment = alignment_tools.split_string_into_alignment(phrase)
                                 marked_obs_text = html_tools.mark_phrases_in_html(obs_text, alignment)
                                 if not marked_obs_text:
-                                    if self.lang_code in TN_TITLES_TO_IGNORE and \
-                                            phrase.lower() not in TN_TITLES_TO_IGNORE[self.lang_code]:
+                                    if self.language_id in TN_TITLES_TO_IGNORE and \
+                                            phrase.lower() not in TN_TITLES_TO_IGNORE[self.language_id]:
                                         self.add_bad_highlight(notes_rc, orig_obs_text, notes_rc.rc_link, phrase)
                                 else:
                                     obs_text = marked_obs_text
@@ -212,7 +212,7 @@ class ObsTnPdfConverter(PdfConverter):
         # <a href="10-1">Text</a> => <a href="rc://obs-sn/help/obs/10/01">Text</a>
         html = re.sub(r'href="(\d)/(\d+)"', r'href="0\1/\2"', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'href="(\d+)/(\d)"', r'href="\1/0\2"', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.lang_code}/obs-tn/help/\1/\2"', html)
+        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.language_id}/obs-tn/help/\1/\2"', html)
 
         # Changes references to chapter/frame that are just chapter/frame prefixed with a #
         # #1:10 => <a href="rc://en/obs/book/obs/01/10">01:10</a>
@@ -220,6 +220,6 @@ class ObsTnPdfConverter(PdfConverter):
         # #10/12 => <a href="rc://en/obs/book/obs/10/12">10:12</a>
         html = re.sub(r'#(\d)[:/-](\d+)', r'#0\1-\2', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'#(\d+)[:/-](\d)\b', r'#\1-0\2', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.lang_code}/obs-tn/help/\1/\2">\1:\2</a>', html)
+        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.language_id}/obs-tn/help/\1/\2">\1:\2</a>', html)
 
         return html

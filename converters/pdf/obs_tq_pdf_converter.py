@@ -65,7 +65,7 @@ class ObsTqPdfConverter(PdfConverter):
                 chapter_num = os.path.basename(obs_tq_chapter_dir)
                 chapter_data = obs_tools.get_obs_chapter_data(self.resources['obs'].repo_dir, chapter_num)
                 obs_tq_html += f'''
-    <article id="{self.lang_code}-obs-tq-{chapter_num}">
+    <article id="{self.language_id}-obs-tq-{chapter_num}">
         <h2 class="section-header">{chapter_data['title']}</h2>
 '''
                 frames = chapter_data['frames']
@@ -81,10 +81,10 @@ class ObsTqPdfConverter(PdfConverter):
                         continue
 
                     # HANDLE RC LINKS FOR OBS FRAME
-                    frame_rc_link = f'rc://{self.lang_code}/obs/book/obs/{chapter_num}/{frame_num}'
+                    frame_rc_link = f'rc://{self.language_id}/obs/book/obs/{chapter_num}/{frame_num}'
                     frame_rc = self.add_rc(frame_rc_link, title=frame_title)
                     # HANDLE RC LINKS FOR NOTES
-                    tq_rc_link = f'rc://{self.lang_code}/obs-tq/help/{chapter_num}/{frame_num}'
+                    tq_rc_link = f'rc://{self.language_id}/obs-tq/help/{chapter_num}/{frame_num}'
                     tq_rc = self.add_rc(tq_rc_link, title=frame_title, article=tq_html)
 
                     obs_text = ''
@@ -128,7 +128,7 @@ class ObsTqPdfConverter(PdfConverter):
         # <a href="10-1">Text</a> => <a href="rc://obs-sn/help/obs/10/01">Text</a>
         html = re.sub(r'href="(\d)/(\d+)"', r'href="0\1/\2"', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'href="(\d+)/(\d)"', r'href="\1/0\2"', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.lang_code}/obs-tq/help/\1/\2"', html)
+        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.language_id}/obs-tq/help/\1/\2"', html)
 
         # Changes references to chapter/frame that are just chapter/frame prefixed with a #
         # #1:10 => <a href="rc://en/obs/book/obs/01/10">01:10</a>
@@ -136,6 +136,6 @@ class ObsTqPdfConverter(PdfConverter):
         # #10/12 => <a href="rc://en/obs/book/obs/10/12">10:12</a>
         html = re.sub(r'#(\d)[:/-](\d+)', r'#0\1-\2', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'#(\d+)[:/-](\d)\b', r'#\1-0\2', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.lang_code}/obs-tq/help/\1/\2">\1:\2</a>', html)
+        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.language_id}/obs-tq/help/\1/\2">\1:\2</a>', html)
 
         return html

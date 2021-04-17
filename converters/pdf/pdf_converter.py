@@ -166,7 +166,7 @@ class PdfConverter(Converter):
 
     @property
     def file_base_id(self):
-        return f'{self.lang_code}_{self.name}'
+        return f'{self.language_id}_{self.name}'
 
     @property
     def file_id_project_str(self):
@@ -186,7 +186,7 @@ class PdfConverter(Converter):
             return self._repo_ref or DEFAULT_REF
 
     @property
-    def lang_code(self):
+    def language_id(self):
         return self.main_resource.manifest['dublin_core']['language']['identifier']
 
     @property
@@ -236,7 +236,7 @@ class PdfConverter(Converter):
     @property
     def font_html(self):
         if not self._font_html:
-            self._font_html = get_font_html_with_local_fonts(self.lang_code, self.output_dir)
+            self._font_html = get_font_html_with_local_fonts(self.language_id, self.output_dir)
         return self._font_html
 
     @property
@@ -249,7 +249,7 @@ class PdfConverter(Converter):
     @property
     def head_html(self):
         html = f'''{self.font_html}
-        <meta name="keywords" content={json.dumps(f'{self.main_resource.identifier},{self.main_resource.type},{self.lang_code},{self.main_resource.language_title},unfoldingWord')} />
+        <meta name="keywords" content={json.dumps(f'{self.main_resource.identifier},{self.main_resource.type},{self.language_id},{self.main_resource.language_title},unfoldingWord')} />
         <meta name="author" content={json.dumps(self.owner)} />
         <meta name="dcterms.created" content={json.dumps(self.main_resource.issued)} />
 '''
@@ -295,11 +295,11 @@ class PdfConverter(Converter):
 
     def translate(self, key):
         if not self.locale:
-            locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.lang_code}.json')
+            locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.language_id}.json')
             if os.path.isfile(locale_file):
                 self.locale = load_json_object(locale_file)
             else:
-                self.log.warning(f'No locale file for {self.lang_code}. Using English (en) with Google translate')
+                self.log.warning(f'No locale file for {self.language_id}. Using English (en) with Google translate')
                 self.locale = self.get_locale_with_google()
         if key not in self.locale['translations']:
             self.log.error(f"No translation for `{key}`")
@@ -307,8 +307,8 @@ class PdfConverter(Converter):
         return self.locale['translations'][key]
 
     def determine_google_language(self):
-        if self.lang_code in googletrans.LANGUAGES:
-            return self.lang_code
+        if self.language_id in googletrans.LANGUAGES:
+            return self.language_id
         else:
             sample_text = self.get_sample_text()
             if sample_text:
@@ -325,11 +325,11 @@ class PdfConverter(Converter):
         en_locale_file = os.path.join(self.pdf_converters_dir, 'locale', 'en.json')
         locale = load_json_object(en_locale_file)
         google_lang = self.determine_google_language()
-        locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.lang_code}.json')
+        locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.language_id}.json')
         if os.path.exists(locale_file):
             return load_json_object(locale_file)
         locale['source'] = locale['target']
-        locale['target'] = self.lang_code
+        locale['target'] = self.language_id
         locale['translator'] = 'google'
         locale['google_lang'] = google_lang
         translator = googletrans.Translator()
@@ -391,9 +391,9 @@ class PdfConverter(Converter):
     def setup_style_sheets(self):
         self.add_style_sheet('css/style.css')
         possible_styles = {
-            'lang': self.lang_code,
+            'lang': self.language_id,
             'resource': self.name,
-            'lang_resource': f'{self.lang_code}_{self.resource_name}'
+            'lang_resource': f'{self.language_id}_{self.resource_name}'
         }
         for directory, style in possible_styles.items():
             style_file = f'css/{directory}/{style}_style.css'
@@ -502,7 +502,7 @@ class PdfConverter(Converter):
             body_html = self.download_all_images(body_html)
             head = '\n'.join([f'<link href="{style}" rel="stylesheet">' for style in self.style_sheets])
             head += self.head_html
-            html = html_template.safe_substitute(lang=self.lang_code, dir=self.language_direction, title=title,
+            html = html_template.safe_substitute(lang=self.language_id, dir=self.language_direction, title=title,
                                                  head=head, body=body_html)
             write_file(self.html_file, html)
             self.save_errors_html()
@@ -620,7 +620,7 @@ class PdfConverter(Converter):
         with open(os.path.join(self.pdf_converters_dir, 'templates/pdf_template.html')) as template_file:
             html_template = string.Template(template_file.read())
         html = html_template.safe_substitute(title=f'ERRORS FOR {self.file_project_and_unique_ref}',
-                                             lang=self.lang_code, body=errors_html, head=self.head_html, dir='ltr')
+                                             lang=self.language_id, body=errors_html, head=self.head_html, dir='ltr')
         write_file(self.errors_file, html)
 
         self.log.info(f'ERRORS HTML file can be found at {self.errors_file}')
@@ -670,7 +670,7 @@ class PdfConverter(Converter):
         with open(os.path.join(self.pdf_converters_dir, 'templates/pdf_template.html')) as template_file:
             html_template = string.Template(template_file.read())
         html = html_template.safe_substitute(title=f'BAD HIGHLIGHTS FOR {self.file_project_and_unique_ref}',
-                                             body=bad_highlights_html, lang=self.lang_code, head=self.head_html,
+                                             body=bad_highlights_html, lang=self.language_id, head=self.head_html,
                                              dir='ltr')
         write_file(self.bad_hightlights_file, html)
         self.log.info(f'BAD HIGHLIGHTS file can be found at {self.bad_hightlights_file}')
@@ -848,7 +848,7 @@ class PdfConverter(Converter):
     <h1 id="cover-title">{self.title}</h1>
     {project_title_html}
     {version_title_html}
-    <h4 class="cover-lang">[{self.lang_code}]</h4>
+    <h4 class="cover-lang">[{self.language_id}]</h4>
 </article>
 '''
         return cover_html
@@ -913,7 +913,7 @@ class PdfConverter(Converter):
             if idx == 0:
                 contributors_html += f'<h1 class="section-header">{self.translate("contributors")}</h1>'
             if len(self.resources) > 1:
-                contributors_html += f'<h2 id="{self.lang_code}-{resource_name}-contributors" class="section-header">{resource.title} {self.translate("contributors")}</h2>'
+                contributors_html += f'<h2 id="{self.language_id}-{resource_name}-contributors" class="section-header">{resource.title} {self.translate("contributors")}</h2>'
             for contributor in contributors:
                 contributors_html += f'<div class="contributor">{contributor}</div>'
             contributors_html += '</div>'
@@ -1015,7 +1015,7 @@ class PdfConverter(Converter):
                 rc = self.add_appendix_rc(rc_link, linking_level=source_rc.linking_level + 1)
                 if rc.resource not in self.resources:
                     # We don't have this resource in our list of resources, so adding
-                    resource = Resource(repo_name=f'{self.lang_code}_{rc.resource}',
+                    resource = Resource(repo_name=f'{self.language_id}_{rc.resource}',
                                         owner=self.main_resource.owner, api=self.api)
                     self.setup_resource(resource)
                 already_crawled = False
@@ -1048,7 +1048,7 @@ class PdfConverter(Converter):
         if html:
             html = f'''
 <section>
-    <article id="{self.lang_code}-{resource.identifier}-appendix-cover" class="resource-title-page no-header break">
+    <article id="{self.language_id}-{resource.identifier}-appendix-cover" class="resource-title-page no-header break">
         <img src="{resource.logo_url}" alt="{resource.identifier.upper()}">
         <h1 class="section-header">{resource.title}</h1>
         <h2 class="cover-version">{self.translate("version")} {resource.version}</h2>
@@ -1104,7 +1104,7 @@ class PdfConverter(Converter):
                         dep_article_dir = os.path.join(self.resources['ta'].repo_dir, project['identifier'], dependency)
                         if os.path.isdir(dep_article_dir):
                             dep_project = project['identifier']
-                    dep_rc_link = f'rc://{self.lang_code}/ta/man/{dep_project}/{dependency}'
+                    dep_rc_link = f'rc://{self.language_id}/ta/man/{dep_project}/{dependency}'
                     lis += f'''
                     <li>[[{dep_rc_link}]]</li>
 '''
@@ -1132,7 +1132,7 @@ class PdfConverter(Converter):
                         self.add_error_message(rc, bad_rc_link)
                         self.log.warning(f'RECOMMENDED ARTICLE NOT FOUND FOR {bad_rc_link}')
                         continue
-                    rec_rc_link = f'rc://{self.lang_code}/ta/man/{rec_project}/{recommended}'
+                    rec_rc_link = f'rc://{self.language_id}/ta/man/{rec_project}/{recommended}'
                     lis += f'''
                     <li>[[{rec_rc_link}]]</li>
 '''
@@ -1187,11 +1187,11 @@ class PdfConverter(Converter):
         return go_back_to_html
 
     def fix_ta_links(self, text, project):
-        text = re.sub(r'href="\.\./\.\./([^/"]+)/([^/"]+?)/*(01\.md)*"', rf'href="rc://{self.lang_code}/ta/man/\1/\2"', text,
+        text = re.sub(r'href="\.\./\.\./([^/"]+)/([^/"]+?)/*(01\.md)*"', rf'href="rc://{self.language_id}/ta/man/\1/\2"', text,
                       flags=re.IGNORECASE | re.MULTILINE)
-        text = re.sub(r'href="\.\./([^/"]+?)/*(01\.md)*"', rf'href="rc://{self.lang_code}/ta/man/{project}/\1"', text,
+        text = re.sub(r'href="\.\./([^/"]+?)/*(01\.md)*"', rf'href="rc://{self.language_id}/ta/man/{project}/\1"', text,
                       flags=re.IGNORECASE | re.MULTILINE)
-        text = re.sub(r'href="([^# :/"]+)"', rf'href="rc://{self.lang_code}/ta/man/{project}/\1"', text,
+        text = re.sub(r'href="([^# :/"]+)"', rf'href="rc://{self.language_id}/ta/man/{project}/\1"', text,
                       flags=re.IGNORECASE | re.MULTILINE)
         return text
 
@@ -1216,7 +1216,7 @@ class PdfConverter(Converter):
                     if os.path.isfile(file_path):
                         break
             if os.path.isfile(file_path) and path2:
-                fix = f'change to rc://{self.lang_code}/tw/dict/{rc.project}/{path2}'
+                fix = f'change to rc://{self.language_id}/tw/dict/{rc.project}/{path2}'
             else:
                 fix = None
         if os.path.isfile(file_path):
@@ -1239,12 +1239,12 @@ class PdfConverter(Converter):
             self.log.error(f'TW ARTICLE NOT FOUND: {file_path}')
 
     def fix_tw_links(self, text, group):
-        text = re.sub(r'href="\.\./([^/)]+?)(\.md)*"', rf'href="rc://{self.lang_code}/tw/dict/bible/{group}/\1"', text,
+        text = re.sub(r'href="\.\./([^/)]+?)(\.md)*"', rf'href="rc://{self.language_id}/tw/dict/bible/{group}/\1"', text,
                       flags=re.IGNORECASE | re.MULTILINE)
-        text = re.sub(r'href="\.\./([^)]+?)(\.md)*"', rf'href="rc://{self.lang_code}/tw/dict/bible/\1"', text,
+        text = re.sub(r'href="\.\./([^)]+?)(\.md)*"', rf'href="rc://{self.language_id}/tw/dict/bible/\1"', text,
                       flags=re.IGNORECASE | re.MULTILINE)
         text = re.sub(r'(\(|\[\[)(\.\./)*(kt|names|other)/([^)]+?)(\.md)*(\)|]])(?!\[)',
-                      rf'[[rc://{self.lang_code}/tw/dict/bible/\3/\4]]', text,
+                      rf'[[rc://{self.language_id}/tw/dict/bible/\3/\4]]', text,
                       flags=re.IGNORECASE | re.MULTILINE)
         return text
 
@@ -1259,7 +1259,7 @@ class PdfConverter(Converter):
 
     def process_relation_resources(self):
         for relation in self.main_resource.relation:
-            lang = self.lang_code
+            lang = self.language_id
             if '/' in relation:
                 _, resource_name = relation.split('/')[0:2]
             else:
@@ -1270,7 +1270,7 @@ class PdfConverter(Converter):
             else:
                 version = None
             # if self.debug_mode:
-            #     repo_name = f'{self.lang_code}_{resource_name}'
+            #     repo_name = f'{self.language_id}_{resource_name}'
             #     repo_dir = os.path.join(self.download_dir, repo_name)
             #     if os.path.exists(repo_dir):
             #         return Resource(owner=self.owner, repo_name=repo_name, repo_dir=repo_dir, ref=version, api=self.api)
@@ -1298,7 +1298,7 @@ class PdfConverter(Converter):
         stage = self.stage
         owner = self.owner
         if not lang:
-            lang = self.lang_code
+            lang = self.language_id
 
         if subject == GREEK_NEW_TESTAMENT:
             stage = STAGE_PROD
@@ -1411,10 +1411,10 @@ class PdfConverter(Converter):
         else:
             resource.repo_dir = repo_dir
         # # need to make all resources have the same language code in their dir names for processing
-        # if resource.language_id != self.lang_code and resource.subject != GREEK_NEW_TESTAMENT and \
+        # if resource.language_id != self.language_id and resource.subject != GREEK_NEW_TESTAMENT and \
         #         resource.subject != HEBREW_OLD_TESTAMENT:
         #     # Create a symlink to the resource so processBibles.js can process it
-        #     new_repo_dir = os.path.join(self.download_dir, f'{self.lang_code}_{resource.identifier}')
+        #     new_repo_dir = os.path.join(self.download_dir, f'{self.language_id}_{resource.identifier}')
         #     if not os.path.exists(new_repo_dir):
         #         symlink(resource.repo_dir, new_repo_dir)
     # end of download_source_file function

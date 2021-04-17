@@ -24,10 +24,10 @@ class ResourceContainerLink(object):
         self._rc_link = rc_link
         self.resource = ''
         self.type = ''
-        self.lang_code = ''
+        self.language_id = ''
         if rc_link.startswith('rc://'):
             parts = rc_link[5:].split('/')
-            self.lang_code = parts[0]
+            self.language_id = parts[0]
             self.resource = parts[1]
             self.type = parts[2] if len(parts) > 2 else None
             # Below fixes when type is missing from rc link, e.g. rc://en/ta/translate/translate-names (missing /man/)
@@ -47,7 +47,7 @@ class ResourceContainerLink(object):
     @property
     def rc_link(self):
         if self._rc_link.startswith('rc://'):
-            return 'rc://' + '/'.join(filter(None, [self.lang_code, self.resource, self.type, self.project] +
+            return 'rc://' + '/'.join(filter(None, [self.language_id, self.resource, self.type, self.project] +
                                              self.extra_info))
         else:
             return self._rc_link

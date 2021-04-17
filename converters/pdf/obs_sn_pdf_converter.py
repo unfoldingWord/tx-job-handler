@@ -69,7 +69,7 @@ class ObsSnPdfConverter(PdfConverter):
 
     @property
     def file_project_id(self):
-        return f'{self.lang_code}_{self.project_id}'
+        return f'{self.language_id}_{self.project_id}'
 
     def setup_images_dir(self):
         super().setup_images_dir()
@@ -100,14 +100,14 @@ class ObsSnPdfConverter(PdfConverter):
     def get_obs_sn_body_html(self):
         self.log.info('Generating OBS SN html...')
         obs_sn_html = f'''
-        <section id="{self.lang_code}-obs-sn">
+        <section id="{self.language_id}-obs-sn">
             <h1 class="section-header">{self.simple_title}</h1>
         '''
         for chapter in range(1, 51):
             chapter_num = str(chapter).zfill(2)
             sn_chapter_dir = os.path.join(self.resources[f'obs-sn'].repo_dir, 'content', chapter_num)
             chapter_data = obs_tools.get_obs_chapter_data(self.resources['obs'].repo_dir, chapter_num)
-            obs_sn_html += f'<article id="{self.lang_code}-obs-sn-{chapter_num}">\n\n'
+            obs_sn_html += f'<article id="{self.language_id}-obs-sn-{chapter_num}">\n\n'
             obs_sn_html += f'<h2 class="section-header">{chapter_data["title"]}</h2>\n'
             if 'bible_reference' in chapter_data and chapter_data['bible_reference']:
                 obs_sn_html += f'''
@@ -126,10 +126,10 @@ class ObsSnPdfConverter(PdfConverter):
                     notes_html = f'<div class="no-notes-message">({no_study_notes})</div>'
 
                 # HANDLE RC LINKS FOR OBS SN FRAMES
-                obs_sn_rc_link = f'rc://{self.lang_code}/obs-sn/help/obs/{chapter_num}/{frame_num}'
+                obs_sn_rc_link = f'rc://{self.language_id}/obs-sn/help/obs/{chapter_num}/{frame_num}'
                 obs_sn_rc = self.add_rc(obs_sn_rc_link, title=frame_title, article=notes_html)
                 # HANDLE RC LINKS FOR OBS FRAMES
-                obs_rc_link = f'rc://{self.lang_code}/obs/bible/obs/{chapter_num}/{frame_num}'
+                obs_rc_link = f'rc://{self.language_id}/obs/bible/obs/{chapter_num}/{frame_num}'
                 self.add_rc(obs_rc_link, title=frame_title, article_id=obs_sn_rc.article_id)
 
                 obs_text = ''
@@ -166,7 +166,7 @@ class ObsSnPdfConverter(PdfConverter):
     def get_obs_sn_sq_body_html(self):
         self.log.info('Generating OBS SN SQ html...')
         obs_sn_sq_html = f'''
-<section id="{self.lang_code}-obs-sn">
+<section id="{self.language_id}-obs-sn">
     <h1 class="section-header">{self.simple_title}</h1>
 '''
         intro_file = os.path.join(self.resources[f'obs-sq'].repo_dir, 'content', '00.md')
@@ -187,7 +187,7 @@ class ObsSnPdfConverter(PdfConverter):
             obs_chapter_data = obs_tools.get_obs_chapter_data(self.resources['obs'].repo_dir, chapter_num)
             chapter_title = obs_chapter_data['title']
             # HANDLE RC LINKS FOR OBS SN CHAPTER
-            obs_sn_chapter_rc_link = f'rc://{self.lang_code}/obs-sn/help/obs/{chapter_num}'
+            obs_sn_chapter_rc_link = f'rc://{self.language_id}/obs-sn/help/obs/{chapter_num}'
             obs_sn_chapter_rc = self.add_rc(obs_sn_chapter_rc_link, title=chapter_title)
             obs_sn_sq_html += f'''
     <section id="{obs_sn_chapter_rc.article_id}">
@@ -214,10 +214,10 @@ class ObsSnPdfConverter(PdfConverter):
                     notes_html = f'<div class="no-notes-message">({no_study_notes})</div>'
 
                 # HANDLE RC LINKS FOR OBS SN FRAME
-                obs_sn_rc_link = f'rc://{self.lang_code}/obs-sn/help/obs/{chapter_num}/{frame_num}'
+                obs_sn_rc_link = f'rc://{self.language_id}/obs-sn/help/obs/{chapter_num}/{frame_num}'
                 obs_sn_rc = self.add_rc(obs_sn_rc_link, title=frame_title, article=notes_html)
                 # HANDLE RC LINKS FOR OBS FRAME
-                obs_rc_link = f'rc://{self.lang_code}/obs/book/obs/{chapter_num}/{frame_num}'
+                obs_rc_link = f'rc://{self.language_id}/obs/book/obs/{chapter_num}/{frame_num}'
                 self.add_rc(obs_rc_link, title=frame_title, article_id=obs_sn_rc.article_id)
 
                 obs_text = ''
@@ -260,7 +260,7 @@ class ObsSnPdfConverter(PdfConverter):
                 header.decompose()
                 obs_sq_html = str(soup)
                 # HANDLE RC LINKS FOR OBS SQ
-                obs_sq_rc_link = f'rc://{self.lang_code}/obs-sq/help/obs/{chapter_num}'
+                obs_sq_rc_link = f'rc://{self.language_id}/obs-sq/help/obs/{chapter_num}'
                 obs_sq_rc = self.add_rc(obs_sq_rc_link, title=obs_sq_title, article=obs_sq_html)
                 obs_sn_sq_html += f'''
         <article id="{obs_sq_rc.article_id}">
@@ -280,7 +280,7 @@ class ObsSnPdfConverter(PdfConverter):
         # <a href="10-1">Text</a> => <a href="rc://obs-sn/help/obs/10/01">Text</a>
         html = re.sub(r'href="(\d)/(\d+)"', r'href="0\1/\2"', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'href="(\d+)/(\d)"', r'href="\1/0\2"', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.lang_code}/obs/book/obs/\1/\2"', html)
+        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.language_id}/obs/book/obs/\1/\2"', html)
 
         # Changes references to chapter/frame that are just chapter/frame prefixed with a #
         # #1:10 => <a href="rc://en/obs/book/obs/01/10">01:10</a>
@@ -288,6 +288,6 @@ class ObsSnPdfConverter(PdfConverter):
         # #10/12 => <a href="rc://en/obs/book/obs/10/12">10:12</a>
         html = re.sub(r'#(\d)[:/-](\d+)', r'#0\1-\2', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'#(\d+)[:/-](\d)\b', r'#\1-0\2', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.lang_code}/obs/book/obs/\1/\2">\1:\2</a>', html)
+        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.language_id}/obs/book/obs/\1/\2">\1:\2</a>', html)
 
         return html

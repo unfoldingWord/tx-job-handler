@@ -32,7 +32,7 @@ class ObsSqPdfConverter(PdfConverter):
 
     def get_body_html(self):
         obs_sq_html = f'''
-<section id="{self.lang_code}-obs-sq">
+<section id="{self.language_id}-obs-sq">
     <div class="resource-title-page">
         <img src="{self.resources[f'obs-sq'].logo_url}" class="logo" alt="OBS">
         <h1 class="section-header">{self.simple_title}</h1>
@@ -50,10 +50,10 @@ class ObsSqPdfConverter(PdfConverter):
             header_count = 1
             for header in headers:
                 header['class'] = 'section-header'
-                header['id'] = f'{self.lang_code}-obs-sq-{chapter_num}-{header_count}'
+                header['id'] = f'{self.language_id}-obs-sq-{chapter_num}-{header_count}'
                 header_count += 1
             # HANDLE OBS SQ RC CHAPTER LINKS
-            obs_sq_rc_link = f'rc://{self.lang_code}/obs-sq/help/{chapter_num}'
+            obs_sq_rc_link = f'rc://{self.language_id}/obs-sq/help/{chapter_num}'
             obs_sq_rc = self.add_rc(obs_sq_rc_link, title=title, article=chapter_html)
             chapter_data = obs_tools.get_obs_chapter_data(self.resources['obs'].repo_dir, chapter_num)
             if len(chapter_data['frames']):
@@ -62,7 +62,7 @@ class ObsSqPdfConverter(PdfConverter):
                     frame_num = str(idx+1).zfill(2)
                     frame_title = f'{chapter_num}:{frame_num}'
                     # HANDLE FRAME RC LINKS FOR OBS
-                    frame_rc_link = f'rc://{self.lang_code}/obs/book/obs/{chapter_num}/{frame_num}'
+                    frame_rc_link = f'rc://{self.language_id}/obs/book/obs/{chapter_num}/{frame_num}'
                     frame_rc = self.add_rc(frame_rc_link, title=frame_title)
                     frames_html += f'''
     <div id={frame_rc.article_id} class="obs-frame">
@@ -97,7 +97,7 @@ class ObsSqPdfConverter(PdfConverter):
         # <a href="10-1">Text</a> => <a href="rc://obs-sn/help/obs/10/01">Text</a>
         html = re.sub(r'href="(\d)/(\d+)"', r'href="0\1/\2"', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'href="(\d+)/(\d)"', r'href="\1/0\2"', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.lang_code}/obs/book/obs/\1/\2"', html)
+        html = re.sub(r'href="(\d\d)/(\d\d)"', fr'href="rc://{self.language_id}/obs/book/obs/\1/\2"', html)
 
         # Changes references to chapter/frame that are just chapter/frame prefixed with a #
         # #1:10 => <a href="rc://en/obs/book/obs/01/10">01:10</a>
@@ -105,6 +105,6 @@ class ObsSqPdfConverter(PdfConverter):
         # #10/12 => <a href="rc://en/obs/book/obs/10/12">10:12</a>
         html = re.sub(r'#(\d)[:/-](\d+)', r'#0\1-\2', html)  # prefix 0 on single-digit chapters
         html = re.sub(r'#(\d+)[:/-](\d)\b', r'#\1-0\2', html)  # prefix 0 on single-digit frames
-        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.lang_code}/obs/book/obs/\1/\2">\1:\2</a>', html)
+        html = re.sub(r'#(\d\d)[:/-](\d\d)', rf'<a href="rc://{self.language_id}/obs/book/obs/\1/\2">\1:\2</a>', html)
 
         return html

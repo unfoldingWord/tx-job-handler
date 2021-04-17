@@ -46,7 +46,7 @@ class SnPdfConverter(TsvPdfConverter):
         return html
 
     def populate_sn_book_data(self):
-        book_filename = f'{self.lang_code}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
+        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return
@@ -82,7 +82,7 @@ class SnPdfConverter(TsvPdfConverter):
                 occurrence = int(verse_data['Occurrence'])
             else:
                 occurrence = 1
-            sn_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
+            sn_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
             sn_title = f'{verse_data["GLQuote"]}'
             if verse_data['OrigQuote']:
                 context_id = None
@@ -92,7 +92,7 @@ class SnPdfConverter(TsvPdfConverter):
                             'chapter': int(chapter),
                             'verse': int(verse)
                         },
-                        'rc': f'rc://{self.lang_code}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
+                        'rc': f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
                         'quote': verse_data['OrigQuote'],
                         'occurrence': occurrence,
                         'quoteString': verse_data['OrigQuote']
@@ -124,7 +124,7 @@ class SnPdfConverter(TsvPdfConverter):
 
     def get_sn_html(self):
         sn_html = f'''
-<section id="{self.lang_code}-{self.name}-{self.project_id}" class="{self.name}">
+<section id="{self.language_id}-{self.name}-{self.project_id}" class="{self.name}">
     <h1 class="section-header hidden">{self.simple_title}</h1>
         <h2 class="section-header">{self.project_title}</h2>
 '''
@@ -134,7 +134,7 @@ class SnPdfConverter(TsvPdfConverter):
             book_intro = self.fix_sn_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
             # HANDLE FRONT INTRO RC LINKS
-            book_intro_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/front/intro'
+            book_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/front/intro'
             book_intro_rc = self.add_rc(book_intro_rc_link, title=book_intro_title)
             book_intro = f'''
     <article id="{book_intro_rc.article_id}">
@@ -147,7 +147,7 @@ class SnPdfConverter(TsvPdfConverter):
             self.log.info(f'Chapter {chapter}...')
             chapter_title = f'{self.project_title} {chapter}'
             # HANDLE INTRO RC LINK
-            chapter_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}'
+            chapter_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}'
             chapter_rc = self.add_rc(chapter_rc_link, title=chapter_title)
             sn_html += f'''
     <section id="{chapter_rc.article_id}" class="chapter no-break-articles">
@@ -162,7 +162,7 @@ class SnPdfConverter(TsvPdfConverter):
                 chapter_intro_title = html_tools.get_title_from_html(chapter_intro)
                 chapter_intro = self.fix_sn_links(chapter_intro, chapter)
                 # HANDLE INTRO RC LINK
-                chapter_intro_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
+                chapter_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
                 chapter_intro_rc = self.add_rc(chapter_intro_rc_link, title=chapter_intro_title)
                 chapter_intro = f'''
         <article id="{chapter_intro_rc.article_id}">
@@ -187,13 +187,13 @@ class SnPdfConverter(TsvPdfConverter):
 
     def get_sn_article(self, chapter, verse):
         sn_title = f'{self.project_title} {chapter}:{verse}'
-        sn_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
+        sn_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         sn_rc = self.add_rc(sn_rc_link, title=sn_title)
         all_bibles_text = ''
         for bible in self.alignment_bibles:
             bible_text = self.get_plain_scripture(self.ult, chapter, verse)
             bible_text = self.get_scripture_with_sn_quotes(bible.identifier, chapter, verse,
-                                                           self.create_rc(f'rc://{self.lang_code}/{bible.identifier}/bible/{self.project_id}/{chapter}/{verse}', bible_text), bible_text)
+                                                           self.create_rc(f'rc://{self.language_id}/{bible.identifier}/bible/{self.project_id}/{chapter}/{verse}', bible_text), bible_text)
             all_bibles_text += f"""
                                 <h3 class="bible-resource-title">{bible.identifier.upper()}</h3>
                                 <div class="bible-text">{bible_text}</div>
@@ -297,7 +297,7 @@ class SnPdfConverter(TsvPdfConverter):
         alignment = get_alignment(verse_objects, quote, occurrence)
         if not alignment:
             title = f'{self.project_title} {chapter}:{verse}'
-            aligned_text_rc_link = f'rc://{self.lang_code}/{bible_id}/bible/{self.project_id}/{self.pad(chapter)}/{str(verse).zfill(3)}'
+            aligned_text_rc_link = f'rc://{self.language_id}/{bible_id}/bible/{self.project_id}/{self.pad(chapter)}/{str(verse).zfill(3)}'
             aligned_text_rc = self.create_rc(aligned_text_rc_link, title=title)
             if 'quoteString' in context_id:
                 quote_string = context_id['quoteString']

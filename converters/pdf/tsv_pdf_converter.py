@@ -95,7 +95,7 @@ class TsvPdfConverter(PdfConverter):
             args = ['node', 'start',
                     '--resources_dir', self.resources_dir,
                     '--repos_dir', self.download_dir,
-                    '-l', self.lang_code,
+                    '-l', self.language_id,
                     '--ult_id', self.ult.identifier]
             if self.ust:
                 args += ['--ust_id', self.ust.identifier]
@@ -155,12 +155,12 @@ class TsvPdfConverter(PdfConverter):
                 exit(1)
         return usfm
 
-    def populate_book_data(self, bible_id, lang_code=None):
+    def populate_book_data(self, bible_id, language_id=None):
         if bible_id in self.book_data:
             return
-        if not lang_code:
-            lang_code = self.lang_code
-        bible_path = os.path.join(self.resources_dir, lang_code, 'bibles', bible_id)
+        if not language_id:
+            language_id = self.language_id
+        bible_path = os.path.join(self.resources_dir, language_id, 'bibles', bible_id)
         if not bible_path:
             self.log.error(f'{bible_path} not found!')
             exit(1)
@@ -242,7 +242,7 @@ class TsvPdfConverter(PdfConverter):
         return html
 
     def get_verse_objects(self, bible_id, chapter, verse):
-        bible_path = os.path.join(self.resources_dir, self.lang_code, 'bibles', bible_id)
+        bible_path = os.path.join(self.resources_dir, self.language_id, 'bibles', bible_id)
         if not bible_path:
             self.log.error(f'{bible_path} not found!')
             exit(1)
@@ -281,7 +281,7 @@ class TsvPdfConverter(PdfConverter):
         alignment = get_alignment(verse_objects, quote, occurrence)
         if not alignment:
             title = f'{self.project_title} {chapter}:{verse}'
-            aligned_text_rc_link = f'rc://{self.lang_code}/{bible_id}/bible/{self.project_id}/{self.pad(chapter)}/{str(verse).zfill(3)}'
+            aligned_text_rc_link = f'rc://{self.language_id}/{bible_id}/bible/{self.project_id}/{self.pad(chapter)}/{str(verse).zfill(3)}'
             aligned_text_rc = self.create_rc(aligned_text_rc_link, title=title)
             if 'quoteString' in context_id:
                 quote_string = context_id['quoteString']
@@ -319,17 +319,17 @@ QUOTE: {quote_string}
                     # should have two numbers, the chapter and the verse
                     c = parts[1]
                     v = parts[2]
-                    new_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(c)}/{v.zfill(3)}'
+                    new_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(c)}/{v.zfill(3)}'
                 if len(parts) == 2:
                     # shouldn't be here, but just in case, assume link to the first verse of the given chapter
                     c = parts[1]
-                    new_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(c)}/001'
+                    new_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(c)}/001'
             elif link.startswith('./'):
                 # link to another verse in the same chapter
                 link = os.path.splitext(link)[0]
                 parts = link.split('/')
                 v = parts[1]
-                new_link = f'rc://{self.lang_code}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{v.zfill(3)}'
+                new_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{v.zfill(3)}'
             return f'<a{before_href}href="{new_link}"{after_href}>{linked_text}</a>'
         regex = re.compile(r'<a([^>]+)href="(\.[^"]+)"([^>]*)>(.*?)</a>')
         html = regex.sub(replace_link, html)
@@ -352,7 +352,7 @@ QUOTE: {quote_string}
         if chapter_header:
             chapter_header.decompose()
         for span in soup.find_all('span', {'class': 'v-num'}):
-            bible_rc_link = f'rc://{self.lang_code}/{resource_id}/bible/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
+            bible_rc_link = f'rc://{self.language_id}/{resource_id}/bible/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
             bible_rc = self.create_rc(bible_rc_link)
             span['id'] = bible_rc.article_id
         html = ''.join(['%s' % x for x in soup.body.contents]).strip()

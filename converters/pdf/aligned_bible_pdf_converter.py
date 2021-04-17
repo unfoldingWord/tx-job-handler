@@ -110,7 +110,7 @@ class AlignedBiblePdfConverter(PdfConverter):
                 project_ids = [self.project_id]
             projects = [self.main_resource.find_project(project_id) for project_id in project_ids]
         bible_html = f'''
-<section id="{self.lang_code}-{self.name}" class="bible {self.name}-bible bible-{self.project_id} {self.name}-bible-{self.project_id}">
+<section id="{self.language_id}-{self.name}" class="bible {self.name}-bible bible-{self.project_id} {self.name}-bible-{self.project_id}">
 '''
         for project_idx, project in enumerate(projects):
             project_id = project['identifier']
@@ -139,11 +139,11 @@ class AlignedBiblePdfConverter(PdfConverter):
                 if len(projects) > 1:
                     classes += ['no-toc']
                 chapter_header['class'] = chapter_header.get('class', []) + classes
-                chapter_header['id'] = f'{self.lang_code}-{self.name}-{project_id}-{self.pad(chapter)}'
+                chapter_header['id'] = f'{self.language_id}-{self.name}-{project_id}-{self.pad(chapter)}'
                 chapter_header['header_title'] = header_title
             article_html = ''.join(['%s' % x for x in soup.body.contents]).strip()
             bible_html += f'''
-    <article id="{self.lang_code}-{self.name}-{project_id}" class="bible-book bible-book-{project_id} {self.name}-bible-book">
+    <article id="{self.language_id}-{self.name}-{project_id}" class="bible-book bible-book-{project_id} {self.name}-bible-book">
         <div class="bible-book-wrapper">
             {article_html}
         </div>

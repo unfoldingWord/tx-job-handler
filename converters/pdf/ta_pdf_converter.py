@@ -52,7 +52,7 @@ class TaPdfConverter(PdfConverter):
 #                   <h1>{toc['title']}</h1>
 #                   <ul id="contents-top-ul">
 # '''
-#             toc_html += f'<li><a href="#{self.lang_code}-ta-man-{project["identifier"]}-cover"><span>{project["title"]}</span></a>'
+#             toc_html += f'<li><a href="#{self.language_id}-ta-man-{project["identifier"]}-cover"><span>{project["title"]}</span></a>'
 #             toc_html += self.get_toc_for_section(toc)
 #             toc_html += '</li>'
 #         toc_html += '</ul></article>'
@@ -92,7 +92,7 @@ class TaPdfConverter(PdfConverter):
 
     def get_ta_html(self):
         ta_html = f'''
-<section id="{self.lang_code}-ta-man">
+<section id="{self.language_id}-ta-man">
     {self.get_articles()}
 </section>
 '''
@@ -108,7 +108,7 @@ class TaPdfConverter(PdfConverter):
             toc = yaml.full_load(read_file(os.path.join(project_path, 'toc.yaml')))
             self.config = yaml.full_load(read_file(os.path.join(project_path, 'config.yaml')))
             articles_html += f'''
-<article id="{self.lang_code}-{project_id}-cover" class="manual-cover cover">
+<article id="{self.language_id}-{project_id}-cover" class="manual-cover cover">
     <img src="{self.main_resource.logo_url}" alt="{project_id}" />
     <h1>{self.title}</h1>
     <h2 class="section-header" toc-level="1">{project['title']}</h2>
@@ -120,7 +120,7 @@ class TaPdfConverter(PdfConverter):
     def get_articles_from_toc(self, project_id, section, toc_level=2):
         if 'sections' not in section:
             return ''
-        source_rc = self.create_rc(f'rc://{self.lang_code}/ta/man/{project_id}/toc.yaml')
+        source_rc = self.create_rc(f'rc://{self.language_id}/ta/man/{project_id}/toc.yaml')
         articles_html = ''
         for subsection in section['sections']:
             self.section_count += 1
@@ -130,7 +130,7 @@ class TaPdfConverter(PdfConverter):
             else:
                 link = f'section-container-{self.section_count}'
                 title = subsection['title']
-            rc_link = f'rc://{self.lang_code}/ta/man/{project_id}/{link}'
+            rc_link = f'rc://{self.language_id}/ta/man/{project_id}/{link}'
             rc = self.add_rc(rc_link, title=title)
             if 'link' in subsection:
                 self.get_ta_article_html(rc, source_rc, self.config, toc_level)

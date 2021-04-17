@@ -101,10 +101,10 @@ class SqPdfConverter(TsvPdfConverter):
                 exit(1)
         return usfm
 
-    def populate_book_data(self, bible_id, lang_code=None):
-        if not lang_code:
-            lang_code = self.lang_code
-        bible_path = os.path.join(self.resources_dir, lang_code, 'bibles', bible_id)
+    def populate_book_data(self, bible_id, language_id=None):
+        if not language_id:
+            language_id = self.language_id
+        bible_path = os.path.join(self.resources_dir, language_id, 'bibles', bible_id)
         if not bible_path:
             self.log.error(f'{bible_path} not found!')
             exit(1)
@@ -151,7 +151,7 @@ class SqPdfConverter(TsvPdfConverter):
         self.book_data[bible_id] = book_data
 
     def populate_sq_book_data(self):
-        book_filename = f'{self.lang_code}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
+        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return
@@ -188,7 +188,7 @@ class SqPdfConverter(TsvPdfConverter):
                 occurrence = int(verse_data['Occurrence'])
             else:
                 occurrence = 1
-            sq_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
+            sq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
             sq_title = f'{verse_data["GLQuote"]}'
             if verse_data['OrigQuote']:
                 context_id = None
@@ -198,7 +198,7 @@ class SqPdfConverter(TsvPdfConverter):
                             'chapter': int(chapter),
                             'verse': int(verse)
                         },
-                        'rc': f'rc://{self.lang_code}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
+                        'rc': f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
                         'quote': verse_data['OrigQuote'],
                         'occurrence': occurrence,
                         'quoteString': verse_data['OrigQuote']
@@ -229,7 +229,7 @@ class SqPdfConverter(TsvPdfConverter):
 
     def get_sq_html(self):
         sq_html = f'''
-<section id="{self.lang_code}-{self.name}-{self.project_id}" class="{self.name}">
+<section id="{self.language_id}-{self.name}-{self.project_id}" class="{self.name}">
     <h1 class="section-header hidden">{self.simple_title}</h1>
         <h2 class="section-header">{self.project_title}</h2>
 '''
@@ -239,7 +239,7 @@ class SqPdfConverter(TsvPdfConverter):
             book_intro = self.fix_sq_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
             # HANDLE FRONT INTRO RC LINKS
-            book_intro_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/front/intro'
+            book_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/front/intro'
             book_intro_rc = self.add_rc(book_intro_rc_link, title=book_intro_title)
             book_intro = f'''
     <article id="{book_intro_rc.article_id}">
@@ -252,7 +252,7 @@ class SqPdfConverter(TsvPdfConverter):
             self.log.info(f'Chapter {chapter}...')
             chapter_title = f'{self.project_title} {chapter}'
             # HANDLE INTRO RC LINK
-            chapter_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}'
+            chapter_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}'
             chapter_rc = self.add_rc(chapter_rc_link, title=chapter_title)
             sq_html += f'''
     <section id="{chapter_rc.article_id}" class="chapter no-break-articles">
@@ -267,7 +267,7 @@ class SqPdfConverter(TsvPdfConverter):
                 chapter_intro_title = html_tools.get_title_from_html(chapter_intro)
                 chapter_intro = self.fix_sq_links(chapter_intro, chapter)
                 # HANDLE INTRO RC LINK
-                chapter_intro_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
+                chapter_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
                 chapter_intro_rc = self.add_rc(chapter_intro_rc_link, title=chapter_intro_title)
                 chapter_intro = f'''
         <article id="{chapter_intro_rc.article_id}">
@@ -292,12 +292,12 @@ class SqPdfConverter(TsvPdfConverter):
 
     def get_sq_article(self, chapter, verse):
         sq_title = f'{self.project_title} {chapter}:{verse}'
-        sq_rc_link = f'rc://{self.lang_code}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
+        sq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         sq_rc = self.add_rc(sq_rc_link, title=sq_title)
         ult_text = self.get_plain_scripture(self.ult, chapter, verse)
-        ult_text = self.get_scripture_with_sq_quotes(self.ult, chapter, verse, self.create_rc(f'rc://{self.lang_code}/ult/bible/{self.project_id}/{chapter}/{verse}', ult_text), ult_text)
+        ult_text = self.get_scripture_with_sq_quotes(self.ult, chapter, verse, self.create_rc(f'rc://{self.language_id}/ult/bible/{self.project_id}/{chapter}/{verse}', ult_text), ult_text)
         ust_text = self.get_plain_scripture(self.ust, chapter, verse)
-        ust_text = self.get_scripture_with_sq_quotes(self.ust, chapter, verse, self.create_rc(f'rc://{self.lang_code}/ust/bible/{self.project_id}/{chapter}/{verse}', ult_text), ust_text)
+        ust_text = self.get_scripture_with_sq_quotes(self.ust, chapter, verse, self.create_rc(f'rc://{self.language_id}/ust/bible/{self.project_id}/{chapter}/{verse}', ult_text), ust_text)
 
         sq_article = f'''
                 <article id="{sq_rc.article_id}">
