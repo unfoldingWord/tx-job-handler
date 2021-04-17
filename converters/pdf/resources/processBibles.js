@@ -61,10 +61,10 @@ const processOLBible = (resource) => {
   const repoPath = path.join(reposDir, repo);
   const manifest = yaml.safeLoad(fs.readFileSync(path.join(repoPath, 'manifest.yaml'), 'utf8'));
   const version = manifest['dublin_core']['version'];
-  const biblePath = path.join(resourcesPath, resource.languageId, 'bibles', resource.resourceId, 'v' + version);
+  const biblePath = path.join(resourcesDir, resource.languageId, 'bibles', resource.resourceId, 'v' + version);
   console.log("BIBLE " + resource.resourceId + ": " + biblePath + ", repoPath: " + repoPath)
   SourceContentUpdater.parseBiblePackage(resource, repoPath, biblePath);
-  const twGroupDataPath = path.join(resourcesPath, resource.languageId, 'translationHelps', 'translationWords', 'v' + version);
+  const twGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationWords', 'v' + version);
   console.log("TW " + resource.resourceId + ": " + twGroupDataPath);
   SourceContentUpdater.generateTwGroupDataFromAlignedBible(resource, biblePath, twGroupDataPath);
 };
@@ -74,7 +74,7 @@ const processUWBible = (resource) => {
   const repoPath = path.join(reposDir, repo);
   const manifest = yaml.safeLoad(fs.readFileSync(path.join(repoPath, 'manifest.yaml'), 'utf8'));
   const version = manifest['dublin_core']['version'];
-  const biblePath = path.join(resourcesPath, resource.languageId, 'bibles', resource.resourceId, 'v' + version);
+  const biblePath = path.join(resourcesDir, resource.languageId, 'bibles', resource.resourceId, 'v' + version);
   console.log("BIBLE " + resource.resourceId + ": " + biblePath)
   SourceContentUpdater.parseBiblePackage(resource, repoPath, biblePath);
 };
@@ -84,7 +84,7 @@ const processTA = (resource) => {
   const taRepoPath = path.join(reposDir, taRepo);
   const taManifest = yaml.safeLoad(fs.readFileSync(path.join(taRepoPath, 'manifest.yaml'), 'utf8'));
   const taVersion = taManifest['dublin_core']['version'];
-  const taGroupDataPath = path.join(resourcesPath, resource.languageId, 'translationHelps', 'translationAcademy', 'v' + taVersion);
+  const taGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationAcademy', 'v' + taVersion);
   console.log("TA " + resource.resourceId + ": " + taGroupDataPath);
   SourceContentUpdater.processTranslationAcademy(resource, taRepoPath, taGroupDataPath);
 };
@@ -94,7 +94,7 @@ const processTW = (resource) => {
   const twRepoPath = path.join(reposDir, twRepo);
   const twManifest = yaml.safeLoad(fs.readFileSync(path.join(twRepoPath, 'manifest.yaml'), 'utf8'));
   const twVersion = twManifest['dublin_core']['version'];
-  const twGroupDataPath = path.join(resourcesPath, resource.languageId, 'translationHelps', 'translationWords', 'v' + twVersion);
+  const twGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationWords', 'v' + twVersion);
   console.log("TW " + resource.resourceId + ": " + twGroupDataPath);
   SourceContentUpdater.processTranslationWords(resource, twRepoPath, twGroupDataPath);
 };
@@ -104,9 +104,9 @@ const processTN = (resource) => {
   const tnRepoPath = path.join(reposDir, tnRepo);
   const tnManifest = yaml.safeLoad(fs.readFileSync(path.join(tnRepoPath, 'manifest.yaml'), 'utf8'));
   const tnVersion = tnManifest['dublin_core']['version'];
-  const tnGroupDataPath = path.join(resourcesPath, resource.languageId, 'translationHelps', 'translationNotes', 'v' + tnVersion);
+  const tnGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationNotes', 'v' + tnVersion);
   console.log("TN: " + tnGroupDataPath);
-  SourceContentUpdater.processTranslationNotes(resource, tnRepoPath, tnGroupDataPath, resourcesPath);
+  SourceContentUpdater.processTranslationNotes(resource, tnRepoPath, tnGroupDataPath, resourcesDir);
 };
 
 const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
