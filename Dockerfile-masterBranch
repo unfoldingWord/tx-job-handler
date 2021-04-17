@@ -1,7 +1,7 @@
 # NOTE: This docker container is built automatically
 #       from Travis-CI after passing unit tests
 
-FROM beevelop/nodejs-python:latest
+FROM nikolaik/python-nodejs:latest
 
 COPY . /code
 WORKDIR /code
