@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+42#!/usr/bin/env python3
 #
 #  Copyright (c) 2020 unfoldingWord
 #  http://creativecommons.org/licenses/MIT/
@@ -38,7 +38,7 @@ class TnPdfConverter(TsvPdfConverter):
     def get_body_html(self):
         self.log.info('Creating TN for {0}...'.format(self.file_project_and_ref))
         self.process_bibles()
-        for resource in self.resources.items():
+        for resource in self.resources.values():
             if resource.subject == ALIGNED_BIBLE:
                 self.populate_book_data(resource.identifier, resource.lang_code)
         self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
