@@ -6,7 +6,7 @@ FROM beevelop/nodejs-python:latest
 COPY . /code
 WORKDIR /code
 
-RUN apt-get update -qq && apt-get install -y libcairo2 libcairo2-dev
+RUN apt-get update -qq && apt-get install -y weasyprint
 
 RUN pip3 install --upgrade pip
 RUN pip3 install --requirement requirements.txt
