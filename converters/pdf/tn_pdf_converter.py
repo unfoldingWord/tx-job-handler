@@ -52,7 +52,7 @@ class TnPdfConverter(TsvPdfConverter):
         return html
 
     def populate_tn_book_data(self):
-        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
+        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number_padded}-{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return
@@ -66,8 +66,8 @@ class TnPdfConverter(TsvPdfConverter):
                 'contextId': None,
                 'row': row_count,
                 'alignments': {
-                    self.ult: None,
-                    self.ust: None
+                    self.ult.identifier: None,
+                    self.ust.identifier: None
                 }
             }
             found = False
@@ -114,13 +114,13 @@ class TnPdfConverter(TsvPdfConverter):
                     context_id['quoteString'] = verse_data['OrigQuote']
                     verse_data['contextId'] = context_id
                     verse_data['alignments'] = {
-                        self.ult: self.get_aligned_text(self.ult, context_id),
-                        self.ust: self.get_aligned_text(self.ust, context_id)
+                        self.ult.identifier: self.get_aligned_text(self.ult.identifier, context_id),
+                        self.ust.identifier: self.get_aligned_text(self.ust.identifier, context_id)
                     }
-                if verse_data['alignments'][self.ult]:
-                    tn_title = flatten_alignment(verse_data['alignments'][self.ult]) + f' ({self.ult.upper()})'
-                    if verse_data['alignments'][self.ust]:
-                        tn_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust]) + f' ({self.ust.upper()})'
+                if verse_data['alignments'][self.ult.identifier]:
+                    tn_title = flatten_alignment(verse_data['alignments'][self.ult.identifier]) + f' ({self.ult.identifier.upper()})'
+                    if verse_data['alignments'][self.ust.identifier]:
+                        tn_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust.identifier]) + f' ({self.ust.identifier.upper()})'
                 else:
                     tn_title = f'{verse_data["GLQuote"]}'
             tn_rc = self.create_rc(tn_rc_link, title=tn_title)
@@ -203,25 +203,25 @@ class TnPdfConverter(TsvPdfConverter):
         tn_title = f'{self.project_title} {chapter}:{verse}'
         tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         tn_rc = self.add_rc(tn_rc_link, title=tn_title)
-        ult_with_tw_words = self.get_scripture_with_tw_words(self.ult, chapter, verse)
-        # ult_with_tw_words = self.get_scripture_with_tn_quotes(self.ult, chapter, verse, rc, ult_with_tw_words)
-        ust_with_tw_words = self.get_scripture_with_tw_words(self.ust, chapter, verse)
-        # ust_with_tw_words = self.get_scripture_with_tn_quotes(self.ust, chapter, verse, rc, ust_with_tw_words)
+        ult_with_tw_words = self.get_scripture_with_tw_words(self.ult.identifier, chapter, verse)
+        # ult_with_tw_words = self.get_scripture_with_tn_quotes(self.ult.identifier, chapter, verse, rc, ult_with_tw_words)
+        ust_with_tw_words = self.get_scripture_with_tw_words(self.ust.identifier, chapter, verse)
+        # ust_with_tw_words = self.get_scripture_with_tn_quotes(self.ust.identifier, chapter, verse, rc, ust_with_tw_words)
 
         tn_article = f'''
                 <article id="{tn_rc.article_id}">
                     <h4 class="section-header no-toc">{tn_title}</h4>
                     <div class="notes">
                             <div class="col1">
-                                <h3 class="bible-resource-title">{self.ult.upper()}</h3>
+                                <h3 class="bible-resource-title">{self.ult.identifier.upper()}</h3>
                                 <div class="bible-text">{ult_with_tw_words}</div>
-                                <h3 class="bible-resource-title">{self.ust.upper()}</h3>
+                                <h3 class="bible-resource-title">{self.ust.identifier.upper()}</h3>
                                 <div class="bible-text">{ust_with_tw_words}</div>
                             </div>
                             <div class="col2">
                                 {self.get_tn_article_text(chapter, verse)}
-                                {self.get_tw_html_list(self.ult, chapter, verse, ult_with_tw_words)}
-                                {self.get_tw_html_list(self.ust, chapter, verse, ust_with_tw_words)}
+                                {self.get_tw_html_list(self.ult.identifier, chapter, verse, ult_with_tw_words)}
+                                {self.get_tw_html_list(self.ust.identifier, chapter, verse, ust_with_tw_words)}
                             </div>
                     </div>
                 </article>
@@ -308,8 +308,8 @@ class TnPdfConverter(TsvPdfConverter):
                     verse = str(group_data['contextId']['reference']['verse'])
                     group_data['contextId']['rc'] = tw_rc_link
                     group_data['alignments'] = {
-                        self.ult: self.get_aligned_text(self.ult, group_data['contextId']),
-                        self.ust: self.get_aligned_text(self.ust, group_data['contextId'])
+                        self.ult.identifier: self.get_aligned_text(self.ult.identifier, group_data['contextId']),
+                        self.ust.identifier: self.get_aligned_text(self.ust.identifier, group_data['contextId'])
                     }
                     if chapter not in words_data:
                         words_data[chapter] = OrderedDict()

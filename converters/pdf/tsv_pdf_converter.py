@@ -99,7 +99,7 @@ class TsvPdfConverter(PdfConverter):
                     '--ult_id', self.ult.identifier]
             if self.ust:
                 args += ['--ust_id', self.ust.identifier]
-            self.log.info(f'Running {" ".join(args)} in {self.pdf_converters_dir}/resources')
+            self.log.info(f'Running `{" ".join(args)}` in {self.pdf_converters_dir}/resources')
             ret = subprocess.call(args, shell=True, cwd=f'{self.pdf_converters_dir}/resources')
             if ret:
                 self.log.error('Error running resources/processBibles.js. Exiting.')
@@ -170,7 +170,7 @@ class TsvPdfConverter(PdfConverter):
             exit(1)
 
         book_data = OrderedDict()
-        book_file = os.path.join(self.resources[bible_id].repo_dir, f'{self.book_number}-{self.project_id.upper()}.usfm')
+        book_file = os.path.join(self.resources[bible_id].repo_dir, f'{self.book_number_padded}-{self.project_id.upper()}.usfm')
         book_usfm = read_file(book_file)
 
         unaligned_usfm = unalign_usfm(book_usfm)

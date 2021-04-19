@@ -20,6 +20,7 @@ import shutil
 import general_tools.html_tools as html_tools
 import googletrans
 import json
+from collections import Counter
 from cssutils import parseStyle
 from cssutils.css import CSSStyleDeclaration
 from bs4 import BeautifulSoup
@@ -33,7 +34,7 @@ from .rc_link import ResourceContainerLink
 from converters.converter import Converter
 from door43_tools.dcs_api import DcsApi
 from door43_tools.bible_books import BOOK_NUMBERS
-from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT
+from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT, ALIGNED_BIBLE, BIBLE
 from app_settings.app_settings import AppSettings
 
 STAGE_PROD = 'prod'
@@ -707,14 +708,18 @@ class PdfConverter(Converter):
             if not resource or resource.identifier in self.resources:
                 resource = self.find_resource(subject=subject)
             self.resources[resource.identifier] = resource
-        for resource_name, resource in self.resources.items():
+
+        # Now setup the resources we have gathered
+        for resource in self.resources.values():
             self.setup_resource(resource)
 
     def already_have_subject(self, subject):
+        count = 0
+        needed = Counter(REQUIRED_RESOURCES[self.my_subject])[subject]
         for resource in self.resources.values():
             if resource.subject == subject:
-                return True
-        return False
+                count += 1
+        return count >= needed
 
     def find_relation_resource(self, subject):
         for resource in self.relation_resources.values():
@@ -1297,6 +1302,7 @@ class PdfConverter(Converter):
     def find_catalog_entries(self, subject, lang=None):
         stage = self.stage
         owner = self.owner
+        repos = None
         if not lang:
             lang = self.language_id
 
@@ -1308,12 +1314,22 @@ class PdfConverter(Converter):
             stage = STAGE_PROD
             owner = DEFAULT_OWNER
             lang = OT_OL_LANG_CODE
+        elif subject == ALIGNED_BIBLE or subject == BIBLE:
+            stage = STAGE_PROD
+            owner = DEFAULT_OWNER
+            repos = [f'{lang}_ult', f'{lang}_ust']
 
         keyed_args_to_find_best_match = [
             {
                 'owners': owner,
                 'langs': lang,
-                'stage': stage
+                'stage': stage,
+                'repos': repos,
+            },
+            {
+                'owners': owner,
+                'langs': lang,
+                'stage': stage,
             },
             {
                 'owners': owner,
@@ -1324,20 +1340,20 @@ class PdfConverter(Converter):
                 'owners': OWNERS,
                 'langs': lang,
                 'stage': stage
-            },
+             },
             {
                 'owners': OWNERS,
                 'langs': lang,
                 'stage': STAGE_LATEST
-            },
+             },
             {
                 'langs': lang,
                 'stage': stage
-            },
+             },
             {
                 'langs': lang,
                 'stage': STAGE_LATEST
-            },
+             },
             {
                 'langs': DEFAULT_LANG_CODE,
                 'stage': stage
@@ -1371,7 +1387,7 @@ class PdfConverter(Converter):
         return resources
 
     def find_resource(self, subject, lang=None):
-        resources = self.find_resources(subject)
+        resources = self.find_resources(subject, self.language_id)
         if len(resources):
             for identifier, resource in resources.items():
                 if identifier not in self.resources:
