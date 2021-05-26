@@ -1038,7 +1038,8 @@ class PdfConverter(Converter):
                 else:
                     self.add_error_message(source_rc, rc.rc_link)
                     self.log.warning(f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc.rc_link}: {rc.rc_link}')
-                    del self.appendix_rcs[rc.rc_link]
+                    if rc.rc_link in self.appendix_rcs:
+                        del self.appendix_rcs[rc.rc_link]
 
     def get_appendix_html(self, resource):
         html = ''

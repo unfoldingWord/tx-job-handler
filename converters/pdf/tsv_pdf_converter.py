@@ -92,15 +92,16 @@ class TsvPdfConverter(PdfConverter):
             self.log.error('No Bible found!')
             exit(1)
         if not os.path.exists(self.resources_dir):
-            args = ['node', 'start',
+            args = ['node', 'start.js',
                     '--resources_dir', self.resources_dir,
                     '--repos_dir', self.download_dir,
                     '-l', self.language_id,
                     '--ult_id', self.ult.identifier]
             if self.ust:
                 args += ['--ust_id', self.ust.identifier]
-            self.log.info(f'Running `{" ".join(args)}` in {self.pdf_converters_dir}/resources')
-            ret = subprocess.call(args, shell=True, cwd=f'{self.pdf_converters_dir}/resources')
+            cmd = ' '.join(args)
+            self.log.info(f'Running `{cmd}` in {self.pdf_converters_dir}/resources')
+            ret = subprocess.call(cmd, shell=True, cwd=f'{self.pdf_converters_dir}/resources')
             if ret:
                 self.log.error('Error running resources/processBibles.js. Exiting.')
                 exit(1)
@@ -213,7 +214,7 @@ class TsvPdfConverter(PdfConverter):
             yield [cell for cell in row]
 
     def get_plain_scripture(self, bible_id, chapter, verse):
-        if verse not in self.book_data[bible_id][chapter]:
+        if chapter not in self.book_data[bible_id] or verse not in self.book_data[bible_id][chapter]:
             return ''
         data = self.book_data[bible_id][chapter][verse]
         footnotes_split = re.compile('<div class="footnotes">', flags=re.IGNORECASE | re.MULTILINE)
@@ -291,12 +292,20 @@ class TsvPdfConverter(PdfConverter):
                     flatten_quote(context_id['quote'])
             if int(self.book_number) > 40 or self.project_id.lower() == 'rut' or self.project_id.lower() == 'jon':
                 title = f'OL ({self.ol_lang_code.upper()}) quote not found in {bible_id.upper()} {self.project_title} {chapter}:{verse} alignment'
+                if chapter in self.book_data[bible_id] and verse in self.book_data[bible_id][chapter]:
+                    bible_usfm = self.book_data[bible_id][chapter][verse]['usfm']
+                else:
+                    bible_usfm = f'(Bible verse {chapter}:{verse} not found in {bible_id} bible)'
+                if chapter in self.book_data[self.ol_bible_id] and verse in self.book_data[self.ol_bible_id][chapter]:
+                    ol_usfm = self.book_data[self.ol_bible_id][chapter][verse]['usfm']
+                else:
+                    ol_usfm = f'(Bible verse {chapter}:{verse} not found in {self.ol_bible_id} bible)'
                 message = f'''
 VERSE: {self.project_title} {chapter}:{verse}
 RC: {context_id['rc']}
 QUOTE: {quote_string}
-{bible_id.upper()}: {self.book_data[bible_id][chapter][verse]['usfm']}
-{self.ol_bible_id.upper()}: {self.book_data[self.ol_bible_id][chapter][verse]['usfm']}
+{bible_id.upper()}: {bible_usfm}
+{self.ol_bible_id.upper()}: {ol_usfm}
 '''
                 self.add_error_message(self.create_rc(context_id['rc']), title, message)
         return alignment

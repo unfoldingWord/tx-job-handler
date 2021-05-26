@@ -1,14 +1,14 @@
 {
   "output": "/tmp/out.zip",
-  "job_id": "Door43_unfoldingword_ta_request",
-  "identifier": "unfoldingword--en_tn",
+  "job_id": "Door43_pdf_tests_tn",
+  "identifier": "pdf_tests--en_tn",
   "resource_type": "TSV_Translation_Notes",
   "input_format": "tsv",
   "output_format": "pdf",
-  "source":"https://qa.door43.org/unfoldingword/en_tn/archive/master.zip",
+  "source":"https://git.door43.org/pdf_tests/en_tn/archive/master.zip",
   "repo_name": "en_tn",
-  "repo_owner": "unfoldingWord",
+  "repo_owner": "pdf_tests",
   "repo_ref": "master",
-  "repo_data_url": "https://qa.door43.org/unfoldingword/en_tn/archive/master.zip",
-  "dcs_domain": "https://qa.door43.org"
+  "repo_data_url": "https://git.door43.org/pdf_tests/en_tn/archive/master.zip",
+  "dcs_domain": "https://git.door43.org"
 }
