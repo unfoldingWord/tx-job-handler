@@ -1,5 +1,6 @@
 # rq and statsd/Graphite and requests are used by the job handler
 rq==1.5.2
+click==7.1.2
 statsd==3.3.0
 requests==2.24.0
 watchtower==0.8.0
