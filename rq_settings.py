@@ -19,6 +19,7 @@ prefix = getenv('QUEUE_PREFIX', '') # Gets (optional) QUEUE_PREFIX environment v
 QUEUE_NAME_SUFFIX = '' # Used to switch to a different queue, e.g., '_1'
 webhook_queue_name = prefix + ENQUEUE_NAME + QUEUE_NAME_SUFFIX
 QUEUES = [webhook_queue_name]
+aws_endpoint_url = getenv('AWS_ENDPOINT_URL', None)
 
 # If you're using Sentry to collect your runtime exceptions, you can use this
 # to configure RQ for it in a single step

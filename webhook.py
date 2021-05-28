@@ -30,7 +30,7 @@ from rq import get_current_job, Queue
 from statsd import StatsClient # Graphite front-end
 
 # Local imports
-from rq_settings import prefix, debug_mode_flag, webhook_queue_name
+from rq_settings import prefix, aws_endpoint_url, debug_mode_flag, webhook_queue_name
 from general_tools.file_utils import unzip, remove_tree, empty_folder
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
@@ -122,7 +122,7 @@ CONVERTER_TABLE = (
     )
 
 
-AppSettings(prefix=prefix)
+AppSettings(prefix=prefix, aws_endpoint_url=aws_endpoint_url)
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
 tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"

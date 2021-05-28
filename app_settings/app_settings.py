@@ -63,6 +63,7 @@ class AppSettings:
 
     # Stage Variables, defaults
     prefix = ''
+    aws_endpoint_url = None
     # api_url = 'https://api.door43.org'
     # pre_convert_bucket_name = 'tx-webhook-client'
     cdn_bucket_name = 'cdn.door43.org'

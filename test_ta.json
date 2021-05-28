@@ -1,0 +1,14 @@
+{
+  "output": "/tmp/out_ta.zip",
+  "job_id": "Door43_unfoldingword_ta",
+  "identifier": "unfoldingword--en_tn",
+  "resource_type": "Translation_Academy",
+  "input_format": "md",
+  "output_format": "pdf",
+  "source":"https://git.door43.org/pdf_tests/en_tn/archive/master.zip",
+  "repo_name": "en_ta",
+  "repo_owner": "unfoldingword",
+  "repo_ref": "master",
+  "repo_data_url": "https://git.door43.org/unfoldingword/en_ta/archive/master.zip",
+  "dcs_domain": "https://git.door43.org"
+}
