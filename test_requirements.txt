@@ -18,7 +18,7 @@ pyparsing==2.4.7
 
 # markdown is used by converters/md2html_converter.py
 markdown==3.3.1
-markdown2==2.3.10
+markdown2==2.4.0
 
 # usfm-tools (transform) is used by converters/usfm2html_converter.py
 # We copied in the files and updated to Python3
