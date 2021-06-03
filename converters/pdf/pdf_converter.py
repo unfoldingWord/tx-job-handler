@@ -26,6 +26,7 @@ from cssutils.css import CSSStyleDeclaration
 from bs4 import BeautifulSoup
 from abc import abstractmethod
 from weasyprint import HTML
+from urllib.parse import urlsplit, urlunsplit, urlparse
 from general_tools.font_utils import get_font_html_with_local_fonts
 from general_tools.file_utils import write_file, read_file, load_json_object, unzip
 from general_tools.url_utils import download_file, get_url
@@ -731,9 +732,9 @@ class PdfConverter(Converter):
         soup = BeautifulSoup(html, 'html.parser')
         for img in soup.find_all('img'):
             if img['src'].startswith('http'):
-                url = img['src']
-                url_as_file_name = re.search(r'https*://([\w/_%.-]+[.](jpg|gif|png))', url, flags=re.IGNORECASE).group(1)
-                file_path = f'images/{url_as_file_name}'
+                u = urlsplit(img['src'])._replace(query="", fragment="")
+                url = urlunsplit(u)
+                file_path = f'images/{u.netloc}{u.path}'
                 full_file_path = os.path.join(self.output_dir, file_path)
                 if not os.path.exists(full_file_path):
                     os.makedirs(os.path.dirname(full_file_path), exist_ok=True)
