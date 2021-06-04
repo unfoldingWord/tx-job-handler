@@ -498,13 +498,15 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
                          f"{'_TEST' if test_mode_flag else ''}" \
                          f"{'_TravisCI' if travis_flag else ''}"
         aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
+        aws_endpoint_url = os.getenv('AWS_ENDPOINT_URL', None)
         boto3_session = Session(aws_access_key_id=aws_access_key_id,
                             aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
                             region_name='us-west-2')
         failure_watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
                                                     use_queues=False,
                                                     log_group=log_group_name,
-                                                    stream_name=prefixed_name)
+                                                    stream_name=prefixed_name,
+                                                    endpoint_url=aws_endpoint_url)
         logger2.addHandler(failure_watchtower_log_handler)
         logger2.setLevel(logging.DEBUG)
         logger2.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{aws_access_key_id[-2:]}'.")

@@ -131,7 +131,8 @@ class AppSettings:
         cls.watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
                                                     # use_queues=False, # Because this forked process is quite transient
                                                     log_group=log_group_name,
-                                                    stream_name=cls.name)
+                                                    stream_name=cls.name,
+                                                    endpoint_url=cls.aws_endpoint_url)
         setup_logger(cls.logger, cls.watchtower_log_handler,
                                 logging.DEBUG if debug_mode_flag else logging.INFO)
         cls.logger.debug(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{cls.aws_access_key_id[-2:]}'.")
