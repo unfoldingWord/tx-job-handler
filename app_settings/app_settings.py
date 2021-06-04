@@ -174,7 +174,8 @@ class AppSettings:
             cls._cdn_s3_handler = S3Handler(bucket_name=cls.cdn_bucket_name,
                                             aws_access_key_id=cls.aws_access_key_id,
                                             aws_secret_access_key=cls.aws_secret_access_key,
-                                            aws_region_name=cls.aws_region_name)
+                                            aws_region_name=cls.aws_region_name,
+                                            aws_endpiont_url=cls.aws_endpoint_url)
         return cls._cdn_s3_handler
 
 

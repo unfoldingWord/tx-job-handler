@@ -9,7 +9,7 @@ from boto3.session import Session
 
 class S3Handler:
     def __init__(self, bucket_name=None, aws_access_key_id=None, aws_secret_access_key=None,
-                 aws_region_name='us-west-2') -> None:
+                 aws_region_name='us-west-2', aws_endpoint_url=None) -> None:
         #from app_settings.app_settings import AppSettings
         #AppSettings.logger.debug(f"s3_handler.__init__({bucket_name}, {aws_access_key_id}, {aws_secret_access_key}, {aws_region_name})")
 
@@ -17,6 +17,7 @@ class S3Handler:
         self.aws_access_key_id = aws_access_key_id
         self.aws_secret_access_key = aws_secret_access_key
         self.aws_region_name = aws_region_name
+        self.aws_endpiont_url = aws_endpoint_url
         self.bucket = None
         self.client = None
         self.resource = None
