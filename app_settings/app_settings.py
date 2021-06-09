@@ -63,7 +63,6 @@ class AppSettings:
 
     # Stage Variables, defaults
     prefix = ''
-    aws_endpoint_url = None
     # api_url = 'https://api.door43.org'
     # pre_convert_bucket_name = 'tx-webhook-client'
     cdn_bucket_name = 'cdn.door43.org'
@@ -131,8 +130,7 @@ class AppSettings:
         cls.watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
                                                     # use_queues=False, # Because this forked process is quite transient
                                                     log_group=log_group_name,
-                                                    stream_name=cls.name,
-                                                    endpoint_url=cls.aws_endpoint_url)
+                                                    stream_name=cls.name)
         setup_logger(cls.logger, cls.watchtower_log_handler,
                                 logging.DEBUG if debug_mode_flag else logging.INFO)
         cls.logger.debug(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{cls.aws_access_key_id[-2:]}'.")
@@ -175,8 +173,7 @@ class AppSettings:
             cls._cdn_s3_handler = S3Handler(bucket_name=cls.cdn_bucket_name,
                                             aws_access_key_id=cls.aws_access_key_id,
                                             aws_secret_access_key=cls.aws_secret_access_key,
-                                            aws_region_name=cls.aws_region_name,
-                                            aws_endpiont_url=cls.aws_endpoint_url)
+                                            aws_region_name=cls.aws_region_name)
         return cls._cdn_s3_handler
 
 
