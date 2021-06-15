@@ -214,7 +214,8 @@ def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, 
                                 repo_name=param_dict['repo_name'],
                                 repo_ref=param_dict['repo_ref'],
                                 repo_data_url=param_dict['repo_data_url'],
-                                dcs_domain=param_dict['dcs_domain'])
+                                dcs_domain=param_dict['dcs_domain'],
+                                project_ids=param_dict['project_ids'])
     convert_result_dict = converter.run()
     converter.close() # do cleanup after run
     param_dict['converter_success'] = convert_result_dict['success']
@@ -525,14 +526,3 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
 # end of job function
 
 # end of webhook.py for tX HTML Job Handler
-
-
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Syntax: webhook.py <payload_file>.json")
-        exit(1)
-    tempfile.tempdir = '/tmp'
-    print(sys.argv[1])
-    with open(sys.argv[1]) as f:
-        data = json.load(f)
-    process_tx_job("dev", data)

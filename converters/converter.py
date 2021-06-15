@@ -21,7 +21,10 @@ class Converter(metaclass=ABCMeta):
     #   (but usually it's not copied across by the preprocessors anyway).
     EXCLUDED_FILES = ['license.md', 'package.json', 'project.json'] #, 'readme.md']
 
-    def __init__(self, repo_subject:str, source_url:str, source_dir:str, cdn_file_key:Optional[str]=None, options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None, repo_owner:Optional[str]=None, repo_name:Optional[str]=None, repo_ref:Optional[str]=None, repo_data_url:Optional[str]=None, dcs_domain:Optional[str]=None) -> None:
+    def __init__(self, repo_subject:str, source_url:str, source_dir:str, cdn_file_key:Optional[str]=None,
+                 options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None, repo_owner:Optional[str]=None,
+                 repo_name:Optional[str]=None, repo_ref:Optional[str]=None, repo_data_url:Optional[str]=None,
+                 dcs_domain:Optional[str]=None, project_ids:Optional[list[str]]=None) -> None:
         """
         :param string source:
         :param string repo_subject:
@@ -34,6 +37,7 @@ class Converter(metaclass=ABCMeta):
         :param string repo_ref:
         :param string repo_data_url:
         :param string dcs_domain:
+        :param list[str] project_ids:
         """
         AppSettings.logger.debug(f"Converter.__init__(rs={repo_subject}, source_dir={source_dir}, cdn_file_key={cdn_file_key}, options={options}, id={identifier})")
         # self.source_zip = source_zip
@@ -50,6 +54,7 @@ class Converter(metaclass=ABCMeta):
         self._repo_name = repo_name
         self._repo_ref = repo_ref
         self.repo_data_url = repo_data_url
+        self.project_ids = project_ids
 
         self.log = ConvertLogger()
         if not os.path.isdir(self.source_dir):

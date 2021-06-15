@@ -71,11 +71,11 @@ class TsvPdfConverter(PdfConverter):
     def determine_ult_ust_bibles(self):
         for resource in self.resources.values():
             if resource.subject == ALIGNED_BIBLE or resource.subject == BIBLE:
-                if resource.identifier == 'ult' or resource.identifier == 'ulb':
+                if resource.identifier == 'ult' or resource.identifier == 'ulb' or resource.identifier == 'glt':
                     if self.ult:
                         self.ust = self.ult
                     self.ult = resource
-                elif resource.identifier == 'ust' or resource.identifier == 'udb':
+                elif resource.identifier == 'ust' or resource.identifier == 'udb' or resource.identifier == 'gst':
                     self.ust = resource
                 else:
                     if not self.ult:
@@ -172,6 +172,8 @@ class TsvPdfConverter(PdfConverter):
 
         book_data = OrderedDict()
         book_file = os.path.join(self.resources[bible_id].repo_dir, f'{self.book_number_padded}-{self.project_id.upper()}.usfm')
+        if not os.path.exists(book_file):
+            return
         book_usfm = read_file(book_file)
 
         unaligned_usfm = unalign_usfm(book_usfm)

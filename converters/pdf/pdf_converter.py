@@ -68,7 +68,6 @@ class PdfConverter(Converter):
 
         self.resources = Resources()
         self.relation_resources = Resources()
-        self.project_id = None
 
         if not os.path.isdir(self.source_dir):
             self.log.error(f"No such folder: {self.source_dir}")
@@ -450,14 +449,15 @@ class PdfConverter(Converter):
 
     def generate_all_files(self):
         for project in self.main_resource.projects:
-            self.project_id = project['identifier']
-            self.errors = {}
-            self.bad_highlights = {}
-            self.rcs = {}
-            self.appendix_rcs = {}
-            self.all_rcs = {}
-            self.generate_html_file()
-            self.generate_pdf_file()
+            if not self.project_ids or project['identifier'] in self.project_ids:
+                self.project_id = project['identifier']
+                self.errors = {}
+                self.bad_highlights = {}
+                self.rcs = {}
+                self.appendix_rcs = {}
+                self.all_rcs = {}
+                self.generate_html_file()
+                self.generate_pdf_file()
 
     def generate_html_file(self):
         if not os.path.exists(self.html_file) or self.debug_mode:
