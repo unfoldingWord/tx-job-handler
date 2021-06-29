@@ -68,6 +68,7 @@ class PdfConverter(Converter):
 
         self.resources = Resources()
         self.relation_resources = Resources()
+        self.project_id = None
 
         if not os.path.isdir(self.source_dir):
             self.log.error(f"No such folder: {self.source_dir}")
