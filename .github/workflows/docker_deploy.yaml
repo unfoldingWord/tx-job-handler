@@ -1,0 +1,62 @@
+name: Publish to Docker Hub
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    tags:
+      - v*
+    release:
+      types: [published]
+
+jobs:
+  publish-to-docker:
+    name: Publish to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: SET DOCKER_TAGS from GITHUB_REF (will be branch or tag of push event)
+        shell: bash
+        run: |
+          REF=`echo $GITHUB_REF | cut -d "/" -f3-`
+          echo "REF=$REF"
+          if [[ "$REF" == "v"* ]]; then
+            # REF is a tag so we create tags for patch, minor and major versions and is the latest production
+            PATCH_VERSION=${REF#v} # remove the v for the patch version
+            MINOR_VERSION=`echo ${PATCH_VERSION} | cut -f1,2 -d'.'` # Only the first two parts
+            MAJOR_VERSION=`echo ${MINOR_VERSION} | cut -f1 -d'.'` #Only the first part
+            # If release is v1 or v1.0 we make sure the MINOR and PATCH versions have the necessary .0's
+            if [[ "$MINOR_VERSION" == "$MAJOR_VERSION" ]]; then
+              MINOR_VERSION="${MAJOR_VERSION}.0"
+              PATCH_VERSION="${MINOR_VERSION}.0"
+            elif [[ "$PATCH_VERSION" == "$MINOR_VERSION" ]]; then
+              PATCH_VERSION="${MINOR_VERSION}.0"
+            fi
+            DOCKER_TAGS="${REF},latest,${MAJOR_VERSION},${MINOR_VERSION},${PATCH_VERSION}"
+            # We want to always use the masterBranch Dockerfile for releases
+            DOCKER_FILE=Dockerfile-masterBranch
+          else
+            # else we are either the devleop or master branch, so use the corresponding Dockerfile
+            DOCKER_TAGS=${REF}
+            DOCKER_FILE=Dockerfile-${REF}Branch
+          fi
+          echo "SETTING DOCKER_TAGS: ${DOCKER_TAGS}"
+          echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
+          echo "SETTING DOCKER_FILE: ${DOCKER_FILE}"
+          echo "DOCKER_FILE=${DOCKER_FILE}" >> $GITHUB_ENV
+
+      - name: Publish Docker Github Action
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          workdir: .
+          name: unfoldingword/tx_job_handler
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          dockerfile: ${{ env.DOCKER_FILE }}
+          tags: ${{ env.DOCKER_TAGS }}
