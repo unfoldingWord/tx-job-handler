@@ -197,6 +197,10 @@ class Converter(metaclass=ABCMeta):
         if self.cdn_file_key and os.path.isdir(os.path.dirname(self.cdn_file_key)):
             #AppSettings.logger.debug("converter.upload_archive() doing copy")
             copy(self.output_zip_file, self.cdn_file_key)
+        elif os.path.isdir(os.path.sep + self.cdn_bucket_name):
+            file_path = os.path.join(os.path.sep + self.cdn_bucket_name, sef.cdn_file_key)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            copy(self.output_zip_file, self.cdn_file_key)
         elif AppSettings.cdn_s3_handler():
             #AppSettings.logger.debug("converter.upload_archive() using S3 handler")
             AppSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file_key, cache_time=0)
