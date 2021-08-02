@@ -35,7 +35,7 @@ from .rc_link import ResourceContainerLink
 from converters.converter import Converter
 from door43_tools.dcs_api import DcsApi
 from door43_tools.bible_books import BOOK_NUMBERS
-from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT, ALIGNED_BIBLE, BIBLE
+from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT, ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES
 from app_settings.app_settings import AppSettings
 
 STAGE_PROD = 'prod'
@@ -181,11 +181,14 @@ class PdfConverter(Converter):
 
     @property
     def ref(self):
-        if self.main_resource:
-            return f'v{self.main_resource.version}'
-            # return self.main_resource.ref
+        if not self.main_resource:
+            if not self._repo_ref:
+                return DEFAULT_REF
+            return self._repo_ref
+        elif self.main_resource.version != self.main_resource.ref:
+            return f'{self._repo_ref}_{self.main_resource.last_commit_sha}'
         else:
-            return self._repo_ref or DEFAULT_REF
+            return f'v{self.main_resource.version}'
 
     @property
     def language_id(self):
@@ -690,7 +693,7 @@ class PdfConverter(Converter):
         self.log.info('Setting up resources...')
         # Setup Main Resource
         repo_dir = None
-        if self.my_subject == "Open Bible Stories":
+        if self.my_subject == OPEN_BIBLE_STORIES and not os.path.exists(os.path.join(self.source_dir, 'content')):
             repo_dir = self.source_dir # Use the massaged OBS dir from door43-job-handler to handle tS repos as well
         zipball_url = self.repo_data_url
         if not self.repo_data_url.endswith('.zip'):
@@ -841,8 +844,8 @@ class PdfConverter(Converter):
 
     def get_cover_html(self):
         version_str = f'{self.translate("version")} {self.version}'
-        # if self.main_resource.ref == DEFAULT_REF:
-        #    version_str += f' ({DEFAULT_REF} - {self.main_resource.last_commit_sha})'
+        if self.main_resource.ref != self.version:
+            version_str += f' ({DEFAULT_REF} - {self.main_resource.last_commit_sha})'
         if self.project_id and self.project_title:
             project_title_html = f'<h2 class="cover-project">{self.project_title}</h2>'
             version_title_html = f'<h3 class="cover-version">{version_str}</h3>'

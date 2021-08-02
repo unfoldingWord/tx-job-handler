@@ -28,7 +28,7 @@ class ObsPdfConverter(PdfConverter):
         self._title = None
 
     def get_sample_text(self):
-        md_file = os.path.join(self.main_resource.repo_dir, '01.md')
+        md_file = os.path.join(self.file_path, '01.md')
         if os.path.exists(md_file):
             html = markdown2.markdown_path(md_file)
             soup = BeautifulSoup(html, 'html.parser')
@@ -68,7 +68,7 @@ class ObsPdfConverter(PdfConverter):
         # The ObsPreprosessor in door43-job-handler puts all the Markdown files into the root dir
         for chapter in range(1, 51):
             chapter_str = str(chapter).zfill(2)
-            obs_chapter_data = obs_tools.get_obs_chapter_data(self.main_resource.repo_dir, chapter_str)
+            obs_chapter_data = obs_tools.get_obs_chapter_data(self.file_path, chapter_str)
             chapter_title = obs_chapter_data['title']
             html += f'''
 <article class="obs-chapter-title-page no-header-footer">
@@ -134,8 +134,30 @@ class ObsPdfConverter(PdfConverter):
 '''
         return cover_html
 
+    @property
+    def is_massaged_obs(self):
+        return not os.path.exists(os.path.join(self.main_resource.repo_dir, 'content'))
+
+    @property
+    def file_path(self):
+        if self.is_massaged_obs:
+            return self.main_resource.repo_dir
+        return os.path.join(self.main_resource.repo_dir, 'content')
+
+    @property
+    def front_path(self):
+        if self.is_massaged_obs:
+            return os.path.join(self.file_path, 'front.md')
+        return os.path.join(self.file_path, 'front', 'intro.md')
+
+    @property
+    def back_path(self):
+        if self.is_massaged_obs:
+            return os.path.join(self.file_path, 'back.md')
+        return os.path.join(self.file_path, 'back', 'intro.md')
+
     def get_license_html(self):
-        front_path = os.path.join(self.main_resource.repo_dir, 'front.md')
+        front_path = self.front_path
         if os.path.exists(front_path):
             front_html = markdown2.markdown_path(front_path)
         else:
@@ -149,7 +171,7 @@ class ObsPdfConverter(PdfConverter):
         return license_html
 
     def get_contributors_html(self):
-        back_path = os.path.join(self.main_resource.repo_dir, 'content', 'back.md')
+        back_path = self.back_path
         if os.path.exists(back_path):
             back_html = markdown2.markdown_path(back_path)
         else:
