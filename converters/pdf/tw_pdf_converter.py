@@ -11,9 +11,12 @@
 This script generates the HTML and PDF TW documents
 """
 import os
+import markdown2
+from bs4 import BeautifulSoup
 from glob import glob
 from collections import OrderedDict
 from .pdf_converter import PdfConverter
+from door43_tools.subjects import TRANSLATION_WORDS
 
 category_titles = OrderedDict({
     'kt': 'Key Terms',
@@ -23,11 +26,21 @@ category_titles = OrderedDict({
 
 
 class TwPdfConverter(PdfConverter):
-    required_resources = ['tw', 'ta']
+    my_subject = TRANSLATION_WORDS
 
     def get_body_html(self):
         self.log.info('Creating TW for {0}...'.format(self.file_project_and_ref))
         return self.get_tw_html()
+
+    def get_sample_text(self):
+        filepath = os.path.join(self.main_resource.repo_dir, 'bible', 'kt', 'god.md')
+        try:
+            html = markdown2.markdown_path(filepath)
+        except:
+            filepath = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
+            html = markdown2.markdown_path(filepath)
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup.find('p').text
 
     def get_tw_html(self):
         tw_html = f'''
