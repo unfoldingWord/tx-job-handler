@@ -3,13 +3,15 @@ import markdown2
 from bs4 import BeautifulSoup
 
 
-def get_obs_chapter_data(file_path, chapter_num):
+def get_obs_chapter_data(repo_dir, chapter_num):
     obs_chapter_data = {
         'title': None,
         'frames': [],
         'bible_reference': None
     }
-    obs_chapter_file = os.path.join(file_path, f'{chapter_num}.md')
+    obs_chapter_file = os.path.join(repo_dir, 'content', f'{chapter_num}.md')
+    if not os.path.isfile(obs_chapter_file):
+        obs_chapter_file = os.path.join(repo_dir, f'{chapter_num}.md')
     if os.path.isfile(obs_chapter_file):
         soup = BeautifulSoup(markdown2.markdown_path(obs_chapter_file), 'html.parser')
         obs_chapter_data['title'] = soup.h1.text

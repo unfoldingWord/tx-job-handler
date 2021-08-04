@@ -35,7 +35,8 @@ from .rc_link import ResourceContainerLink
 from converters.converter import Converter
 from door43_tools.dcs_api import DcsApi
 from door43_tools.bible_books import BOOK_NUMBERS
-from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT, ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES
+from door43_tools.subjects import SUBJECT_ALIASES, REQUIRED_RESOURCES, HEBREW_OLD_TESTAMENT, GREEK_NEW_TESTAMENT, ALIGNED_BIBLE, BIBLE, \
+    OPEN_BIBLE_STORIES, TRANSLATION_ACADEMY, TRANSLATION_WORDS
 from app_settings.app_settings import AppSettings
 
 STAGE_PROD = 'prod'
@@ -1031,9 +1032,9 @@ class PdfConverter(Converter):
                 already_crawled = False
             rc.add_reference(source_rc)
             if not rc.article and (not already_crawled or rc.linking_level <= APPENDIX_LINKING_LEVEL):
-                if rc.resource == 'ta':
+                if rc.resource == 'ta' and TRANSLATION_ACADEMY in REQUIRED_RESOURCES[self.my_subject]:
                     self.get_ta_article_html(rc, source_rc)
-                elif rc.resource == 'tw':
+                elif rc.resource == 'tw' and TRANSLATION_WORDS in REQUIRED_RESOURCES[self.my_subject]:
                     self.get_tw_article_html(rc, source_rc)
                 if rc.article and rc.title:
                     if rc.linking_level <= APPENDIX_LINKING_LEVEL:

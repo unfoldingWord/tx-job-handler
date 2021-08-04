@@ -68,7 +68,7 @@ class ObsPdfConverter(PdfConverter):
         # The ObsPreprosessor in door43-job-handler puts all the Markdown files into the root dir
         for chapter in range(1, 51):
             chapter_str = str(chapter).zfill(2)
-            obs_chapter_data = obs_tools.get_obs_chapter_data(self.file_path, chapter_str)
+            obs_chapter_data = obs_tools.get_obs_chapter_data(self.main_resource.repo_dir, chapter_str)
             chapter_title = obs_chapter_data['title']
             html += f'''
 <article class="obs-chapter-title-page no-header-footer">
