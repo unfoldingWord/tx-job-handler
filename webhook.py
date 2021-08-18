@@ -215,7 +215,7 @@ def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, 
                                 repo_ref=param_dict['repo_ref'],
                                 repo_data_url=param_dict['repo_data_url'],
                                 dcs_domain=param_dict['dcs_domain'],
-                                project_ids=param_dict['project_ids'])
+                                project_ids=param_dict['project_ids'] if 'project_ids' in param_dict else None)
     convert_result_dict = converter.run()
     converter.close() # do cleanup after run
     param_dict['converter_success'] = convert_result_dict['success']
@@ -524,5 +524,15 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     stats_client.incr(f'{job_handler_stats_prefix}.jobs.HTML.completed')
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Syntax: webhook.py <payload_file>.json")
+        exit(1)
+    tempfile.tempdir = '/tmp'
+    print(sys.argv[1])
+    with open(sys.argv[1]) as f:
+        data = json.load(f)
+    process_tx_job("dev", data)
 
 # end of webhook.py for tX HTML Job Handler

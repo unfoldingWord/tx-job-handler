@@ -1025,10 +1025,7 @@ class PdfConverter(Converter):
             else:
                 rc = self.add_appendix_rc(rc_link, linking_level=source_rc.linking_level + 1)
                 if rc.resource not in self.resources:
-                    # We don't have this resource in our list of resources, so adding
-                    resource = Resource(repo_name=f'{self.language_id}_{rc.resource}',
-                                        owner=self.main_resource.owner, api=self.api)
-                    self.setup_resource(resource)
+                    continue
                 already_crawled = False
             rc.add_reference(source_rc)
             if not rc.article and (not already_crawled or rc.linking_level <= APPENDIX_LINKING_LEVEL):
@@ -1390,7 +1387,8 @@ class PdfConverter(Converter):
             for entry in entries:
                 resource = Resource(subject=subject, owner=entry['owner'], repo_name=entry['name'],
                                     ref=entry['branch_or_tag_name'], zipball_url=entry['zipball_url'], api=self.api)
-                resources[resource.identifier] = resource
+                if resource.identifier not in resources:
+                    resources[resource.identifier] = resource
         return resources
 
     def find_resource(self, subject, lang=None):

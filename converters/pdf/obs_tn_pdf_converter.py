@@ -19,6 +19,8 @@ from glob import glob
 from .pdf_converter import PdfConverter
 from general_tools.file_utils import load_json_object
 from general_tools import obs_tools, html_tools, alignment_tools
+from general_tools.url_utils import get_url, download_file
+from general_tools.file_utils import unzip
 
 # Enter ignores in lowercase
 TN_TITLES_TO_IGNORE = {
@@ -51,6 +53,15 @@ class ObsTnPdfConverter(PdfConverter):
         super().__init__(*args, **kwargs)
         self._tw_cat = None
         self.bad_notes = {}
+
+    def setup_images_dir(self):
+        super().setup_images_dir()
+        jpg_dir = os.path.join(self.images_dir, 'cdn.door43.org', 'obs', 'jpg')
+        if not os.path.exists(jpg_dir):
+            download_file('http://cdn.door43.org/obs/jpg/obs-images-360px-compressed.zip', os.path.join(self.images_dir,
+                                                                                                        'images.zip'))
+            unzip(os.path.join(self.images_dir, 'images.zip'), jpg_dir)
+            os.unlink(os.path.join(self.images_dir, 'images.zip'))
 
     @property
     def tw_cat(self):
@@ -116,7 +127,7 @@ class ObsTnPdfConverter(PdfConverter):
                 chapter_num = os.path.basename(obs_tn_chapter_dir)
                 chapter_data = obs_tools.get_obs_chapter_data(self.resources['obs'].repo_dir, chapter_num)
                 obs_tn_html += f'''
-    <article id="{self.language_id}-obs-tn-{chapter_num}">
+    <section id="{self.language_id}-obs-tn-{chapter_num}">
         <h2 class="section-header">{chapter_data['title']}</h2>
 '''
                 frames = [None] + chapter_data['frames']  # first item of '' if there are intro notes from the 00.md file
@@ -140,6 +151,7 @@ class ObsTnPdfConverter(PdfConverter):
 
                     obs_text = ''
                     if frame and frame['text']:
+                        image = frame['image']
                         obs_text = frame['text']
                         orig_obs_text = obs_text
                         if notes_html:
@@ -178,8 +190,11 @@ class ObsTnPdfConverter(PdfConverter):
 
                     if obs_text:
                         obs_text = f'''
-            <div id="{frame_rc.article_id}" class="frame-text">
-                {obs_text}
+            <div class="obs-img-and-text">
+                <img src="{image}" class="obs-img"/>
+                 <div class="obs-text">
+                    {obs_text}
+                </div>
             </div>
 '''
                     if notes_html:
@@ -190,16 +205,14 @@ class ObsTnPdfConverter(PdfConverter):
 '''
 
                     obs_tn_html += f'''
-        <div id="{notes_rc.article_id}">
+        <article id="{notes_rc.article_id}">
             <h3>{frame_title}</h3>
             {obs_text}
             {notes_html}
-        </div>
+        </article>
 '''
-                    if frame_idx < len(frames) - 1:
-                        obs_tn_html += '<hr class="frame-divider"/>\n'
                 obs_tn_html += '''
-    </article>
+    </section>
 '''
         obs_tn_html += '''
 </section>

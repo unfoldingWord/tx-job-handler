@@ -103,6 +103,8 @@ class Resource(object):
 
     @property
     def identifier(self):
+        if not self.manifest or 'dublin_core' not in self.manifest:
+            return ""
         manifest_identifier = self.manifest['dublin_core']['identifier']
         if manifest_identifier and manifest_identifier.count('_'):
             return manifest_identifier.split('_')[1]
