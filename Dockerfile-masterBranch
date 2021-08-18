@@ -1,15 +1,18 @@
 # NOTE: This docker container is built automatically
 #       from Travis-CI after passing unit tests
 
-FROM beevelop/nodejs-python:latest
+FROM nikolaik/python-nodejs:latest
 
 COPY . /code
 WORKDIR /code
 
-RUN apt-get update -qq && apt-get install -y weasyprint
-
+RUN apt-get update -y -qq
+RUN apt-get install -y lsb-release build-essential libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
 RUN pip3 install --upgrade pip
 RUN pip3 install --requirement requirements.txt
+
+# Install the npm modules we use for generating some Bible content in JSON format
+RUN cd converters/pdf/resources && npm ci
 
 CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_Job_Handler" ]
 
