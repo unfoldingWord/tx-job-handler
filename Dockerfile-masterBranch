@@ -6,8 +6,13 @@ FROM nikolaik/python-nodejs:latest
 COPY . /code
 WORKDIR /code
 
+# Update apt-get
 RUN apt-get update -y -qq
-RUN apt-get install -y lsb-release build-essential libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+
+# Install packages needed for weasyprint
+RUN apt-get install -y -qq apt libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
+
+# Upgrade pip3 and install the requirements
 RUN pip3 install --upgrade pip
 RUN pip3 install --requirement requirements.txt
 
