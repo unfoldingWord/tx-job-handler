@@ -713,7 +713,8 @@ class PdfConverter(Converter):
             resource = self.find_relation_resource(subject)
             if not resource or resource.identifier in self.resources:
                 resource = self.find_resource(subject=subject)
-            self.resources[resource.identifier] = resource
+            if resource:
+                self.resources[resource.identifier] = resource
 
         # Now setup the resources we have gathered
         for resource in self.resources.values():
@@ -1385,10 +1386,11 @@ class PdfConverter(Converter):
         entries = self.find_catalog_entries(subject, lang)
         if len(entries):
             for entry in entries:
-                resource = Resource(subject=subject, owner=entry['owner'], repo_name=entry['name'],
-                                    ref=entry['branch_or_tag_name'], zipball_url=entry['zipball_url'], api=self.api)
-                if resource.identifier not in resources:
-                    resources[resource.identifier] = resource
+                if entry['subject'] == subject and (not lang or entry['language'] == lang):
+                    resource = Resource(subject=subject, owner=entry['owner'], repo_name=entry['name'],
+                                        ref=entry['branch_or_tag_name'], zipball_url=entry['zipball_url'], api=self.api)
+                    if resource.identifier not in resources:
+                        resources[resource.identifier] = resource
         return resources
 
     def find_resource(self, subject, lang=None):
