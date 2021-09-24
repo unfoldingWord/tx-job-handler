@@ -1386,7 +1386,7 @@ class PdfConverter(Converter):
         entries = self.find_catalog_entries(subject, lang)
         if len(entries):
             for entry in entries:
-                if entry['subject'] == subject and (not lang or entry['language'] == lang):
+                if entry['subject'] == subject:
                     resource = Resource(subject=subject, owner=entry['owner'], repo_name=entry['name'],
                                         ref=entry['branch_or_tag_name'], zipball_url=entry['zipball_url'], api=self.api)
                     if resource.identifier not in resources:
