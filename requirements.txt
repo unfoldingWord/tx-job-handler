@@ -30,7 +30,7 @@ beautifulsoup4==4.9.3
 
 # used by pdf converter
 jsonpickle==1.5.1
-weasyprint==52.5
+weasyprint==53.3
 gitea-client==1.0.9
 giteapy==1.0.8
 googletrans==4.0.0rc1

@@ -29,21 +29,21 @@ from general_tools.usfm_utils import unalign_usfm
 class TsvPdfConverter(PdfConverter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.alignment_bibles = []
-        self.project_id = None
-
         self.resources_dir = None
+        self.ult = None
+        self.ust = None
+
+        self.add_style_sheet('css/resource/tsv_style.css')
+
+    def reinit(self):
+        super().reinit()
         self.book_data = OrderedDict()
         self.last_ended_with_quote_tag = False
         self.last_ended_with_paragraph_tag = False
         self.open_quote = False
         self.next_follows_quote = False
 
-        self.ult = None
-        self.ust = None
-
-        self.add_style_sheet('css/resource/tsv_style.css')
 
     def get_sample_text(self):
         project = self.projects[0]
@@ -157,7 +157,7 @@ class TsvPdfConverter(PdfConverter):
         return usfm
 
     def populate_book_data(self, bible_id, language_id=None):
-        if bible_id in self.book_data:
+        if self.book_data and bible_id in self.book_data:
             return
         if not language_id:
             language_id = self.language_id

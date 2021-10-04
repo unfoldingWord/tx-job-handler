@@ -94,6 +94,7 @@ def _download_file(url:str, outfile:str, urlopen:Callable[[str],bytes]) -> None:
             ctx.verify_mode = ssl.CERT_NONE
             with closing(urlopen(url)) as request:
                 with open(outfile, 'wb') as fp:
+                    print(f"FILE {request}, {outfile}\n")
                     shutil.copyfileobj(request, fp)
         except HTTPError as e:
             if num_tries < MAX_TRIES \

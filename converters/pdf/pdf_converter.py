@@ -81,20 +81,23 @@ class PdfConverter(Converter):
 
         self.images_dir = None
 
-        self.errors = {}
-        self.bad_highlights = {}
-        self.rcs = {}
-        self.appendix_rcs = {}
-        self.all_rcs = {}
+        self.reinit()
+
         self.locale = {}
         self.pdf_converters_dir = os.path.dirname(os.path.realpath(__file__))
         self.style_sheets = []
         self._font_html = ''
 
-        self._project = None
-
         self.logger_stream_handler = None
         self.api = DcsApi(self.dcs_domain, debug=self.debug_mode)
+
+    def reinit(self):
+        self._project = None
+        self.errors = {}
+        self.bad_highlights = {}
+        self.rcs = {}
+        self.appendix_rcs = {}
+        self.all_rcs = {}
 
     def __del__(self):
         self.finish_up()
@@ -186,7 +189,7 @@ class PdfConverter(Converter):
             if not self._repo_ref:
                 return DEFAULT_REF
             return self._repo_ref
-        elif self.main_resource.version != self.main_resource.ref:
+        elif self.version != self.main_resource.ref and f'v{self.version}' != self.main_resource.ref:
             return f'{self._repo_ref}_{self.main_resource.last_commit_sha}'
         else:
             return f'v{self.main_resource.version}'
@@ -202,7 +205,7 @@ class PdfConverter(Converter):
     @property
     def project(self):
         if self.project_id:
-            if not self._project:
+            if not self._project or self.project_id != self._project['identifier']:
                 self._project = self.main_resource.find_project(self.project_id)
                 if not self._project:
                     self.log.error(f'Project not found: {self.project_id}')
@@ -455,12 +458,8 @@ class PdfConverter(Converter):
     def generate_all_files(self):
         for project in self.main_resource.projects:
             if not self.project_ids or project['identifier'] in self.project_ids:
+                self.reinit()
                 self.project_id = project['identifier']
-                self.errors = {}
-                self.bad_highlights = {}
-                self.rcs = {}
-                self.appendix_rcs = {}
-                self.all_rcs = {}
                 self.generate_html_file()
                 self.generate_pdf_file()
 
@@ -846,7 +845,7 @@ class PdfConverter(Converter):
 
     def get_cover_html(self):
         version_str = f'{self.translate("version")} {self.version}'
-        if self.main_resource.ref != self.version:
+        if self.main_resource.ref != {self.version} and self.main_resource.ref != f'v{self.version}':
             version_str += f' ({DEFAULT_REF} - {self.main_resource.last_commit_sha})'
         if self.project_id and self.project_title:
             project_title_html = f'<h2 class="cover-project">{self.project_title}</h2>'
@@ -1313,11 +1312,11 @@ class PdfConverter(Converter):
 
         if subject == GREEK_NEW_TESTAMENT:
             stage = STAGE_PROD
-            owner = DEFAULT_OWNER
+            owner = 'Door43-Catalog' # Have to hardcode this since this owner has aligned TW data
             lang = NT_OL_LANG_CODE
         elif subject == HEBREW_OLD_TESTAMENT:
             stage = STAGE_PROD
-            owner = DEFAULT_OWNER
+            owner = 'Door43-Catalog' # Have to hardcode this since this owner has aligned TW data
             lang = OT_OL_LANG_CODE
         elif subject == ALIGNED_BIBLE or subject == BIBLE:
             stage = STAGE_PROD

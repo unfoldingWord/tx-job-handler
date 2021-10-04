@@ -31,9 +31,12 @@ class TnPdfConverter(TsvPdfConverter):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.tw_words_data = OrderedDict()
-        self.tn_groups_data = OrderedDict()
-        self.tn_book_data = OrderedDict()
+
+    def reinit(self):
+        super().reinit()
+        self.tw_words_data = None
+        self.tn_groups_data = None
+        self.tn_book_data = None
 
     def get_body_html(self):
         self.log.info('Creating TN for {0}...'.format(self.file_project_and_ref))
@@ -46,9 +49,6 @@ class TnPdfConverter(TsvPdfConverter):
         self.populate_tn_groups_data()
         self.populate_tn_book_data()
         html = self.get_tn_html()
-        self.tn_book_data = None
-        self.tn_groups_data = None
-        self.tw_words_data = None
         return html
 
     def populate_tn_book_data(self):
@@ -135,12 +135,12 @@ class TnPdfConverter(TsvPdfConverter):
 
     def get_tn_html(self):
         tn_html = f'''
-<section id="{self.language_id}-{self.name}-{self.project_id}" class="{self.name}">
-    <article id="{self.language_id}-{self.name}-{self.project_id}-cover" class="resource-title-page">
-        <img src="{self.main_resource.logo_url}" class="logo" alt="UTN">
-        <h1 class="section-header">{self.title}</h1>
-        <h2 class="section-header no-header">{self.project_title}</h2>
-    </article>
+<section>
+<article id="{self.language_id}-{self.name}-{self.project_id}-cover" class="resource-title-page no-header">
+    <img src="{self.main_resource.logo_url}" class="logo" alt="UTN">
+    <h1 class="section-header">{self.title}</h1>
+    <h2 class="section-header no-header">{self.project_title}</h2>
+</article>
 '''
         if 'front' in self.tn_book_data and 'intro' in self.tn_book_data['front']:
             book_intro = markdown2.markdown(self.tn_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'))
@@ -165,7 +165,7 @@ class TnPdfConverter(TsvPdfConverter):
             chapter_rc = self.add_rc(chapter_rc_link, title=chapter_title)
             tn_html += f'''
     <section id="{chapter_rc.article_id}" class="chapter">
-        <h3 class="section-header no-header">{chapter_title}</h3>
+        <h2 class="section-header" toc-level="3">{chapter_title}</h2>
 '''
             if 'intro' in self.tn_book_data[chapter]:
                 self.log.info('Generating chapter info...')
@@ -210,7 +210,7 @@ class TnPdfConverter(TsvPdfConverter):
 
         tn_article = f'''
                 <article id="{tn_rc.article_id}">
-                    <h4 class="section-header no-toc">{tn_title}</h4>
+                    <h2 class="section-header no-toc">{tn_title}</h2>
                     <div class="notes">
                             <div class="col1">
                                 <h3 class="bible-resource-title">{self.ult.identifier.upper()}</h3>

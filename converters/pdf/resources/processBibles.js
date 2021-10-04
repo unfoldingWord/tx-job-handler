@@ -63,10 +63,13 @@ const processOLBible = (resource) => {
   const version = manifest['dublin_core']['version'];
   const biblePath = path.join(resourcesDir, resource.languageId, 'bibles', resource.resourceId, 'v' + version);
   console.log("BIBLE " + resource.resourceId + ": " + biblePath + ", repoPath: " + repoPath)
+  console.log("CALLING SourceContentUpdater.parseBiblePackage(", resource, ", ", repoPath, ", ", biblePath, ")")
   SourceContentUpdater.parseBiblePackage(resource, repoPath, biblePath);
   const twGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationWords', 'v' + version);
   console.log("TW " + resource.resourceId + ": " + twGroupDataPath);
-  SourceContentUpdater.generateTwGroupDataFromAlignedBible(resource, biblePath, twGroupDataPath);
+  console.log(resource, biblePath, twGroupDataPath);
+  var ret = SourceContentUpdater.generateTwGroupDataFromAlignedBible(resource, biblePath, twGroupDataPath);
+  console.log(ret);
 };
 
 const processUWBible = (resource) => {
