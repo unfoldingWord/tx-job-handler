@@ -205,12 +205,14 @@ class Converter(metaclass=ABCMeta):
             #AppSettings.logger.debug("converter.upload_archive() using S3 handler")
             AppSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file_key, cache_time=0)
 
+
     def populate_manifest_dict(self):
         filepaths = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
         for source_filepath in filepaths:
             if 'manifest.yaml' in source_filepath:
                 self.process_manifest(source_filepath)
                 break
+
 
     def process_manifest(self, manifest_file_path:str) -> None:
         """
