@@ -21,6 +21,7 @@ if __name__ == '__main__':
                         help=f'Owner of the resource repo on GitHub. Default: unfoldingWord')
     parser.add_argument('--repo', dest='repo_name', required=True, help=f'Repo name')
     parser.add_argument('--ref', dest='ref', default='master', help='Branch or tag name. Default: master')
+    parser.add_argument('--input', dest='input', default='md', help='Input type. Default: md')
     parser.add_argument('-p', '--project_id', metavar='PROJECT ID', dest='project_ids', required=False, action='append',
                         help='Project ID for resources with projects, as listed in the manfiest.yaml file, such as a Bible book '+
                         '(-p gen). Can specify multiple projects. Default: None (different converters will handle no or multiple '+
@@ -34,7 +35,7 @@ if __name__ == '__main__':
       if resource == r[0]:
         subject = s.replace(' ', '_')
         break
-    input_format = "md"
+    input_format = args.input
     if subject.startswith('TSV'):
       input_format = "tsv"
 

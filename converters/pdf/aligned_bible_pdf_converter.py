@@ -24,11 +24,9 @@ from door43_tools.subjects import ALIGNED_BIBLE
 class AlignedBiblePdfConverter(PdfConverter):
     my_subject = ALIGNED_BIBLE
 
-    def __init__(self, bible_id, chapter=None, *args, **kwargs):
-        self.project_id = kwargs['project_id']
-        self.bible_id = bible_id
-        self.chapter = chapter
-        self.chapters = self.parse_chapters(chapter)
+    def __init__(self, *args, **kwargs):
+        self.chapter = None
+        self.chapters = []
         super().__init__(*args, **kwargs)
 
     def get_sample_text(self):

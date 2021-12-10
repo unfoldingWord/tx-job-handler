@@ -18,7 +18,7 @@ class Tsv2HtmlConverter(Converter):
     Class to convert TSV translationNotes into HTML pages.
     """
     # NOTE: Not all columns are passed from the preprocessor—only the used ones
-    EXPECTED_TAB_COUNT = 4 # So there's one more column than this
+    EXPECTED_TAB_COUNT = 8 # So there's one more column than this
         # (The preprocessor removes unneeded columns while fixing links.)
 
 

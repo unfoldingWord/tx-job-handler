@@ -23,7 +23,6 @@ class TqPdfConverter(PdfConverter):
     my_subject = TRANSLATION_QUESTIONS
 
     def __init__(self, *args, **kwargs):
-        self.project_id = kwargs['project_id']
         super().__init__(*args, **kwargs)
 
     def get_sample_text(self):

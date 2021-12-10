@@ -24,11 +24,9 @@ from tx_usfm_tools.singleFilelessHtmlRenderer import SingleFilelessHtmlRenderer
 class BiblePdfConverter(AlignedBiblePdfConverter):
     my_subject = BIBLE
 
-    def __init__(self, bible_id, chapter=None, *args, **kwargs):
-        self.project_id = kwargs['project_id']
-        self.bible_id = bible_id
-        self.chapter = chapter
-        self.chapters = self.parse_chapters(chapter)
+    def __init__(self, *args, **kwargs):
+        self.chapter = None
+        self.chapters = []
         super().__init__(*args, **kwargs)
 
     @property
@@ -111,6 +109,8 @@ class BiblePdfConverter(AlignedBiblePdfConverter):
 '''
         for project_idx, project in enumerate(projects):
             project_id = project['identifier']
+            if project_id not in BOOK_NUMBERS:
+                continue
             project_num = BOOK_NUMBERS[project_id]
             project_file = os.path.join(self.main_resource.repo_dir, f'{project_num}-{project_id.upper()}.usfm')
             usfm = read_file(project_file)

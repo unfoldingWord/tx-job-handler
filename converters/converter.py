@@ -86,8 +86,8 @@ class Converter(metaclass=ABCMeta):
             os.mkdir(self.files_dir)
         # self.input_zip_file = None  # If set, won't download the repo archive. Used for testing
         self.output_dir = os.path.join(self.converter_dir, 'Output/')
-        if os.path.exists(self.output_dir):
-            shutil.rmtree(self.output_dir)
+        # if os.path.exists(self.output_dir):
+        #    shutil.rmtree(self.output_dir)
         if not os.path.exists(self.output_dir):
             os.mkdir(self.output_dir)
         if prefix and debug_mode_flag:

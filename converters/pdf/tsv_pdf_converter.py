@@ -246,15 +246,18 @@ class TsvPdfConverter(PdfConverter):
 
     def get_verse_objects(self, bible_id, chapter, verse):
         bible_path = os.path.join(self.resources_dir, self.language_id, 'bibles', bible_id)
+        print(bible_path)
         if not bible_path:
             self.log.error(f'{bible_path} not found!')
             exit(1)
         bible_version_path = get_latest_version_path(bible_path)
+        print(bible_version_path)
         if not bible_version_path:
             self.log.error(f'No versions found in {bible_path}!')
             exit(1)
 
         chapter_json_path = f'{bible_version_path}/{self.project_id}/{chapter}.json'
+        print(chapter_json_path)
         data = load_json_object(chapter_json_path)
         if verse in data:
             return data[verse]['verseObjects']

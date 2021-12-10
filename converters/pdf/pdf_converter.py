@@ -100,7 +100,7 @@ class PdfConverter(Converter):
         self.all_rcs = {}
 
     def __del__(self):
-        self.finish_up()
+        self.close_loggers()
 
     @property
     def owner(self):
@@ -273,7 +273,7 @@ class PdfConverter(Converter):
 
     @property
     def book_number_padded(self):
-        return self.pad(self.book_number)
+        return self.pad(self.book_number, 'book')
 
     @property
     def ol_bible_id(self):
@@ -388,6 +388,35 @@ class PdfConverter(Converter):
                 'fix': message
             }
 
+    def upload_file(self, filepath) -> None:
+        """
+        Uploads the given file or puts it locally
+        """
+        #AppSettings.logger.debug("converter.upload_archive()")
+        if self.cdn_file_key and os.path.isdir(os.path.dirname(self.cdn_file_key)):
+            #AppSettings.logger.debug("converter.upload_archive() doing copy")
+            copy(self.output_zip_file, self.cdn_file_key)
+        elif os.path.isdir(os.path.sep + AppSettings.cdn_bucket_name):
+            file_path = os.path.join(os.path.sep + AppSettings.cdn_bucket_name, self.cdn_file_key)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            copy(self.output_zip_file, self.cdn_file_key)
+        elif AppSettings.cdn_s3_handler():
+            #AppSettings.logger.debug("converter.upload_archive() using S3 handler")
+            AppSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file_key, cache_time=0)
+
+
+    def upload_pdf_and_json_to_cdn(self):
+        #if AppSettings.
+        #self.pdf_file
+        #self.loginfo(f"PDF Converter uploading PDF to {self.cdn_file_key} …")
+        #            if self.cdn_file_key:
+        #                self.upload_archive()
+        #                AppSettings.logger.debug(f"Uploaded converted files (using '{self.cdn_file_key}').")
+        #            else:
+        #                AppSettings.logger.debug("No converted file upload requested.")
+        pass
+
+
     def finish_up(self):
         self.close_loggers()
 
@@ -448,12 +477,12 @@ class PdfConverter(Converter):
         self.log.info(f'Logging WeasyPrint output to {weasyprint_log}')
 
     def close_loggers(self):
-        if self.wp_logger_handler:
-            self.wp_logger.removeHandler(self.wp_logger_handler)
-            self.wp_logger_handler.close()
-        if self.output_logger_handler:
-            AppSettings.logger.removeHandler(self.output_logger_handler)
-            self.output_logger_handler.close()
+       if hasattr(self, 'wp_logger_handler') and self.wp_logger_handler:
+           self.wp_logger.removeHandler(self.wp_logger_handler)
+           self.wp_logger_handler.close()
+       if hasattr(self, 'output_logger_handler') and self.output_logger_handler:
+           AppSettings.logger.removeHandler(self.output_logger_handler)
+           self.output_logger_handler.close()
 
     def generate_all_files(self):
         for project in self.main_resource.projects:
@@ -1263,6 +1292,7 @@ class PdfConverter(Converter):
         self.setup_style_sheets()
         self.setup_loggers()
         self.generate_all_files()
+        self.upload_pdf_and_json_to_cdn()
         self.finish_up()
         return True
 
