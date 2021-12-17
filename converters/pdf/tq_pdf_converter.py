@@ -14,7 +14,7 @@ import os
 import re
 import markdown2
 import general_tools.html_tools as html_tools
-from door43_tools.subjects import TSV_STUDY_QUESTIONS
+from door43_tools.subjects import TSV_TRANSLATION_QUESTIONS
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 from .pdf_converter import represent_int
@@ -30,12 +30,12 @@ DEFAULT_UST_ID = 'ust'
 QUOTES_TO_IGNORE = ['general information:', 'connecting statement:']
 
 
-class SqPdfConverter(TsvPdfConverter):
-    my_subject = TSV_STUDY_QUESTIONS
+class TqPdfConverter(TsvPdfConverter):
+    my_subject = TSV_TRANSLATION_QUESTIONS
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.sq_book_data = OrderedDict()
+        self.tq_book_data = OrderedDict()
 
     def get_appendix_rcs(self):
         return
@@ -43,12 +43,12 @@ class SqPdfConverter(TsvPdfConverter):
     def get_body_html(self):
         self.log.info('Creating SQ for {0}...'.format(self.file_project_and_ref))
         self.process_bibles()
-        self.populate_book_data(self.ult)
-        self.populate_book_data(self.ust)
+        for bible in self.alignment_bibles:
+            self.populate_book_data(bible.identifier)
         self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
-        self.populate_sq_book_data()
-        html = self.get_sq_html()
-        self.sq_book_data = None
+        self.populate_tq_book_data()
+        html = self.get_tq_html()
+        self.tq_book_data = None
         return html
 
     def get_usfm_from_verse_objects(self, verse_objects):
@@ -150,7 +150,7 @@ class SqPdfConverter(TsvPdfConverter):
                 }
         self.book_data[bible_id] = book_data
 
-    def populate_sq_book_data(self):
+    def populate_tq_book_data(self):
         book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
@@ -188,8 +188,8 @@ class SqPdfConverter(TsvPdfConverter):
                 occurrence = int(verse_data['Occurrence'])
             else:
                 occurrence = 1
-            sq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
-            sq_title = f'{verse_data["GLQuote"]}'
+            tq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
+            tq_title = f'{verse_data["GLQuote"]}'
             if verse_data['OrigQuote']:
                 context_id = None
                 if not context_id and chapter.isdigit() and verse.isdigit():
@@ -212,31 +212,31 @@ class SqPdfConverter(TsvPdfConverter):
                         self.ust: self.get_aligned_text(self.ust, context_id)
                     }
                 if verse_data['alignments'][self.ult]:
-                    sq_title = flatten_alignment(verse_data['alignments'][self.ult]) + f' ({self.ult.upper()})'
+                    tq_title = flatten_alignment(verse_data['alignments'][self.ult]) + f' ({self.ult.upper()})'
                     if verse_data['alignments'][self.ust]:
-                        sq_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust]) + f' ({self.ust.upper()})'
+                        tq_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust]) + f' ({self.ust.upper()})'
                 else:
-                    sq_title = f'{verse_data["GLQuote"]}'
-            sq_rc = self.create_rc(sq_rc_link, title=sq_title)
-            verse_data['title'] = sq_title
-            verse_data['rc'] = sq_rc
+                    tq_title = f'{verse_data["GLQuote"]}'
+            tq_rc = self.create_rc(tq_rc_link, title=tq_title)
+            verse_data['title'] = tq_title
+            verse_data['rc'] = tq_rc
             if chapter not in book_data:
                 book_data[chapter] = OrderedDict()
             if verse not in book_data[chapter]:
                 book_data[chapter][verse] = []
             book_data[str(chapter)][str(verse)].append(verse_data)
-        self.sq_book_data = book_data
+        self.tq_book_data = book_data
 
-    def get_sq_html(self):
-        sq_html = f'''
+    def get_tq_html(self):
+        tq_html = f'''
 <section id="{self.language_id}-{self.name}-{self.project_id}" class="{self.name}">
     <h1 class="section-header hidden">{self.simple_title}</h1>
         <h2 class="section-header">{self.project_title}</h2>
 '''
-        if 'front' in self.sq_book_data and 'intro' in self.sq_book_data['front']:
-            book_intro = markdown2.markdown(self.sq_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'))
+        if 'front' in self.tq_book_data and 'intro' in self.tq_book_data['front']:
+            book_intro = markdown2.markdown(self.tq_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'))
             book_intro_title = html_tools.get_title_from_html(book_intro)
-            book_intro = self.fix_sq_links(book_intro, 'intro')
+            book_intro = self.fix_tq_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
             # HANDLE FRONT INTRO RC LINKS
             book_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/front/intro'
@@ -247,25 +247,25 @@ class SqPdfConverter(TsvPdfConverter):
     </article>
 '''
             book_intro_rc.set_article(book_intro)
-            sq_html += book_intro
+            tq_html += book_intro
         for chapter in BOOK_CHAPTER_VERSES[self.project_id]:
             self.log.info(f'Chapter {chapter}...')
             chapter_title = f'{self.project_title} {chapter}'
             # HANDLE INTRO RC LINK
             chapter_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}'
             chapter_rc = self.add_rc(chapter_rc_link, title=chapter_title)
-            sq_html += f'''
+            tq_html += f'''
     <section id="{chapter_rc.article_id}" class="chapter no-break-articles">
         <h3 class="section-header" header-level="2">{chapter_title}</h3>
 '''
-            if 'intro' in self.sq_book_data[chapter]:
+            if 'intro' in self.tq_book_data[chapter]:
                 self.log.info('Generating chapter info...')
-                chapter_intro = markdown2.markdown(self.sq_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"))
+                chapter_intro = markdown2.markdown(self.tq_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"))
                 # Remove leading 0 from chapter header
                 chapter_intro = re.sub(r'<h(\d)>([^>]+) 0+([1-9])', r'<h\1>\2 \3', chapter_intro, 1, flags=re.MULTILINE | re.IGNORECASE)
                 chapter_intro = html_tools.make_first_header_section_header(chapter_intro, level=4, no_toc=True, header_level=3)
                 chapter_intro_title = html_tools.get_title_from_html(chapter_intro)
-                chapter_intro = self.fix_sq_links(chapter_intro, chapter)
+                chapter_intro = self.fix_tq_links(chapter_intro, chapter)
                 # HANDLE INTRO RC LINK
                 chapter_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
                 chapter_intro_rc = self.add_rc(chapter_intro_rc_link, title=chapter_intro_title)
@@ -275,33 +275,33 @@ class SqPdfConverter(TsvPdfConverter):
         </article>
 '''
                 chapter_intro_rc.set_article(chapter_intro)
-                sq_html += chapter_intro
+                tq_html += chapter_intro
 
             for verse in range(1,  int(BOOK_CHAPTER_VERSES[self.project_id][chapter]) + 1):
                 verse = str(verse)
                 self.log.info(f'Generating verse {chapter}:{verse}...')
-                sq_html += self.get_sq_article(chapter, verse)
-            sq_html += '''
+                tq_html += self.get_tq_article(chapter, verse)
+            tq_html += '''
     </section>
 '''
-        sq_html += '''
+        tq_html += '''
 </section>
 '''
         self.log.info('Done generating SQ HTML.')
-        return sq_html
+        return tq_html
 
-    def get_sq_article(self, chapter, verse):
-        sq_title = f'{self.project_title} {chapter}:{verse}'
-        sq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
-        sq_rc = self.add_rc(sq_rc_link, title=sq_title)
+    def get_tq_article(self, chapter, verse):
+        tq_title = f'{self.project_title} {chapter}:{verse}'
+        tq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
+        tq_rc = self.add_rc(tq_rc_link, title=tq_title)
         ult_text = self.get_plain_scripture(self.ult, chapter, verse)
-        ult_text = self.get_scripture_with_sq_quotes(self.ult, chapter, verse, self.create_rc(f'rc://{self.language_id}/ult/bible/{self.project_id}/{chapter}/{verse}', ult_text), ult_text)
+        ult_text = self.get_scripture_with_tq_quotes(self.ult, chapter, verse, self.create_rc(f'rc://{self.language_id}/ult/bible/{self.project_id}/{chapter}/{verse}', ult_text), ult_text)
         ust_text = self.get_plain_scripture(self.ust, chapter, verse)
-        ust_text = self.get_scripture_with_sq_quotes(self.ust, chapter, verse, self.create_rc(f'rc://{self.language_id}/ust/bible/{self.project_id}/{chapter}/{verse}', ult_text), ust_text)
+        ust_text = self.get_scripture_with_tq_quotes(self.ust, chapter, verse, self.create_rc(f'rc://{self.language_id}/ust/bible/{self.project_id}/{chapter}/{verse}', ult_text), ust_text)
 
-        sq_article = f'''
-                <article id="{sq_rc.article_id}">
-                    <h4 class="section-header no-toc" header-level="2">{sq_title}</h4>
+        tq_article = f'''
+                <article id="{tq_rc.article_id}">
+                    <h4 class="section-header no-toc" header-level="2">{tq_title}</h4>
                     <div class="notes">
                             <div class="col1">
                                 <h3 class="bible-resource-title">{self.ult.upper()}</h3>
@@ -310,23 +310,23 @@ class SqPdfConverter(TsvPdfConverter):
                                 <div class="bible-text">{ust_text}</div>
                             </div>
                             <div class="col2">
-                                {self.get_sq_article_text(chapter, verse)}
+                                {self.get_tq_article_text(chapter, verse)}
                             </div>
                     </div>
                 </article>
 '''
-        sq_rc.set_article(sq_article)
-        return sq_article
+        tq_rc.set_article(tq_article)
+        return tq_article
 
-    def get_sq_article_text(self, chapter, verse):
+    def get_tq_article_text(self, chapter, verse):
         verse_questions = ''
-        if verse in self.sq_book_data[chapter]:
-            for sq_question in self.sq_book_data[chapter][verse]:
-                question = markdown2.markdown(sq_question['OccurrenceNote'].replace('<br>', "\n"))
+        if verse in self.tq_book_data[chapter]:
+            for tq_question in self.tq_book_data[chapter][verse]:
+                question = markdown2.markdown(tq_question['OccurrenceNote'].replace('<br>', "\n"))
                 question = re.sub(r'</*p[^>]*>', '', question, flags=re.IGNORECASE | re.MULTILINE)
                 verse_questions += f'''
-        <div id="{sq_question['rc'].article_id}" class="verse-question">
-            <h5 class="verse-question-title">{sq_question['title']}</h5>
+        <div id="{tq_question['rc'].article_id}" class="verse-question">
+            <h5 class="verse-question-title">{tq_question['title']}</h5>
             <div class="verse-question-text">
                 {question}
             </div>
@@ -338,10 +338,10 @@ class SqPdfConverter(TsvPdfConverter):
             ({self.translate('no_questions_for_this_verse')})
         </div>
 '''
-        verse_questions = self.fix_sq_links(verse_questions, chapter)
+        verse_questions = self.fix_tq_links(verse_questions, chapter)
         return verse_questions
 
-    def get_scripture_with_sq_quotes(self, bible_id, chapter, verse, rc, scripture):
+    def get_scripture_with_tq_quotes(self, bible_id, chapter, verse, rc, scripture):
         if not scripture:
             scripture = self.get_plain_scripture(bible_id, chapter, verse)
         footnotes_split = re.compile('<div class="footnotes">', flags=re.IGNORECASE | re.MULTILINE)
@@ -350,20 +350,20 @@ class SqPdfConverter(TsvPdfConverter):
         footnote = ''
         if len(verses_and_footnotes) == 2:
             footnote = f'<div class="footnotes">{verses_and_footnotes[1]}'
-        if verse in self.sq_book_data[chapter]:
-            sq_notes = self.sq_book_data[chapter][verse]
+        if verse in self.tq_book_data[chapter]:
+            tq_notes = self.tq_book_data[chapter][verse]
         else:
-            sq_notes = []
+            tq_notes = []
         orig_scripture = scripture
-        for sq_note_idx, sq_note in enumerate(sq_notes):
+        for tq_note_idx, tq_note in enumerate(tq_notes):
             occurrence = 1
-            if represent_int(sq_note['Occurrence']) and int(sq_note['Occurrence']) > 0:
-                occurrence = int(sq_note['Occurrence'])
+            if represent_int(tq_note['Occurrence']) and int(tq_note['Occurrence']) > 0:
+                occurrence = int(tq_note['Occurrence'])
             gl_quote_phrase = [[{
-                'word': sq_note['GLQuote'],
+                'word': tq_note['GLQuote'],
                 'occurrence': occurrence
             }]]
-            phrase = sq_note['alignments'][bible_id]
+            phrase = tq_note['alignments'][bible_id]
             if not phrase:
                 phrase = gl_quote_phrase
             if flatten_alignment(phrase).lower() in QUOTES_TO_IGNORE:
@@ -371,21 +371,21 @@ class SqPdfConverter(TsvPdfConverter):
             split = ''
             if len(phrase) > 1:
                 split = ' split'
-            tag = f'<span class="highlight phrase phrase-{sq_note_idx+1}{split}">'
+            tag = f'<span class="highlight phrase phrase-{tq_note_idx+1}{split}">'
             marked_verse_html = html_tools.mark_phrases_in_html(scripture, phrase, tag=tag)
             if not marked_verse_html:
                 fix = None
                 if flatten_alignment(phrase).lower() not in QUOTES_TO_IGNORE:
-                    if sq_note['GLQuote']:
+                    if tq_note['GLQuote']:
                         marked_with_gl_quote = html_tools.mark_phrases_in_html(scripture, gl_quote_phrase)
                         if marked_with_gl_quote:
-                            fix = sq_note['GLQuote']
-                    self.add_bad_highlight(rc, orig_scripture, sq_note['rc'], sq_note['GLQuote'], fix)
+                            fix = tq_note['GLQuote']
+                    self.add_bad_highlight(rc, orig_scripture, tq_note['rc'], tq_note['GLQuote'], fix)
             else:
                 scripture = marked_verse_html
         scripture += footnote
         return scripture
 
-    def fix_sq_links(self, html, chapter):
+    def fix_tq_links(self, html, chapter):
         html = self.fix_tsv_links(html, chapter)
         return html

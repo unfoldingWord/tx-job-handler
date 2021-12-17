@@ -43,8 +43,8 @@ class SqPdfConverter(TsvPdfConverter):
     def get_body_html(self):
         self.log.info('Creating SQ for {0}...'.format(self.file_project_and_ref))
         self.process_bibles()
-        self.populate_book_data(self.ult)
-        self.populate_book_data(self.ust)
+        for bible in self.alignment_bibles:
+            self.populate_book_data(bible.identifier)
         self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
         self.populate_sq_book_data()
         html = self.get_sq_html()
@@ -101,57 +101,57 @@ class SqPdfConverter(TsvPdfConverter):
                 exit(1)
         return usfm
 
-    def populate_book_data(self, bible_id, language_id=None):
-        if not language_id:
-            language_id = self.language_id
-        bible_path = os.path.join(self.resources_dir, language_id, 'bibles', bible_id)
-        if not bible_path:
-            self.log.error(f'{bible_path} not found!')
-            exit(1)
-        bible_version_path = get_latest_version_path(bible_path)
-        if not bible_version_path:
-            self.log.error(f'No versions found in {bible_path}!')
-            exit(1)
+    # def populate_book_data(self, bible_id, language_id=None):
+    #     if not language_id:
+    #         language_id = self.language_id
+    #     bible_path = os.path.join(self.resources_dir, language_id, 'bibles', bible_id)
+    #     if not bible_path:
+    #         self.log.error(f'{bible_path} not found!')
+    #         exit(1)
+    #     bible_version_path = get_latest_version_path(bible_path)
+    #     if not bible_version_path:
+    #         self.log.error(f'No versions found in {bible_path}!')
+    #         exit(1)
 
-        book_data = OrderedDict()
-        book_file = os.path.join(self.resources[bible_id].repo_dir, f'{self.book_number}-{self.project_id.upper()}.usfm')
-        book_usfm = read_file(book_file)
+    #     book_data = OrderedDict()
+    #     book_file = os.path.join(self.resources[bible_id].repo_dir, f'{self.book_number}-{self.project_id.upper()}.usfm')
+    #     book_usfm = read_file(book_file)
 
-        unaligned_usfm = unalign_usfm(book_usfm)
-        self.log.info(f'Converting {self.project_id.upper()} from USFM to HTML...')
-        book_html, warnings = SingleFilelessHtmlRenderer({self.project_id.upper(): unaligned_usfm}).render()
-        html_verse_splits = re.split(r'(<span id="[^"]+-ch-0*(\d+)-v-(\d+(?:-\d+)?)" class="v-num">)', book_html)
-        usfm_chapter_splits = re.split(r'\\c ', unaligned_usfm)
-        usfm_verse_splits = None
-        chapter_verse_index = 0
-        for i in range(1, len(html_verse_splits), 4):
-            chapter = html_verse_splits[i+1]
-            verses = html_verse_splits[i+2]
-            if chapter not in book_data:
-                book_data[chapter] = OrderedDict()
-                usfm_chapter = f'\\c {usfm_chapter_splits[int(chapter)]}'
-                usfm_verse_splits = re.split(r'\\v ', usfm_chapter)
-                chapter_verse_index = 0
-            chapter_verse_index += 1
-            verse_usfm = f'\\v {usfm_verse_splits[chapter_verse_index]}'
-            verse_html = html_verse_splits[i] + html_verse_splits[i+3]
-            verse_html = re.split('<h2', verse_html)[0]  # remove next chapter since only split on verses
-            verse_soup = BeautifulSoup(verse_html, 'html.parser')
-            for tag in verse_soup.find_all():
-                if (not tag.contents or len(tag.get_text(strip=True)) <= 0) and tag.name not in ['br', 'img']:
-                    tag.decompose()
-            verse_html = str(verse_soup)
-            verses = re.findall(r'\d+', verses)
-            for verse in verses:
-                verse = verse.lstrip('0')
-                book_data[chapter][verse] = {
-                    'usfm': verse_usfm,
-                    'html': verse_html
-                }
-        self.book_data[bible_id] = book_data
+    #     unaligned_usfm = unalign_usfm(book_usfm)
+    #     self.log.info(f'Converting {self.project_id.upper()} from USFM to HTML...')
+    #     book_html, warnings = SingleFilelessHtmlRenderer({self.project_id.upper(): unaligned_usfm}).render()
+    #     html_verse_splits = re.split(r'(<span id="[^"]+-ch-0*(\d+)-v-(\d+(?:-\d+)?)" class="v-num">)', book_html)
+    #     usfm_chapter_splits = re.split(r'\\c ', unaligned_usfm)
+    #     usfm_verse_splits = None
+    #     chapter_verse_index = 0
+    #     for i in range(1, len(html_verse_splits), 4):
+    #         chapter = html_verse_splits[i+1]
+    #         verses = html_verse_splits[i+2]
+    #         if chapter not in book_data:
+    #             book_data[chapter] = OrderedDict()
+    #             usfm_chapter = f'\\c {usfm_chapter_splits[int(chapter)]}'
+    #             usfm_verse_splits = re.split(r'\\v ', usfm_chapter)
+    #             chapter_verse_index = 0
+    #         chapter_verse_index += 1
+    #         verse_usfm = f'\\v {usfm_verse_splits[chapter_verse_index]}'
+    #         verse_html = html_verse_splits[i] + html_verse_splits[i+3]
+    #         verse_html = re.split('<h2', verse_html)[0]  # remove next chapter since only split on verses
+    #         verse_soup = BeautifulSoup(verse_html, 'html.parser')
+    #         for tag in verse_soup.find_all():
+    #             if (not tag.contents or len(tag.get_text(strip=True)) <= 0) and tag.name not in ['br', 'img']:
+    #                 tag.decompose()
+    #         verse_html = str(verse_soup)
+    #         verses = re.findall(r'\d+', verses)
+    #         for verse in verses:
+    #             verse = verse.lstrip('0')
+    #             book_data[chapter][verse] = {
+    #                 'usfm': verse_usfm,
+    #                 'html': verse_html
+    #             }
+    #     self.book_data[bible_id] = book_data
 
     def populate_sq_book_data(self):
-        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
+        book_filename = f'{self.main_resource.identifier}_{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return
@@ -182,8 +182,14 @@ class SqPdfConverter(TsvPdfConverter):
                     verse_data[field] = row[idx]
             if not found:
                 continue
-            chapter = verse_data['Chapter'].lstrip('0')
-            verse = verse_data['Verse'].lstrip('0')
+            print(verse_data)
+            reference = verse_data['Reference']
+            chapter = reference.split(":")[0].lstrip("0")
+            verses = reference.split(":")[1].split('-')
+            start_verse = verses[0].lstrip("0")
+            end_verse = start_verse
+            if len(verses) > 1:
+                end_verse = verses[-1].lstrip("0")
             if verse_data['Occurrence']:
                 occurrence = int(verse_data['Occurrence'])
             else:
@@ -196,7 +202,8 @@ class SqPdfConverter(TsvPdfConverter):
                     context_id = {
                         'reference': {
                             'chapter': int(chapter),
-                            'verse': int(verse)
+                            'verse': int(start_verse),
+                            'end_verse': int(end_verse)
                         },
                         'rc': f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
                         'quote': verse_data['OrigQuote'],
