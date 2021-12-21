@@ -758,7 +758,7 @@ class PdfConverter(Converter):
 
     def find_relation_resource(self, subject):
         for resource in self.relation_resources.values():
-            if resource.subject == subject and resource.identifier not in self.resources:
+            if (resource.subject == subject or (subject == BIBLE and resource.subject == ALIGNED_BIBLE)) and resource.identifier not in self.resources:
                 return resource
         return None
 
@@ -1315,6 +1315,11 @@ class PdfConverter(Converter):
             #         return Resource(owner=self.owner, repo_name=repo_name, repo_dir=repo_dir, ref=version, api=self.api)
             entry = self.api.get_catalog_entry(owner=self.main_resource.owner, repo_name=f'{lang}_{resource_name}',
                                                 ref=version)
+            # Try version without the "v"
+            if not entry:
+                entry = self.api.get_catalog_entry(owner=self.main_resource.owner, repo_name=f'{lang}_{resource_name}',
+                                                   ref=version[1:])
+
             if not entry:
                 entry = self.api.get_catalog_entry(owner=DEFAULT_OWNER, repo_name=f'{lang}_{resource_name}',
                                                    ref=version)

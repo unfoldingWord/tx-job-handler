@@ -86,7 +86,7 @@ if __name__ == '__main__':
     }
 
     print(data)
-    # process_tx_job("dev", data)
+    process_tx_job("dev", data)
 
     orig_pdf_files = glob(os.path.join(
         os.path.dirname(output_file), 'Output', '*.pdf'))

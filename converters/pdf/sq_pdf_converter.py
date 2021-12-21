@@ -194,18 +194,18 @@ class SqPdfConverter(TsvPdfConverter):
                 occurrence = int(verse_data['Occurrence'])
             else:
                 occurrence = 1
-            sq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
-            sq_title = f'{verse_data["GLQuote"]}'
+            sq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{start_verse.zfill(3)}/{verse_data["ID"]}'
+            sq_title = "NO GL QUOTE"
             if verse_data['OrigQuote']:
                 context_id = None
-                if not context_id and chapter.isdigit() and verse.isdigit():
+                if not context_id and chapter.isdigit() and start_verse.isdigit():
                     context_id = {
                         'reference': {
                             'chapter': int(chapter),
                             'verse': int(start_verse),
                             'end_verse': int(end_verse)
                         },
-                        'rc': f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
+                        'rc': f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{start_verse.zfill(3)}',
                         'quote': verse_data['OrigQuote'],
                         'occurrence': occurrence,
                         'quoteString': verse_data['OrigQuote']
@@ -229,9 +229,9 @@ class SqPdfConverter(TsvPdfConverter):
             verse_data['rc'] = sq_rc
             if chapter not in book_data:
                 book_data[chapter] = OrderedDict()
-            if verse not in book_data[chapter]:
-                book_data[chapter][verse] = []
-            book_data[str(chapter)][str(verse)].append(verse_data)
+            if start_verse not in book_data[chapter]:
+                book_data[chapter][start_verse] = []
+            book_data[str(chapter)][str(start_verse)].append(verse_data)
         self.sq_book_data = book_data
 
     def get_sq_html(self):

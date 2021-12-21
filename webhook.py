@@ -53,7 +53,7 @@ from converters.usfm2html_converter import Usfm2HtmlConverter
 from door43_tools.subjects import SUBJECT_ALIASES
 from door43_tools.subjects import ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES, OBS_STUDY_NOTES, OBS_STUDY_QUESTIONS, \
     OBS_TRANSLATION_NOTES, OBS_TRANSLATION_QUESTIONS, TRANSLATION_ACADEMY, TRANSLATION_WORDS, TRANSLATION_QUESTIONS, \
-    TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, TSV_TRANSLATION_NOTES
+    TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, TSV_TRANSLATION_NOTES, TSV_TRANSLATION_QUESTIONS
 from converters.pdf.bible_pdf_converter import BiblePdfConverter
 from converters.pdf.obs_pdf_converter import ObsPdfConverter
 from converters.pdf.obs_sn_pdf_converter import ObsSnPdfConverter
@@ -114,11 +114,11 @@ CONVERTER_TABLE = (
     (OBS_TRANSLATION_NOTES,     ObsTnPdfConverter, ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_TRANSLATION_NOTES], 'pdf'),
     (OBS_TRANSLATION_QUESTIONS, ObsTqPdfConverter, ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_TRANSLATION_QUESTIONS], 'pdf'),
     (TRANSLATION_ACADEMY,       TaPdfConverter,    ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_ACADEMY], 'pdf'),
+    (TRANSLATION_WORDS,         TwPdfConverter,    ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
     (TSV_STUDY_NOTES,           SnPdfConverter,    ('', 'tsv'),                           SUBJECT_ALIASES[TSV_STUDY_NOTES], 'pdf'),
     (TSV_STUDY_QUESTIONS,       SqPdfConverter,    ('', 'tsv'),                           SUBJECT_ALIASES[TSV_STUDY_QUESTIONS], 'pdf'),
     (TSV_TRANSLATION_NOTES,     TnPdfConverter,    ('', 'tsv'),                           SUBJECT_ALIASES[TSV_TRANSLATION_NOTES], 'pdf'),
-    (TRANSLATION_QUESTIONS,     TqPdfConverter,    ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_QUESTIONS], 'pdf'),
-    (TRANSLATION_WORDS,         TwPdfConverter,    ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
+    (TSV_TRANSLATION_QUESTIONS, TqPdfConverter,    ('', 'tsv'),                           SUBJECT_ALIASES[TSV_TRANSLATION_QUESTIONS], 'pdf'),
     )
 
 
@@ -376,7 +376,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     AppSettings.logger.info(f"Got door43_pages_converter = {door43_pages_converter_name}")
 
     # Run the linter first
-    if linter:
+    if linter and False:
         build_log_dict['status'] = 'linting'
         build_log_dict['message'] = 'tX job linting…'
         build_log_dict['lint_module'] = linter_name
