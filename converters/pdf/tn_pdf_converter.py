@@ -54,7 +54,6 @@ class TnPdfConverter(TsvPdfConverter):
     def populate_tn_book_data(self):
         book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number_padded}-{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
-        print(f"BOOOOOOOK: {book_filepath}\n")
         if not os.path.isfile(book_filepath):
             return
         book_data = OrderedDict()
@@ -63,7 +62,6 @@ class TnPdfConverter(TsvPdfConverter):
         row_count = 1
         for row in reader:
             row_count += 1
-            print(f"ROW COUNT: {row_count}\n")
             verse_data = {
                 'contextId': None,
                 'row': row_count,
@@ -135,7 +133,6 @@ class TnPdfConverter(TsvPdfConverter):
             if verse not in book_data[chapter]:
                 book_data[chapter][verse] = []
             book_data[str(chapter)][str(verse)].append(verse_data)
-        print(f"DATA: {book_data.keys()}\n")
         self.tn_book_data = book_data
 
     def get_tn_html(self):

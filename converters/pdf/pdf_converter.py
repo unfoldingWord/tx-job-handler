@@ -507,6 +507,7 @@ class PdfConverter(Converter):
             body_html = self.add_fit_to_page_wrappers(body_html)
             if not body_html:
                 return False
+            write_file("/tmp/out.html", body_html)
             self.log.info('Generating appendix RCs...')
             self.get_appendix_rcs()
             self.all_rcs = {**self.rcs, **self.appendix_rcs}
@@ -1097,8 +1098,16 @@ class PdfConverter(Converter):
         return html
 
     def get_ta_article_html(self, rc, source_rc, config=None, toc_level=2):
+        if not rc.path:
+            self.add_error_message(source_rc, rc.rc_link, "Bad RC link")
+            rc.extra_info = [rc.project]
+            rc.project = "translate"
         if not config:
             config_file = os.path.join(self.resources[rc.resource].repo_dir, rc.project, 'config.yaml')
+            if not os.path.exists(config_file):
+                self.add_error_message(source_rc, rc.rc_link, f"Unable to find config.yaml file: {config_file}")
+                exit()
+                return
             config = yaml.full_load(read_file(config_file))
         article_dir = os.path.join(self.resources[rc.resource].repo_dir, rc.project, rc.path)
         article_file = os.path.join(article_dir, '01.md')
