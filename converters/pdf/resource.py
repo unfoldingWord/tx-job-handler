@@ -12,14 +12,17 @@
 Class for a resource
 """
 import os
+import yaml
+import base64
 from dateutil import parser
-from door43_tools.dcs_api import DcsApi
 from collections import OrderedDict
 from general_tools.file_utils import load_yaml_object
+from app_settings.app_settings import AppSettings
+from dcs_api_client.rest import ApiException
 
 DEFAULT_OWNER = 'unfoldingWord'
 DEFAULT_REF = 'master'
-OWNERS = [DEFAULT_OWNER, 'STR', 'Door43-Catalog', 'PCET', 'EXEGETICAL-BCS']
+OWNERS = [DEFAULT_OWNER, 'Door43-Catalog', 'STR', 'PCET', 'EXEGETICAL-BCS', 'ru_gl', 'ne_gl', 'hi_gl']
 LOGO_MAP = {
     'sn': 'utn',
     'sq': 'utq',
@@ -49,10 +52,6 @@ class Resource(object):
 
         self._catalog_entry = None
         self._last_commit = None
-        if api:
-            self.api = api
-        else:
-            self.api = DcsApi()
 
     @property
     def subject(self):
@@ -75,20 +74,25 @@ class Resource(object):
     @property
     def last_commit(self):
         if not self._last_commit:
-            self._last_commit = self.api.get_last_commit(self.owner, self.repo_name, self.ref)
+            try:
+                commits = AppSettings.repo_api.repo_get_all_commits(self.owner, self.repo_name, sha=self.ref, limit=1)                
+                if commits and len(commits) > 0:
+                    self._last_commit = commits[0]
+            except ApiException as e:
+                AppSettings.logger.critical("Exception when calling RepositoryApi->repo_get_all_commits: %s\n" % e) 
         return self._last_commit
 
     @property
     def last_commit_sha(self):
         if self.last_commit:
-            return self.last_commit['sha'][0:10]
+            return self.last_commit.sha[0:10]
         else:
             return ''
 
     @property
     def last_commit_date(self):
         if self.last_commit:
-            return parser.parse(self.last_commit['commit']['committer']['date']).strftime('%Y-%m-%d %H:%M:%S')
+            return parser.parse(self.last_commit.commit.committer._date).strftime('%Y-%m-%d %H:%M:%S')
         else:
             return ''
 
@@ -98,7 +102,11 @@ class Resource(object):
             if self.repo_dir:
                 self._manifest = load_yaml_object(os.path.join(self.repo_dir, 'manifest.yaml'))
             else:
-                self._manifest = self.api.get_manifest(self.owner, self.repo_name)
+                try:
+                    response = AppSettings.repo_api.repo_get_contents(self.owner, self.repo_name, "manifest.yaml", ref=self.ref)
+                    self._manifest = yaml.safe_load(base64.b64decode(response.content))
+                except ApiException as e:
+                    print("Exception when calling RepositoryApi->repo_get_raw_file: %s\n" % e)
         return self._manifest
 
     @property
@@ -152,11 +160,19 @@ class Resource(object):
         return self.manifest['dublin_core']['contributor']
 
     @property
-    def stage(self):
+    def catalog_entry(self):
         if not self._catalog_entry:
-            self._catalog_entry = self.api.get_catalog_entry(owner=self.owner, repo_name=self.repo_name, ref=self.ref)
-        if self._catalog_entry:
-            return self._catalog_entry['stage']
+            try:
+                self._catalog_entry = AppSettings.catalog_api.v5_get_catalog_entry(self.owner, self.repo_name, self.ref)
+            except ApiException as e:
+                print("Exception when calling V5Api->v5_get_catalog_entry: %s\n" % e)
+        return self._catalog_entry
+
+
+    @property
+    def stage(self):
+        if self.catalog_entry:
+            return self.catalog_entry.stage
         return None
 
     @property

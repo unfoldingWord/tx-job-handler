@@ -20,11 +20,10 @@ import sys
 import traceback
 import tempfile
 import shutil
-import giteapy
 import base64
 import ruamel.yaml
 import requests
-from giteapy.rest import ApiException
+from dcs_api_client.rest import ApiException
 from glob import glob
 from ruamel.yaml.comments import CommentedMap as OrderedDict
 from ruamel.yaml.scalarstring import SingleQuotedScalarString
@@ -53,7 +52,6 @@ from converters.pdf.ta_pdf_converter import TaPdfConverter
 from converters.pdf.tn_pdf_converter import TnPdfConverter
 from converters.pdf.tq_pdf_converter import TqPdfConverter
 from converters.pdf.tw_pdf_converter import TwPdfConverter
-from door43_tools.dcs_api import DcsApi
 
 sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 
@@ -76,19 +74,9 @@ CONVERTER_TABLE = (
     (TRANSLATION_WORDS,         TwPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
     )
 
-AppSettings()
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
-
-host = "https://git.door43.org"
-api = DcsApi(dcs_domain=host, debug=True)
-
-api_config = giteapy.Configuration()
-api_config.host = f"{host}/api/v1"
-api_config.api_key['access_token'] = 'da16dd8ddee7dbc4ab84bf5daa1bd5353d0050ee'
-gitea_api = giteapy.ApiClient(configuration=api_config)
-gitea = giteapy.RepositoryApi(api_client=gitea_api)
-
+AppSettings(prefix=prefix)
 
 def get_converter_module(entry) -> Tuple[Optional[str],Any]:
     for converter_name, converter_class, input_formats, resource_types, output_format in CONVERTER_TABLE:
@@ -307,7 +295,7 @@ def upload_and_update(entry):
             AppSettings.logger.info(f"Already uploaded {pdf}")
     sha = None
     try:
-        resp = gitea.repo_get_contents(org, repo, 'media.yaml')
+        resp = AppSettings.repo_api.repo_get_contents(org, repo, 'media.yaml')
         media = yaml.load(base64.b64decode(resp.content))
         sha = resp.sha
         print(media)
@@ -386,26 +374,26 @@ def upload_and_update(entry):
     media_content = base64.b64encode(media_str.encode('ascii')).strip().decode()
     try:
         if sha:
-            resp = gitea.repo_update_file(org, repo, 'media.yaml', body={'content': str(media_content), 'sha': sha, 'new_branch': 'pdf-update'})
+            resp = AppSettings.repo_api.repo_update_file(org, repo, 'media.yaml', body={'content': str(media_content), 'sha': sha, 'new_branch': 'pdf-update'})
         else:
-            resp = gitea.repo_create_file(org, repo, 'media.yaml', body={'content': str(media_content), 'new_branch': 'pdf-update'})
+            resp = AppSettings.repo_api.repo_create_file(org, repo, 'media.yaml', body={'content': str(media_content), 'new_branch': 'pdf-update'})
         print(resp)
     except ApiException as e:
         print(e)
         exit(1)
-    resp = gitea.repo_create_pull_request(org, repo, body={
+    resp = AppSettings.repo_api.repo_create_pull_request(org, repo, body={
         'head': f'pdf-update',
         'base': 'master',
         'title': 'Updates media.yaml with new PDF url' if sha else 'Adds media.yaml'
     })
-    resp = gitea.repo_merge_pull_request(org, repo, resp.number, body={"Do": "merge", "force_merge": True})
+    resp = AppSettings.repo_api.repo_merge_pull_request(org, repo, resp.number, body={"Do": "merge", "force_merge": True})
     x = requests.delete(f'https://git.door43.org/api/v1/repos/Door43-Catalog/{repo}/branches/pdf-update?access_token=da16dd8ddee7dbc4ab84bf5daa1bd5353d0050ee')
-    # resp = gitea.repo_edit_pull_request(org, repo, resp.number, body={"state": "closed"})
-    releases = gitea.repo_list_releases(org, repo)
+    # resp = AppSettings.repo_api.repo_edit_pull_request(org, repo, resp.number, body={"state": "closed"})
+    releases = AppSettings.repo_api.repo_list_releases(org, repo)
     for release in releases:
         if release.tag_name == version_str:
-            gitea.repo_delete_release(org, repo, release.id)
-    gitea.repo_create_release(org, repo, body={"name": version_str, "tag_name": version_str, "prerelease": False, "draft": False, "target_commitish": "master"})
+            AppSettings.repo_api.repo_delete_release(org, repo, release.id)
+    AppSettings.repo_api.repo_create_release(org, repo, body={"name": version_str, "tag_name": version_str, "prerelease": False, "draft": False, "target_commitish": "master"})
     print(resp)
     for pdf in pdfs:
         done_path = os.path.join(pdf_dir, 'done', os.path.basename(pdf))

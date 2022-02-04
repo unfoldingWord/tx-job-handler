@@ -2,7 +2,8 @@ import sys
 import os
 import logging
 import re
-
+import dcs_api_client
+import dcs_catalog_client
 from aws_tools.s3_handler import S3Handler
 from boto3 import Session
 from watchtower import CloudWatchLogHandler
@@ -70,6 +71,9 @@ class AppSettings:
     # module_table_name = 'modules'
     # language_stats_table_name = 'language-stats'
     linter_messaging_name = 'linter_complete'
+    dcs_url = None
+    repo_client = None
+    catalog_client = None
 
     # Prefixing vars
     # All variables that we change based on production, development and testing environments.
@@ -118,6 +122,18 @@ class AppSettings:
         if 'prefix' in kwargs and kwargs['prefix'] != cls.prefix:
             cls.__prefix_vars(kwargs['prefix'])
         cls.set_vars(**kwargs)
+
+        if not cls.dcs_url:
+            cls.dcs_url = os.getenv('DCS_URL', default='https://develop.door43.org' if cls.prefix else 'https://git.door43.org')
+
+        api_config = dcs_api_client.Configuration()
+        api_config.host = f"{cls.dcs_url}/api/v1"
+        cls.repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
+
+        catalog_config = dcs_catalog_client.Configuration()
+        catalog_config.host = f"{cls.dcs_url}/api/catalog"
+        cls.catalog_api = dcs_catalog_client.V5Api(dcs_catalog_client.ApiClient(catalog_config))
+
         test_mode_flag = os.getenv('TEST_MODE', '')
         travis_flag = os.getenv('TRAVIS_BRANCH', '')
         log_group_name = f"{'' if test_mode_flag or travis_flag else cls.prefix}tX" \
@@ -133,6 +149,7 @@ class AppSettings:
                                                     stream_name=cls.name)
         setup_logger(cls.logger, cls.watchtower_log_handler,
                                 logging.DEBUG if debug_mode_flag else logging.INFO)
+        print(cls.aws_access_key_id)
         cls.logger.debug(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{cls.aws_access_key_id[-2:]}'.")
 
 

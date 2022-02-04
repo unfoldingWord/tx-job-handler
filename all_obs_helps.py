@@ -44,7 +44,6 @@ from converters.pdf.ta_pdf_converter import TaPdfConverter
 from converters.pdf.tn_pdf_converter import TnPdfConverter
 from converters.pdf.tq_pdf_converter import TqPdfConverter
 from converters.pdf.tw_pdf_converter import TwPdfConverter
-from door43_tools.dcs_api import DcsApi
 
 sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 
@@ -65,9 +64,9 @@ CONVERTER_TABLE = (
     (TRANSLATION_WORDS,         TwPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
     )
 
-AppSettings()
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
+AppSettings(prefix=prefix)
 
 
 def get_converter_module(entry) -> Tuple[Optional[str],Any]:
@@ -168,7 +167,6 @@ def process_obs_helps(pj_prefix, lang=None, subject=None):
     owner = ['unfoldingWord']
     regenerate = 'all'
     lang = 'fr'
-    api = DcsApi(dcs_domain="https://git.door43.org", debug=True)
 
     response = api.query_catalog(subjects=subject, owners=owner, langs=lang, stage=stage, order='desc')
 

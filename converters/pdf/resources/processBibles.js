@@ -5,6 +5,8 @@ import sourceContentUpdater from 'tc-source-content-updater';
 import yaml from 'js-yaml';
 import yargs from 'yargs';
 
+const DOOR43_CATALOG = "Door43-Catalog";
+
 let SourceContentUpdater = null;
 
 /**
@@ -59,13 +61,13 @@ function getLatestVersionInPath(resourcePath) {
 const processOLBible = (resource) => {
   const repo = resource.languageId + '_' + resource.resourceId;
   const repoPath = path.join(reposDir, repo);
-  const manifest = yaml.safeLoad(fs.readFileSync(path.join(repoPath, 'manifest.yaml'), 'utf8'));
+  const manifest = yaml.load(fs.readFileSync(path.join(repoPath, 'manifest.yaml'), 'utf8'));
   const version = manifest['dublin_core']['version'];
-  const biblePath = path.join(resourcesDir, resource.languageId, 'bibles', resource.resourceId, 'v' + version);
+  const biblePath = path.join(resourcesDir, resource.languageId, 'bibles', resource.resourceId, 'v' + version+"_"+DOOR43_CATALOG);
   console.log("BIBLE " + resource.resourceId + ": " + biblePath + ", repoPath: " + repoPath)
   console.log("CALLING SourceContentUpdater.parseBiblePackage(", resource, ", ", repoPath, ", ", biblePath, ")")
   SourceContentUpdater.parseBiblePackage(resource, repoPath, biblePath);
-  const twGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationWords', 'v' + version);
+  const twGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationWords', 'v' + version+"_"+DOOR43_CATALOG);
   console.log("TW " + resource.resourceId + ": " + twGroupDataPath);
   console.log(resource, biblePath, twGroupDataPath);
   var ret = SourceContentUpdater.generateTwGroupDataFromAlignedBible(resource, biblePath, twGroupDataPath);
@@ -75,9 +77,9 @@ const processOLBible = (resource) => {
 const processUWBible = (resource) => {
   const repo = resource.languageId + '_' + resource.resourceId;
   const repoPath = path.join(reposDir, repo);
-  const manifest = yaml.safeLoad(fs.readFileSync(path.join(repoPath, 'manifest.yaml'), 'utf8'));
+  const manifest = yaml.load(fs.readFileSync(path.join(repoPath, 'manifest.yaml'), 'utf8'));
   const version = manifest['dublin_core']['version'];
-  const biblePath = path.join(resourcesDir, resource.languageId, 'bibles', resource.resourceId, 'v' + version);
+  const biblePath = path.join(resourcesDir, resource.languageId, 'bibles', resource.resourceId, 'v' + version+"_"+DOOR43_CATALOG);
   console.log("BIBLE " + resource.resourceId + ": " + biblePath)
   SourceContentUpdater.parseBiblePackage(resource, repoPath, biblePath);
 };
@@ -85,9 +87,9 @@ const processUWBible = (resource) => {
 const processTA = (resource) => {
   const taRepo = resource.languageId + '_ta';
   const taRepoPath = path.join(reposDir, taRepo);
-  const taManifest = yaml.safeLoad(fs.readFileSync(path.join(taRepoPath, 'manifest.yaml'), 'utf8'));
+  const taManifest = yaml.load(fs.readFileSync(path.join(taRepoPath, 'manifest.yaml'), 'utf8'));
   const taVersion = taManifest['dublin_core']['version'];
-  const taGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationAcademy', 'v' + taVersion);
+  const taGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationAcademy', 'v' + taVersion+"_"+DOOR43_CATALOG);
   console.log("TA " + resource.resourceId + ": " + taGroupDataPath);
   SourceContentUpdater.processTranslationAcademy(resource, taRepoPath, taGroupDataPath);
 };
@@ -95,9 +97,9 @@ const processTA = (resource) => {
 const processTW = (resource) => {
   const twRepo = resource.languageId + '_tw';
   const twRepoPath = path.join(reposDir, twRepo);
-  const twManifest = yaml.safeLoad(fs.readFileSync(path.join(twRepoPath, 'manifest.yaml'), 'utf8'));
+  const twManifest = yaml.load(fs.readFileSync(path.join(twRepoPath, 'manifest.yaml'), 'utf8'));
   const twVersion = twManifest['dublin_core']['version'];
-  const twGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationWords', 'v' + twVersion);
+  const twGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationWords', 'v' + twVersion+"_"+DOOR43_CATALOG);
   console.log("TW " + resource.resourceId + ": " + twGroupDataPath);
   SourceContentUpdater.processTranslationWords(resource, twRepoPath, twGroupDataPath);
 };
@@ -105,9 +107,9 @@ const processTW = (resource) => {
 const processTN = (resource) => {
   const tnRepo = resource.languageId + '_tn';
   const tnRepoPath = path.join(reposDir, tnRepo);
-  const tnManifest = yaml.safeLoad(fs.readFileSync(path.join(tnRepoPath, 'manifest.yaml'), 'utf8'));
+  const tnManifest = yaml.load(fs.readFileSync(path.join(tnRepoPath, 'manifest.yaml'), 'utf8'));
   const tnVersion = tnManifest['dublin_core']['version'];
-  const tnGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationNotes', 'v' + tnVersion);
+  const tnGroupDataPath = path.join(resourcesDir, resource.languageId, 'translationHelps', 'translationNotes', 'v' + tnVersion+"_"+DOOR43_CATALOG);
   console.log("TN: " + tnGroupDataPath);
   SourceContentUpdater.processTranslationNotes(resource, tnRepoPath, tnGroupDataPath, resourcesDir);
 };
@@ -117,6 +119,7 @@ const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
   fs.mkdirSync(resourcesDir, {recursive: true});
   if (fs.pathExistsSync(path.join(reposDir, 'hbo_uhb'))) {
     processOLBible({
+      owner: DOOR43_CATALOG,
       languageId: 'hbo',
       resourceId: 'uhb',
       downloadUrl: 'https://test.com'
@@ -124,6 +127,7 @@ const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
   }
   if (fs.pathExistsSync(path.join(reposDir, 'el-x-koine_ugnt'))) {
     processOLBible({
+      owner: DOOR43_CATALOG,
       languageId: 'el-x-koine',
       resourceId: 'ugnt',
       downloadUrl: 'https://test.com'
@@ -131,6 +135,7 @@ const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
   }
   if (ultId && fs.pathExistsSync(path.join(reposDir, langId + '_' + ultId))) {
     processUWBible({
+      owner: DOOR43_CATALOG,
       languageId: langId,
       resourceId: ultId,
       downloadUrl: 'https://test.com'
@@ -138,6 +143,7 @@ const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
   }
   if (ustId && fs.pathExistsSync(path.join(reposDir, langId + '_' + ustId))) {
     processUWBible({
+      owner: DOOR43_CATALOG,
       languageId: langId,
       resourceId: ustId,
       downloadUrl: 'https://test.com'
@@ -145,6 +151,7 @@ const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
   }
   if (fs.pathExistsSync(path.join(reposDir, langId + '_ta'))) {
     processTA({
+      owner: DOOR43_CATALOG,
       languageId: langId,
       resourceId: 'ta',
       downloadUrl: 'https://test.com'
@@ -152,6 +159,7 @@ const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
   }
   if (fs.pathExistsSync(path.join(reposDir, langId + '_tw'))) {
     processTW({
+      owner: DOOR43_CATALOG,
       languageId: langId,
       resourceId: 'tw',
       downloadUrl: 'https://test.com'
@@ -159,6 +167,7 @@ const processBibles = (langId, reposDir, resourcesDir, ultId, ustId) => {
   }
   if (fs.pathExistsSync(path.join(reposDir, langId + '_tn'))) {
     processTN({
+      owner: DOOR43_CATALOG,
       languageId: langId,
       resourceId: 'tn',
       downloadUrl: 'https://test.com'

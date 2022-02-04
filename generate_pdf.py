@@ -106,7 +106,7 @@ if __name__ == '__main__':
     }
 
     print(data)
-    # process_tx_job("dev", data)
+    process_tx_job("dev", data)
 
     orig_pdf_files = sorted(glob(os.path.join(
         os.path.dirname(output_file), 'Output', '*.pdf')))
@@ -149,7 +149,20 @@ if __name__ == '__main__':
             else:
                 print(f"{public_file} already exists. Did NOT copy {orig_file}!")
         if args.ref[0] == "v" or args.ref[0].isdigit():
-            # s3_path = f"{lang}/{owner}/{repo_name}/{args.ref}/pdf/{os.path.basename(orig_file)}"
+            s3_path = f"{lang}/{owner}/{repo_name}/{args.ref}/pdf/{os.path.basename(orig_file)}"
+            if not file_exists_on_s3(bucket_name, s3_path):
+                print(
+                    f'Uploading {orig_file} to Amazon S3 bucket {bucket_name}/{s3_path}')
+                try:
+                    response = s3_client.upload_file(
+                        orig_file, bucket_name, s3_path)
+                except ClientError as e:
+                    print(e)
+                    exit()
+            else:
+                print(
+                    f"{orig_file} already exists in Amazon S3 bucket {bucket_name}/{s3_path}")
+
             s3_path = f"{lang}/{resource}/{args.ref}/pdf/{os.path.basename(orig_file)}"
             if not file_exists_on_s3(bucket_name, s3_path):
                 print(
@@ -163,6 +176,7 @@ if __name__ == '__main__':
             else:
                 print(
                     f"{orig_file} already exists in Amazon S3 bucket {bucket_name}/{s3_path}")
+
         s3_path = f"u/{owner}/{repo_name}/{args.ref}/pdf/{os.path.basename(orig_file)}"
         if not file_exists_on_s3(bucket_name, s3_path):
             print(

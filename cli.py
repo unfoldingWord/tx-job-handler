@@ -46,7 +46,6 @@ from converters.pdf.ta_pdf_converter import TaPdfConverter
 from converters.pdf.tn_pdf_converter import TnPdfConverter
 from converters.pdf.tq_pdf_converter import TqPdfConverter
 from converters.pdf.tw_pdf_converter import TwPdfConverter
-from door43_tools.dcs_api import DcsApi
 
 sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 
@@ -67,9 +66,9 @@ CONVERTER_TABLE = (
     (TRANSLATION_WORDS,         TwPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
     )
 
-AppSettings()
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
+AppSettings(prefix=prefix)
 
 
 def get_converter_module(subject) -> Tuple[Optional[str],Any]:
@@ -165,21 +164,19 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, repos=None, 
     # owners = ['Door43-Catalog']
     debug = True
 
-    api = DcsApi(dcs_domain=dcs_domain, debug=debug)
-
     items = []
 
     if stage:
-        response = api.query_catalog(subjects=subjects, owners=owners, repos=repos, langs=langs, tags=tags, stage=stage)
-        if 'ok' not in response or 'data' not in response or not len(response['data']):
-            AppSettings.logger.error(f'No entries for {subjects}')
+        response = AppSettings.catalog_client.v5_search(subject=subjects, owner=owners, repo=repos, lang=langs, tag=tags, stage=stage)
+        if not response or not response.ok or len(response.data):
+            AppSettings.logger.error(f'No entries found.')
             exit(1)
-        items = response['data']
+        items = response.data
     else:
         if repos:
             langs = None
             subjects = None
-        response = api.repo_search(langs=langs, subjects=subjects, owners=owners, repos=repos, books=project_ids)
+        response = AppSettings.repo_client.repo_search(langs=langs, subjects=subjects, owners=owners, repos=repos, books=project_ids)
         if 'ok' not in response or 'data' not in response or not len(response['data']):
             AppSettings.logger.error(f'No entries for {subjects}')
             exit(1)
