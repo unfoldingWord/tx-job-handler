@@ -27,4 +27,4 @@ QUEUES = [webhook_queue_name]
 
 # Our stuff
 debug_mode_flag = getenv('DEBUG_MODE', None)
-use_local_filesystem = getenv('USE_LOCAL_FILESYSTEM', False)
+use_watchtower = getenv('USE_WATCHTOWER', True)

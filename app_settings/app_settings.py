@@ -8,7 +8,7 @@ from aws_tools.s3_handler import S3Handler
 from boto3 import Session
 from watchtower import CloudWatchLogHandler
 
-from rq_settings import debug_mode_flag
+from rq_settings import debug_mode_flag, use_watchtower
 
 
 # TODO: Investigate if this AppSettings (was tx-Manager App) class still needs to be resetable now
@@ -46,7 +46,8 @@ def setup_logger(logger, watchtower_log_handler, level):
     sh = logging.StreamHandler(sys.stdout)
     sh.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s: %(message)s'))
     logger.addHandler(sh)
-    logger.addHandler(watchtower_log_handler)
+    if watchtower_log_handler:
+        logger.addHandler(watchtower_log_handler)
     logger.setLevel(level)
     # Change these loggers to only report errors:
     logging.getLogger('boto3').setLevel(logging.ERROR)
@@ -143,10 +144,12 @@ class AppSettings:
         boto3_session = Session(aws_access_key_id=cls.aws_access_key_id,
                             aws_secret_access_key=cls.aws_secret_access_key,
                             region_name=cls.aws_region_name)
-        cls.watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
-                                                    # use_queues=False, # Because this forked process is quite transient
-                                                    log_group=log_group_name,
-                                                    stream_name=cls.name)
+        cls.watchtower_log_handler = None
+        if not use_watchtower:
+            cls.watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
+                                                        # use_queues=False, # Because this forked process is quite transient
+                                                        log_group=log_group_name,
+                                                        stream_name=cls.name)
         setup_logger(cls.logger, cls.watchtower_log_handler,
                                 logging.DEBUG if debug_mode_flag else logging.INFO)
         print(cls.aws_access_key_id)

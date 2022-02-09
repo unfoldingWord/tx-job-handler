@@ -14,7 +14,7 @@ import os
 import markdown2
 from bs4 import BeautifulSoup
 from door43_tools.subjects import OPEN_BIBLE_STORIES
-from general_tools.file_utils import copy_tree, read_file, unzip
+from general_tools.file_utils import unzip
 from .pdf_converter import PdfConverter
 from general_tools.url_utils import get_url, download_file
 from general_tools import obs_tools
