@@ -205,8 +205,7 @@ class PdfConverter(Converter):
     def project(self):
         if self.project_id:
             if not self._project or self.project_id != self._project['identifier']:
-                self._project = self.main_resource.find_project(
-                    self.project_id)
+                self._project = self.main_resource.find_project(self.project_id)
                 if not self._project:
                     self.log.error(f'Project not found: {self.project_id}')
                     exit(1)
@@ -245,8 +244,7 @@ class PdfConverter(Converter):
     @property
     def font_html(self):
         if not self._font_html:
-            self._font_html = get_font_html_with_local_fonts(
-                self.language_id, self.output_dir)
+            self._font_html = get_font_html_with_local_fonts(self.language_id, self.output_dir)
         return self._font_html
 
     @property
@@ -305,13 +303,11 @@ class PdfConverter(Converter):
 
     def translate(self, key):
         if not self.locale:
-            locale_file = os.path.join(
-                self.pdf_converters_dir, 'locale', f'{self.language_id}.json')
+            locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.language_id}.json')
             if os.path.isfile(locale_file):
                 self.locale = load_json_object(locale_file)
             else:
-                self.log.warning(
-                    f'No locale file for {self.language_id}. Using English (en) with Google translate')
+                self.log.warning(f'No locale file for {self.language_id}. Using English (en) with Google translate')
                 self.locale = self.get_locale_with_google()
         if key not in self.locale['translations']:
             self.log.error(f"No translation for `{key}`")
@@ -334,12 +330,10 @@ class PdfConverter(Converter):
                 return None
 
     def get_locale_with_google(self):
-        en_locale_file = os.path.join(
-            self.pdf_converters_dir, 'locale', 'en.json')
+        en_locale_file = os.path.join(self.pdf_converters_dir, 'locale', 'en.json')
         locale = load_json_object(en_locale_file)
         google_lang = self.determine_google_language()
-        locale_file = os.path.join(
-            self.pdf_converters_dir, 'locale', f'{self.language_id}.json')
+        locale_file = os.path.join(self.pdf_converters_dir, 'locale', f'{self.language_id}.json')
         if os.path.exists(locale_file):
             return load_json_object(locale_file)
         locale['source'] = locale['target']
@@ -348,12 +342,10 @@ class PdfConverter(Converter):
         locale['google_lang'] = google_lang
         translator = googletrans.Translator()
         for key, value in locale['translations'].items():
-            translation = translator.translate(
-                value, src='en', dest=google_lang)
+            translation = translator.translate(value, src='en', dest=google_lang)
             if translation and translation.text:
                 locale['translations'][key] = translation.text
-        write_file(locale_file, json.dumps(
-            locale, sort_keys=True, indent=2, ensure_ascii=False))
+        write_file(locale_file, json.dumps(locale, sort_keys=True, indent=2, ensure_ascii=False))
         return locale
 
     @staticmethod
@@ -406,14 +398,12 @@ class PdfConverter(Converter):
             # AppSettings.logger.debug("converter.upload_archive() doing copy")
             copy(self.output_zip_file, self.cdn_file_key)
         elif os.path.isdir(os.path.sep + AppSettings.cdn_bucket_name):
-            file_path = os.path.join(
-                os.path.sep + AppSettings.cdn_bucket_name, self.cdn_file_key)
+            file_path = os.path.join(os.path.sep + AppSettings.cdn_bucket_name, self.cdn_file_key)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             copy(self.output_zip_file, self.cdn_file_key)
         elif AppSettings.cdn_s3_handler():
             # AppSettings.logger.debug("converter.upload_archive() using S3 handler")
-            AppSettings.cdn_s3_handler().upload_file(
-                self.output_zip_file, self.cdn_file_key, cache_time=0)
+            AppSettings.cdn_s3_handler().upload_file(self.output_zip_file, self.cdn_file_key, cache_time=0)
 
     def upload_pdf_and_json_to_cdn(self):
         # if AppSettings.
@@ -459,8 +449,7 @@ class PdfConverter(Converter):
                         style_file), new_style_file)
 
     def setup_loggers(self):
-        output_log = os.path.join(
-            self.output_dir, f'{self.file_project_and_unique_ref}_output.log')
+        output_log = os.path.join(self.output_dir, f'{self.file_project_and_unique_ref}_output.log')
         if os.path.exists(output_log):
             os.unlink(output_log)
         self.output_logger_handler = logging.FileHandler(output_log)
@@ -476,8 +465,7 @@ class PdfConverter(Converter):
             self.wp_logger.setLevel(logging.DEBUG)
         else:
             self.wp_logger.setLevel(logging.WARNING)
-        weasyprint_log = os.path.join(
-            self.output_dir, f'{self.file_project_and_unique_ref}_weasyprint.log')
+        weasyprint_log = os.path.join(self.output_dir, f'{self.file_project_and_unique_ref}_weasyprint.log')
         if os.path.exists(weasyprint_log):
             os.unlink(weasyprint_log)
         self.wp_logger_handler = logging.FileHandler(weasyprint_log)
@@ -489,12 +477,12 @@ class PdfConverter(Converter):
         self.log.info(f'Logging WeasyPrint output to {weasyprint_log}')
 
     def close_loggers(self):
-       if hasattr(self, 'wp_logger_handler') and self.wp_logger_handler:
-           self.wp_logger.removeHandler(self.wp_logger_handler)
-           self.wp_logger_handler.close()
-       if hasattr(self, 'output_logger_handler') and self.output_logger_handler:
-           AppSettings.logger.removeHandler(self.output_logger_handler)
-           self.output_logger_handler.close()
+        if hasattr(self, 'wp_logger_handler') and self.wp_logger_handler:
+            self.wp_logger.removeHandler(self.wp_logger_handler)
+            self.wp_logger_handler.close()
+        if hasattr(self, 'output_logger_handler') and self.output_logger_handler:
+            AppSettings.logger.removeHandler(self.output_logger_handler)
+            self.output_logger_handler.close()
 
     def generate_all_files(self):
         for project in self.main_resource.projects:
@@ -506,8 +494,7 @@ class PdfConverter(Converter):
 
     def generate_html_file(self):
         if not os.path.exists(self.html_file) or self.debug_mode:
-            self.log.info(
-                f'Creating HTML file for {self.file_project_and_ref}...')
+            self.log.info(f'Creating HTML file for {self.file_project_and_ref}...')
 
             self.log.info('Generating cover page HTML...')
             cover_html = self.get_cover_html()
@@ -547,11 +534,9 @@ class PdfConverter(Converter):
             title = f'{self.title} - v{self.version}'
 
             self.log.info('Piecing together the HTML file...')
-            body_html = '\n'.join(
-                [cover_html, license_html, toc_html, body_html])
+            body_html = '\n'.join([cover_html, license_html, toc_html, body_html])
             body_html = self.download_all_images(body_html)
-            head = '\n'.join(
-                [f'<link href="{style}" rel="stylesheet">' for style in self.style_sheets])
+            head = '\n'.join([f'<link href="{style}" rel="stylesheet">' for style in self.style_sheets])
             head += self.head_html
             html = html_template.safe_substitute(lang=self.language_id, dir=self.language_direction, title=title,
                                                  head=head, body=body_html)
@@ -560,8 +545,7 @@ class PdfConverter(Converter):
             self.save_bad_highlights_html()
             self.log.info('Generated HTML file.')
         else:
-            self.log.info(
-                f'HTML file {self.html_file} is already there. Not generating. Use -r to force regeneration.')
+            self.log.info(f'HTML file {self.html_file} is already there. Not generating. Use -r to force regeneration.')
 
     @classmethod
     def add_fit_to_page_wrappers(cls, html):
@@ -612,16 +596,14 @@ class PdfConverter(Converter):
                             else:
                                 style = CSSStyleDeclaration()
                             if 'font-size' in style and style['font-size'] and style['font-size'].endswith('em'):
-                                font_size = float(
-                                    style['font-size'].removesuffix('em'))
+                                font_size = float(style['font-size'].removesuffix('em'))
                             else:
                                 font_size = 1.0
                             font_size_str = f'{"%.2f"%(font_size - diff)}em'
                             style['font-size'] = font_size_str
                             css = style.cssText
                             element['style'] = css
-                            self.log.info(
-                                f'RESIZING {anchor} to {font_size_str}... ({diff}, {page.anchors[anchor]})')
+                            self.log.info(f'RESIZING {anchor} to {font_size_str}... ({diff}, {page.anchors[anchor]})')
                     write_file(os.path.join(self.output_dir, f'{self.file_project_and_ref}_resized.html'),
                                str(soup))
             if doc:
@@ -629,8 +611,7 @@ class PdfConverter(Converter):
                 self.log.info('Generated PDF file.')
                 self.log.info(f'PDF file located at {self.pdf_file}')
         else:
-            self.log.info(
-                f'PDF file {self.pdf_file} is already there. Not generating. Use -r to force regeneration.')
+            self.log.info(f'PDF file {self.pdf_file} is already there. Not generating. Use -r to force regeneration.')
 
     def save_errors_html(self):
         if not self.errors:
@@ -727,14 +708,12 @@ class PdfConverter(Converter):
                                              body=bad_highlights_html, lang=self.language_id, head=self.head_html,
                                              dir='ltr')
         write_file(self.bad_hightlights_file, html)
-        self.log.info(
-            f'BAD HIGHLIGHTS file can be found at {self.bad_hightlights_file}')
+        self.log.info(f'BAD HIGHLIGHTS file can be found at {self.bad_hightlights_file}')
 
     def setup_resource(self, resource):
         self.log.info(f'Setting up resource {resource.identifier}...')
         self.download_resource(resource)
-        self.log.info(
-            f'  ...set up to use `{resource.repo_name}`: `{resource.ref}`')
+        self.log.info(f'  ...set up to use `{resource.repo_name}`: `{resource.ref}`')
 
     def setup_resources(self):
         if not self.manifest_dict:
@@ -748,8 +727,7 @@ class PdfConverter(Converter):
             repo_dir = self.source_dir
         zipball_url = self.repo_data_url
         if not self.repo_data_url.endswith('.zip'):
-            zipball_url = self.repo_data_url.replace(
-                '/commit/', '/archive/') + '.zip'
+            zipball_url = self.repo_data_url.replace('/commit/', '/archive/') + '.zip'
         else:
             zipball_url = self.repo_data_url
         resource = Resource(subject=self.my_subject, repo_name=self.repo_name, owner=self.owner, ref=self.ref,
@@ -832,10 +810,8 @@ class PdfConverter(Converter):
                 article_id = parent.get('id')
 
             if article_id:
-                is_toc = not header.has_attr(
-                    'class') or 'no-toc' not in header['class']
-                is_header = not header.has_attr(
-                    'class') or 'no-header' not in header['class']
+                is_toc = not header.has_attr('class') or 'no-toc' not in header['class']
+                is_header = not header.has_attr('class') or 'no-header' not in header['class']
 
                 if not is_toc and not is_header:
                     continue
@@ -885,11 +861,9 @@ class PdfConverter(Converter):
                             header_title = header.text
                     header_titles[header_level - 1] = header_title
 
-                    right_header_string = ' :: '.join(
-                        filter(None, header_titles[1:header_level]))
+                    right_header_string = ' :: '.join(filter(None, header_titles[1:header_level]))
                     if len(right_header_string):
-                        right_header_tag = soup.new_tag(
-                            'span', **{'class': 'hidden header-right'})
+                        right_header_tag = soup.new_tag('span', **{'class': 'hidden header-right'})
                         right_header_tag.string = right_header_string
                         header.insert_before(right_header_tag)
                     prev_header_level = header_level
@@ -954,8 +928,7 @@ class PdfConverter(Converter):
         if os.path.exists(license_file):
             license_html += markdown2.markdown_path(license_file)
         else:
-            license_html += markdown2.markdown(get_url(
-                'https://raw.githubusercontent.com/unfoldingWord/dcs/master/options/license/CC-BY-SA-4.0.md'))
+            license_html += markdown2.markdown(get_url('https://raw.githubusercontent.com/unfoldingWord/dcs/master/options/license/CC-BY-SA-4.0.md'))
         license_html += '''
     </div>
 </article>
@@ -1045,8 +1018,7 @@ class PdfConverter(Converter):
     @staticmethod
     def _fix_links(html):
         # Change [[http.*]] to <a href="http\1">http\1</a>
-        html = re.sub(
-            r'\[\[http([^]]+)]]', r'<a href="http\1">http\1</a>', html, flags=re.IGNORECASE)
+        html = re.sub(r'\[\[http([^]]+)]]', r'<a href="http\1">http\1</a>', html, flags=re.IGNORECASE)
 
         # convert URLs to links if not already
         html = re.sub(r'([^">])((http|https|ftp)://[A-Za-z0-9/?&_.:=#-]+[A-Za-z0-9/?&_:=#-])',
@@ -1069,8 +1041,7 @@ class PdfConverter(Converter):
     def crawl_ta_tw_deep_linking(self, source_rc: ResourceContainerLink):
         if not source_rc or not source_rc.article:
             return
-        self.log.info(
-            f'Crawling {source_rc.rc_link} (level: {source_rc.linking_level})...')
+        self.log.info(f'Crawling {source_rc.rc_link} (level: {source_rc.linking_level})...')
         # get all rc links. the "?:" in the regex means to not leave the (ta|tw) match in the result
         rc_links = re.findall(r'rc://[A-Z0-9_*-]+/(?:ta|tw)/[A-Z0-9/_*-]+',
                               source_rc.article, flags=re.IGNORECASE | re.MULTILINE)
@@ -1084,8 +1055,7 @@ class PdfConverter(Converter):
                     rc.linking_level = source_rc.linking_level + 1
                 already_crawled = True
             else:
-                rc = self.add_appendix_rc(
-                    rc_link, linking_level=source_rc.linking_level + 1)
+                rc = self.add_appendix_rc(rc_link, linking_level=source_rc.linking_level + 1)
                 if rc.resource not in self.resources:
                     continue
                 already_crawled = False
@@ -1102,15 +1072,14 @@ class PdfConverter(Converter):
                         rc.set_article(None)
                 else:
                     self.add_error_message(source_rc, rc.rc_link)
-                    self.log.warning(
-                        f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc.rc_link}: {rc.rc_link}')
+                    self.log.warning(f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc.rc_link}: {rc.rc_link}')
                     if rc.rc_link in self.appendix_rcs:
                         del self.appendix_rcs[rc.rc_link]
 
     def get_appendix_html(self, resource):
         html = ''
         filtered_rcs = dict(filter(lambda x: x[1].resource == resource.identifier and
-                                             x[1].linking_level == APPENDIX_LINKING_LEVEL,
+                                   x[1].linking_level == APPENDIX_LINKING_LEVEL,
                             self.appendix_rcs.items()))
         sorted_rcs = sorted(filtered_rcs.items(),
                             key=lambda x: x[1].title.lower())
@@ -1138,20 +1107,16 @@ class PdfConverter(Converter):
             rc.extra_info = [rc.project]
             rc.project = "translate"
         if not config:
-            config_file = os.path.join(
-                self.resources[rc.resource].repo_dir, rc.project, 'config.yaml')
+            config_file = os.path.join(self.resources[rc.resource].repo_dir, rc.project, 'config.yaml')
             if not os.path.exists(config_file):
-                self.add_error_message(
-                    source_rc, rc.rc_link, f"Unable to find config.yaml file: {config_file}")
+                self.add_error_message(source_rc, rc.rc_link, f"Unable to find config.yaml file: {config_file}")
                 exit()
                 return
             config = yaml.full_load(read_file(config_file))
-        article_dir = os.path.join(
-            self.resources[rc.resource].repo_dir, rc.project, rc.path)
+        article_dir = os.path.join(self.resources[rc.resource].repo_dir, rc.project, rc.path)
         article_file = os.path.join(article_dir, '01.md')
         if os.path.isfile(article_file):
-            article_file_html = markdown2.markdown_path(
-                article_file, extras=['markdown-in-html', 'tables', 'break-on-newline'])
+            article_file_html = markdown2.markdown_path(article_file, extras=['markdown-in-html', 'tables', 'break-on-newline'])
         else:
             message = 'no corresponding article found'
             if os.path.isdir(article_dir):
@@ -1160,8 +1125,7 @@ class PdfConverter(Converter):
                 else:
                     message = '01.md file exists but no content'
             self.add_error_message(source_rc, rc.rc_link, message)
-            self.log.warning(
-                f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc}: {rc.rc_link}')
+            self.log.warning(f'LINK TO UNKNOWN RESOURCE FOUND IN {source_rc}: {rc.rc_link}')
             return
         top_box = ''
         bottom_box = ''
@@ -1188,8 +1152,7 @@ class PdfConverter(Converter):
                 for dependency in config[rc.path]['dependencies']:
                     dep_project = rc.project
                     for project in self.resources['ta'].projects:
-                        dep_article_dir = os.path.join(
-                            self.resources['ta'].repo_dir, project['identifier'], dependency)
+                        dep_article_dir = os.path.join(self.resources['ta'].repo_dir, project['identifier'], dependency)
                         if os.path.isdir(dep_article_dir):
                             dep_project = project['identifier']
                     dep_rc_link = f'rc://{self.language_id}/ta/man/{dep_project}/{dependency}'
@@ -1208,20 +1171,17 @@ class PdfConverter(Converter):
                 lis = ''
                 for recommended in config[rc.path]['recommended']:
                     rec_project = rc.project
-                    rec_article_dir = os.path.join(
-                        self.resources['ta'].repo_dir, rec_project, recommended)
+                    rec_article_dir = os.path.join(self.resources['ta'].repo_dir, rec_project, recommended)
                     if not os.path.exists(rec_article_dir):
                         for project in self.resources['ta'].projects:
-                            rec_article_dir = os.path.join(
-                                self.resources['ta'].repo_dir, project['identifier'], recommended)
+                            rec_article_dir = os.path.join(self.resources['ta'].repo_dir, project['identifier'], recommended)
                             if os.path.isdir(rec_article_dir):
                                 rec_project = project['identifier']
                                 break
                     if not os.path.exists(rec_article_dir):
                         bad_rc_link = f"{rc.project}/config.yaml -> '{rc.path}' -> 'recommended' -> '{recommended}'"
                         self.add_error_message(rc, bad_rc_link)
-                        self.log.warning(
-                            f'RECOMMENDED ARTICLE NOT FOUND FOR {bad_rc_link}')
+                        self.log.warning(f'RECOMMENDED ARTICLE NOT FOUND FOR {bad_rc_link}')
                         continue
                     rec_rc_link = f'rc://{self.language_id}/ta/man/{rec_project}/{recommended}'
                     lis += f'''
@@ -1266,8 +1226,7 @@ class PdfConverter(Converter):
         for rc_link in source_rc.references:
             if rc_link in self.rcs:
                 rc = self.rcs[rc_link]
-                go_back_tos.append(
-                    f'<a href="#{rc.article_id}">{rc.title}</a>')
+                go_back_tos.append(f'<a href="#{rc.article_id}">{rc.title}</a>')
         go_back_to_html = ''
         if len(go_back_tos):
             go_back_tos_string = '; '.join(go_back_tos)
@@ -1288,8 +1247,7 @@ class PdfConverter(Converter):
         return text
 
     def get_tw_article_html(self, rc, source_rc=None, increment_header_depth=1):
-        file_path = os.path.join(
-            self.resources[rc.resource].repo_dir, rc.project, f'{rc.path}.md')
+        file_path = os.path.join(self.resources[rc.resource].repo_dir, rc.project, f'{rc.path}.md')
         fix = None
         if not os.path.exists(file_path):
             bad_names = {
@@ -1301,13 +1259,11 @@ class PdfConverter(Converter):
             path2 = ''
             if len(rc.extra_info) and rc.extra_info[-1] in bad_names:
                 path2 = bad_names[rc.extra_info[-1]]
-                file_path = os.path.join(
-                    self.resources[rc.resource].repo_dir, rc.project, f'{path2}.md')
+                file_path = os.path.join(self.resources[rc.resource].repo_dir, rc.project, f'{path2}.md')
             else:
                 for tw_cat in TW_CATS:
                     path2 = re.sub(r'^[^/]+/', rf'{tw_cat}/', rc.path)
-                    file_path = os.path.join(
-                        self.resources[rc.resource].repo_dir, rc.project, f'{path2}.md')
+                    file_path = os.path.join(self.resources[rc.resource].repo_dir, rc.project, f'{path2}.md')
                     if os.path.isfile(file_path):
                         break
             if os.path.isfile(file_path) and path2:
@@ -1317,15 +1273,11 @@ class PdfConverter(Converter):
         if os.path.isfile(file_path):
             if fix:
                 self.add_error_message(source_rc, rc.rc_link, fix)
-                self.log.error(
-                    f'FIX FOUND FOR FOR TW ARTICLE IN {source_rc.rc_link}: {rc.rc_link} => {fix}')
+                self.log.error(f'FIX FOUND FOR FOR TW ARTICLE IN {source_rc.rc_link}: {rc.rc_link} => {fix}')
             tw_article_html = markdown2.markdown_path(file_path)
-            tw_article_html = html_tools.make_first_header_section_header(
-                tw_article_html)
-            tw_article_html = html_tools.increment_headers(
-                tw_article_html, increment_header_depth)
-            tw_article_html = self.fix_tw_links(
-                tw_article_html, rc.extra_info[0])
+            tw_article_html = html_tools.make_first_header_section_header(tw_article_html)
+            tw_article_html = html_tools.increment_headers(tw_article_html, increment_header_depth)
+            tw_article_html = self.fix_tw_links(tw_article_html, rc.extra_info[0])
             tw_article_html = f'''
 <article id="{rc.article_id}">
     {tw_article_html}
@@ -1367,7 +1319,6 @@ class PdfConverter(Converter):
                     except ApiException as e:
                         AppSettings.logger.critical("Exception when calling V5Api->v5_get_catalog_entry: %s\n" % e)
 
-
     def process_relation_resources(self):
         for relation in self.main_resource.relation:
             lang = self.language_id
@@ -1393,9 +1344,9 @@ class PdfConverter(Converter):
                         refs_to_try.insert(0, ref)
                     if ref.startswith("v") and ref[1:] not in refs_to_try:
                         refs_to_try.insert(1, ref[1:])
+            repo_name = f'{lang}_{resource_name}'
+            repo_dir = os.path.join(self.download_dir, repo_name)
             if self.debug_mode:
-                repo_name = f'{lang}_{resource_name}'
-                repo_dir = os.path.join(self.download_dir, repo_name)
                 if os.path.exists(repo_dir):
                     return Resource(owner=self.owner, repo_name=repo_name, repo_dir=repo_dir, ref=ref)
 
@@ -1403,7 +1354,7 @@ class PdfConverter(Converter):
             if not entry:
                 # We didn't find an entry for all the possible guessed owners, langs and refs, so we just try to find any repo with the name in the catalog
                 try:
-                    entries = AppSettings.catalog_api.v5_search(repo=f"{lang}_{resource_name}")
+                    entries = AppSettings.catalog_api.v5_search(repo=repo_name)
                     if 'data' in entries and len(entries['data']):
                         entry = entries['data'][0]
                 except ApiException as e:
@@ -1430,11 +1381,11 @@ class PdfConverter(Converter):
 
         if subject == GREEK_NEW_TESTAMENT:
             stage = STAGE_PROD
-            owner = 'Door43-Catalog' # Have to hardcode this since this owner has aligned TW data
+            owner = 'Door43-Catalog'  # Have to hardcode this since this owner has aligned TW data
             lang = NT_OL_LANG_CODE
         elif subject == HEBREW_OLD_TESTAMENT:
             stage = STAGE_PROD
-            owner = 'Door43-Catalog' # Have to hardcode this since this owner has aligned TW data
+            owner = 'Door43-Catalog'  # Have to hardcode this since this owner has aligned TW data
             lang = OT_OL_LANG_CODE
         elif subject == ALIGNED_BIBLE or subject == BIBLE:
             stage = STAGE_PROD
@@ -1462,20 +1413,20 @@ class PdfConverter(Converter):
                 'owner': OWNERS,
                 'lang': lang,
                 'stage': stage
-             },
+            },
             {
                 'owner': OWNERS,
                 'lang': lang,
                 'stage': STAGE_LATEST
-             },
+            },
             {
                 'lang': lang,
                 'stage': stage
-             },
+            },
             {
                 'lang': lang,
                 'stage': STAGE_LATEST
-             },
+            },
             {
                 'lang': DEFAULT_LANG_CODE,
                 'stage': stage
@@ -1498,7 +1449,7 @@ class PdfConverter(Converter):
                 if response and response.ok and len(response.data):
                     return response.data
             except ApiException as e:
-                    AppSettings.logger.critical("Exception when calling V5Api->v5_search: %s\n" % e)
+                AppSettings.logger.critical("Exception when calling V5Api->v5_search: %s\n" % e)
         return []
 
     def find_resources(self, subject, lang=None):
@@ -1541,7 +1492,7 @@ class PdfConverter(Converter):
                         os.remove(source_filepath)
                     download_file(resource.zipball_url, source_filepath)
                 finally:
-                        self.log.info("Downloading finished.")
+                    self.log.info("Downloading finished.")
             try:
                 self.log.info(f"Unzipping {source_filepath}...")
                 unzip(source_filepath, self.download_dir)
@@ -1569,4 +1520,3 @@ def represent_int(s):
         return True
     except ValueError:
         return False
-
