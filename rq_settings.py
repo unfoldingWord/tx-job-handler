@@ -27,4 +27,3 @@ QUEUES = [webhook_queue_name]
 
 # Our stuff
 debug_mode_flag = getenv('DEBUG_MODE', None)
-use_watchtower = getenv('USE_WATCHTOWER', True)

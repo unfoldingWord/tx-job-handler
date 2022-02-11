@@ -109,7 +109,7 @@ class Converter(metaclass=ABCMeta):
         Delete temp files (except in debug mode)
         """
         # print("Converter close() was called!")
-        if prefix and debug_mode_flag:
+        if prefix or debug_mode_flag:
             AppSettings.logger.debug(f"Converter temp folder '{self.converter_dir}' has been left on disk for debugging!")
         else:
             try: remove_tree(self.converter_dir)

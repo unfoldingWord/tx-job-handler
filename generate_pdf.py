@@ -83,8 +83,7 @@ if __name__ == '__main__':
         output_dir = os.path.join("/tmp", f"{repo_name}_{args.ref}")
         # if os.path.exists(output_dir):
         #     shutil.rmtree(output_dir)
-        output_file = os.path.join(
-            output_dir, f"{repo_name}_{args.ref}.zip")
+        output_file = os.path.join(output_dir, f"{repo_name}_{args.ref}.zip")
     elif os.path.exists(output_file):
         if input(f"Are you sure you want to overwrite {output_file}? (y/n)") != "y":
             exit()
@@ -201,3 +200,4 @@ if __name__ == '__main__':
                     print(f"Copied {orig_file} to {public_file}")
             else:
                 print(f"{public_file} already exists. Did NOT copy {orig_file}!")
+
