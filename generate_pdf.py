@@ -11,8 +11,6 @@ import argparse
 import sys
 import os
 import shutil
-import subprocess
-import time
 import boto3
 from webhook import process_tx_job
 from door43_tools.subjects import SUBJECT_ALIASES
@@ -23,20 +21,19 @@ from botocore.exceptions import ClientError
 def file_exists_on_s3(bucket, key):
     try:
         s3_client.head_object(Bucket=bucket, Key=key)
-    except ClientError as e:
+    except ClientError:
         return False
     return True
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-o', '--output_file', dest='output_file', required=False,
                         help='Path to output file, including the zip file name')
     parser.add_argument('--owner', dest='owner', default="unfoldingWord", required=False,
-                        help=f'Owner of the resource repo on GitHub. Default: unfoldingWord')
+                        help='Owner of the resource repo on GitHub. Default: unfoldingWord')
     parser.add_argument('--repo', dest='repo_name',
-                        required=True, help=f'Repo name')
+                        required=True, help='Repo name')
     parser.add_argument('--ref', dest='ref', default='master',
                         help='Branch or tag name. Default: master')
     parser.add_argument('--input', dest='input', default='md',
@@ -86,7 +83,7 @@ if __name__ == '__main__':
         output_file = os.path.join(output_dir, f"{repo_name}_{args.ref}.zip")
     elif os.path.exists(output_file):
         if input(f"Are you sure you want to overwrite {output_file}? (y/n)") != "y":
-            exit()
+            sys.exit()
 
     data = {
         "output": output_file,
@@ -107,11 +104,10 @@ if __name__ == '__main__':
     print(data)
     process_tx_job("dev", data)
 
-    orig_pdf_files = sorted(glob(os.path.join(
-        os.path.dirname(output_file), 'Output', '*.pdf')))
+    orig_pdf_files = sorted(glob(os.path.join(os.path.dirname(output_file), 'Output', '*.pdf')))
     if len(orig_pdf_files) < 1:
         print("NO PDF FILES WERE GENERATED!!!")
-        exit()
+        sys.exit()
 
     mount_dir = os.path.join('/mnt', 'PDF')
     public_dir = os.path.join('/mnt', 'pCloud Drive', 'Public Folder')
@@ -127,70 +123,43 @@ if __name__ == '__main__':
         mount_file = os.path.join(mount_files_dir, os.path.basename(orig_file))
         public_file = os.path.join(public_files_dir, os.path.basename(orig_file))
         if os.path.exists(os.path.join(mount_dir, '.mounted')):
-            if not os.path.exists(mount_file):
-                os.makedirs(mount_files_dir, exist_ok=True)
-                shutil.copy(orig_file, mount_file)
-                print(f"Copied {orig_file} to {mount_file}")
-            else:
-                print(f"{mount_file} already exists. Did NOT copy {orig_file}!")
+            os.makedirs(mount_files_dir, exist_ok=True)
+            shutil.copy(orig_file, mount_file)
+            print(f"Copied {orig_file} to {mount_file}")
         if os.path.exists(os.path.join(public_dir, '.mounted')):
-            if not os.path.exists(public_file):
-                os.makedirs(public_files_dir, exist_ok=True)
-                shutil.copy(orig_file, public_file)
-                print(f"Copied {orig_file} to {public_file}")
-            else:
-                print(f"{public_file} already exists. Did NOT copy {orig_file}!")
+            os.makedirs(public_files_dir, exist_ok=True)
+            shutil.copy(orig_file, public_file)
+            print(f"Copied {orig_file} to {public_file}")
         if args.ref[0] == "v" or args.ref[0].isdigit():
             s3_path = f"{lang}/{owner}/{repo_name}/{args.ref}/pdf/{os.path.basename(orig_file)}"
-            if not file_exists_on_s3(bucket_name, s3_path):
-                print(
-                    f'Uploading {orig_file} to Amazon S3 bucket {bucket_name}/{s3_path}')
-                try:
-                    response = s3_client.upload_file(
-                        orig_file, bucket_name, s3_path)
-                except ClientError as e:
-                    print(e)
-                    exit()
-            else:
-                print(
-                    f"{orig_file} already exists in Amazon S3 bucket {bucket_name}/{s3_path}")
-
-            s3_path = f"{lang}/{resource}/{args.ref}/pdf/{os.path.basename(orig_file)}"
-            if not file_exists_on_s3(bucket_name, s3_path):
-                print(
-                    f'Uploading {orig_file} to Amazon S3 bucket {bucket_name}/{s3_path}')
-                try:
-                    response = s3_client.upload_file(
-                        orig_file, bucket_name, s3_path)
-                except ClientError as e:
-                    print(e)
-                    exit()
-            else:
-                print(
-                    f"{orig_file} already exists in Amazon S3 bucket {bucket_name}/{s3_path}")
-
-        s3_path = f"u/{owner}/{repo_name}/{args.ref}/pdf/{os.path.basename(orig_file)}"
-        if not file_exists_on_s3(bucket_name, s3_path):
-            print(
-                f'Uploading {orig_file} to Amazon S3 bucket {bucket_name}/{s3_path}')
+            print(f'Uploading {orig_file} to Amazon S3 bucket {bucket_name}/{s3_path}')
             try:
-                response = s3_client.upload_file(
-                    orig_file, bucket_name, s3_path)
+                response = s3_client.upload_file(orig_file, bucket_name, s3_path)
             except ClientError as e:
                 print(e)
-                exit()
-        else:
-            print(f"{orig_file} already exists in Amazon S3 bucket {bucket_name}/{s3_path}")
+                sys.exit()
+
+            s3_path = f"{lang}/{resource}/{args.ref}/pdf/{os.path.basename(orig_file)}"
+            print(f'Uploading {orig_file} to Amazon S3 bucket {bucket_name}/{s3_path}')
+            try:
+                response = s3_client.upload_file(orig_file, bucket_name, s3_path)
+            except ClientError as e:
+                print(e)
+                sys.exit()
+
+        s3_path = f"u/{owner}/{repo_name}/{args.ref}/pdf/{os.path.basename(orig_file)}"
+        print(f'Uploading {orig_file} to Amazon S3 bucket {bucket_name}/{s3_path}')
+        try:
+            response = s3_client.upload_file(orig_file, bucket_name, s3_path)
+        except ClientError as e:
+            print(e)
+            sys.exit()
 
     if os.path.exists(os.path.join(public_dir, '.mounted')):
         orig_html_files = sorted(glob(os.path.join(os.path.dirname(output_file), 'Output', '*.html')))
         for orig_file in orig_html_files:
             public_file = os.path.join(public_files_dir, os.path.basename(orig_file))
-            if not os.path.exists(public_file):
-                if 'resized' not in orig_file:
-                    os.makedirs(public_files_dir, exist_ok=True)
-                    shutil.copy(orig_file, public_file)
-                    print(f"Copied {orig_file} to {public_file}")
-            else:
-                print(f"{public_file} already exists. Did NOT copy {orig_file}!")
-
+            if 'resized' not in orig_file:
+                os.makedirs(public_files_dir, exist_ok=True)
+                shutil.copy(orig_file, public_file)
+                print(f"Copied {orig_file} to {public_file}")
