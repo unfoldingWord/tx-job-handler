@@ -113,19 +113,12 @@ if __name__ == '__main__':
         print("NO PDF FILES WERE GENERATED!!!")
         exit()
 
-    mount_dir = os.path.expanduser(os.path.join('~', 'PDF'))
-    public_dir = os.path.expanduser(os.path.join(
-        '~', 'pCloud Drive', 'Public Folder'))
+    mount_dir = os.path.join('/mnt', 'PDF')
+    public_dir = os.path.join('/mnt', 'pCloud Drive', 'Public Folder')
     if not os.path.exists(os.path.join(mount_dir, '.mounted')):
-        if not os.path.exists(mount_dir):
-            os.mkdir(mount_dir)
-        subprocess.run(["rclone", "--vfs-cache-mode", "full",
-                       "mount", "--daemon", "remote:Shared/PDF", mount_dir])
-        time.sleep(3)
-    if not os.path.exists(os.path.join(mount_dir, '.mounted')):
-        print("UNABLE TO MOUNT PDF DIR!")
+        print(f"WARNING! UNABLE TO FIND PCLOUD PDF DIR AT: {mount_dir}")
     if not os.path.exists(os.path.join(public_dir, '.mounted')):
-        print("PUBLIC PCLOUD DIR NOT MOUNTED!")
+        print(f"WARNING! UNABLE TO FIND PCLOUD PUBLIC HTML DIR AT: {public_dir}")
     mount_files_dir = os.path.join(mount_dir, owner, args.repo_name, args.ref)
     public_files_dir = os.path.join(public_dir, owner, args.repo_name, args.ref)
     s3_client = boto3.client('s3')

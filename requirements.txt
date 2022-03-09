@@ -30,7 +30,7 @@ beautifulsoup4==4.9.3
 
 # used by pdf converter
 jsonpickle==1.5.1
-weasyprint==52.5
+weasyprint==54.2
 dcs_api_client==1.15.10
 dcs_catalog_client==1.15.10
 googletrans==4.0.0rc1
