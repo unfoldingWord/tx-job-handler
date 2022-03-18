@@ -63,6 +63,7 @@ CONTRIBUTORS_TO_HIDE = ['ugnt', 'uhb']
 
 class PdfConverter(Converter):
     my_subject = None
+    project_id_groups = []
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -485,12 +486,24 @@ class PdfConverter(Converter):
             self.output_logger_handler.close()
 
     def generate_all_files(self):
-        for project in self.main_resource.projects:
-            if not self.project_ids or project['identifier'] in self.project_ids:
-                self.reinit()
-                self.project_id = project['identifier']
-                self.generate_html_file()
-                self.generate_pdf_file()
+        actual_project_ids = []
+        if not self.project_ids or 'all' in self.project_ids:
+            for project in self.main_resource.projects:
+                actual_project_ids.append(project.identifier)
+        else:
+            for project_id in self.project_ids:
+                if project_id in self.project_id_groups:
+                    actual_project_ids.append(project_id)
+                else:
+                    for project in self.main_resource.projects:
+                        if project['identifier'] == project_id:
+                          actual_project_ids.append(project['identifier'])
+
+        for project_id in actual_project_ids:
+            self.reinit()
+            self.project_id = project_id
+            self.generate_html_file()
+            self.generate_pdf_file()
 
     def generate_html_file(self):
         if not os.path.exists(self.html_file) or self.debug_mode:
