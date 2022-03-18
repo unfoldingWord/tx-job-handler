@@ -489,7 +489,7 @@ class PdfConverter(Converter):
         actual_project_ids = []
         if not self.project_ids or 'all' in self.project_ids:
             for project in self.main_resource.projects:
-                actual_project_ids.append(project.identifier)
+                actual_project_ids.append(project['identifier'])
         else:
             for project_id in self.project_ids:
                 if project_id in self.project_id_groups:
