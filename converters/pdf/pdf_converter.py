@@ -876,7 +876,7 @@ class PdfConverter(Converter):
 
     def get_cover_html(self):
         version_str = f'{self.translate("version")} {self.version}'
-        if self.main_resource.ref != {self.version} and self.main_resource.ref != f'v{self.version}':
+        if self.main_resource.ref != self.version and self.main_resource.ref != f'v{self.version}':
             version_str += f' ({DEFAULT_REF} - {self.main_resource.last_commit_sha})'
         if self.project_id and self.project_title:
             project_title_html = f'<h2 class="cover-project">{self.project_title}</h2>'
