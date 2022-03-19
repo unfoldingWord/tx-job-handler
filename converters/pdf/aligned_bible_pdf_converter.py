@@ -20,13 +20,8 @@ from general_tools.usfm_utils import unalign_usfm
 from tx_usfm_tools.singleFilelessHtmlRenderer import SingleFilelessHtmlRenderer
 from door43_tools.subjects import ALIGNED_BIBLE
 
-PROJECT_FULL = 'full'
-PROJECT_OT = 'ot'
-PROJECT_NT = 'nt'
-
 class AlignedBiblePdfConverter(PdfConverter):
     my_subject = ALIGNED_BIBLE
-    project_id_groups = [PROJECT_FULL, PROJECT_OT, PROJECT_NT]
 
     def __init__(self, *args, **kwargs):
         self.chapter = None
@@ -38,8 +33,10 @@ class AlignedBiblePdfConverter(PdfConverter):
 
     @property
     def book_number(self):
-        if self.project_id and self.project_id not in self.project_id_groups:
+        if self.project_id and self.project_id in BOOK_NUMBERS:
             return BOOK_NUMBERS[self.project_id]
+        else:
+
 
     @staticmethod
     def parse_chapters(chapter):
