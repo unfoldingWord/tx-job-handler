@@ -35,8 +35,6 @@ class AlignedBiblePdfConverter(PdfConverter):
     def book_number(self):
         if self.project_id and self.project_id in BOOK_NUMBERS:
             return BOOK_NUMBERS[self.project_id]
-        else:
-
 
     @staticmethod
     def parse_chapters(chapter):
