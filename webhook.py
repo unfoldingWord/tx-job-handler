@@ -54,6 +54,7 @@ from door43_tools.subjects import SUBJECT_ALIASES
 from door43_tools.subjects import ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES, OBS_STUDY_NOTES, OBS_STUDY_QUESTIONS, \
     OBS_TRANSLATION_NOTES, OBS_TRANSLATION_QUESTIONS, TRANSLATION_ACADEMY, TRANSLATION_WORDS, TRANSLATION_QUESTIONS, \
     TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, TSV_TRANSLATION_NOTES, TSV_TRANSLATION_QUESTIONS
+from converters.pdf.aligned_bible_pdf_converter import AlignedBiblePdfConverter
 from converters.pdf.bible_pdf_converter import BiblePdfConverter
 from converters.pdf.obs_pdf_converter import ObsPdfConverter
 from converters.pdf.obs_sn_pdf_converter import ObsSnPdfConverter
@@ -107,7 +108,8 @@ CONVERTER_TABLE = (
                     'Greek_New_Testament','Hebrew_Old_Testament',
                     'bible', 'reg',
                     'other',),                                                      'html'),
-    (BIBLE,                     BiblePdfConverter,  ('', 'usfm'),                         SUBJECT_ALIASES[BIBLE] + SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
+    (ALIGNED_BIBLE,             AlignedBiblePdfConverter, ('usfm'),                       SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
+    (BIBLE,                     BiblePdfConverter,        ('usfm'),                       SUBJECT_ALIASES[BIBLE], 'pdf'),
     (OPEN_BIBLE_STORIES,        ObsPdfConverter,    ('', 'md','markdown','txt','text'),   SUBJECT_ALIASES[OPEN_BIBLE_STORIES], 'pdf'),
     (OBS_STUDY_NOTES,           ObsSnPdfConverter, ('', 'md', 'markdown', 'txt', 'text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
     (OBS_STUDY_QUESTIONS,       ObsSqPdfConverter, ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_STUDY_QUESTIONS], 'pdf'),

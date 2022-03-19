@@ -20,6 +20,8 @@ from general_tools.usfm_utils import unalign_usfm
 from tx_usfm_tools.singleFilelessHtmlRenderer import SingleFilelessHtmlRenderer
 from door43_tools.subjects import ALIGNED_BIBLE
 
+PROJECT_FULL = 'full' # Single PDF for the full bible 
+
 class AlignedBiblePdfConverter(PdfConverter):
     my_subject = ALIGNED_BIBLE
 
@@ -61,12 +63,8 @@ class AlignedBiblePdfConverter(PdfConverter):
 
     @property
     def project_title(self):
-        if not self.project_id or self.project_id == PROJECT_FULL:
+        if self.project_id == PROJECT_FULL:
             return ''
-        elif self.project_id == PROJECT_OT:
-            return self.translate('old_testament')
-        elif self.project_id == PROJECT_NT:
-            return self.translate('new_testament')
         else:
             project = self.project
             if project:
@@ -77,6 +75,9 @@ class AlignedBiblePdfConverter(PdfConverter):
 
     def replace_rc_links(self, text):
         return text
+
+    def get_default_project_ids(self):
+        return [PROJECT_FULL] + list(map(lambda project: project['identifier'], self.main_resource.projects))
 
     def get_body_html(self):
         self.log.info('Creating Bible for {0}...'.format(self.file_project_and_ref))
@@ -95,17 +96,7 @@ class AlignedBiblePdfConverter(PdfConverter):
         if self.project_id == PROJECT_FULL:
             projects = self.main_resource.projects
         else:
-            if self.project_id == PROJECT_OT or self.project_id == PROJECT_NT:
-                first_book = int(BOOK_NUMBERS['gen']) - 1
-                last_book = int(BOOK_NUMBERS['rev']) - 1
-                if self.project_id == PROJECT_OT:
-                    last_book = int(BOOK_NUMBERS['mal'])
-                else:
-                    first_book = int(BOOK_NUMBERS['mat']) - 2
-                project_ids = list(BOOK_NUMBERS.keys())[first_book:last_book]
-            else:
-                project_ids = [self.project_id]
-            projects = [self.main_resource.find_project(project_id) for project_id in project_ids]
+            projects = [self.main_resource.find_project(self.project_id)]
         bible_html = f'''
 <section id="{self.language_id}-{self.name}" class="bible {self.name}-bible bible-{self.project_id} {self.name}-bible-{self.project_id}">
 '''

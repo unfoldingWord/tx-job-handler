@@ -14,6 +14,7 @@ import shutil
 import boto3
 from webhook import process_tx_job
 from door43_tools.subjects import SUBJECT_ALIASES
+from door43_tools.bible_books import BOOK_NAMES
 from glob import glob
 from botocore.exceptions import ClientError
 
@@ -36,14 +37,17 @@ if __name__ == '__main__':
                         required=True, help='Repo name')
     parser.add_argument('--ref', dest='ref', default='master',
                         help='Branch or tag name. Default: master')
-    parser.add_argument('--input', dest='input', default='md',
-                        help='Input type. Default: md')
+    parser.add_argument('--input', dest='input', help='Input type. Default: md')
     parser.add_argument('-p', '--project_id', metavar='PROJECT ID', dest='project_ids', required=False, action='append',
                         help='Project ID for resources with projects, as listed in the manfiest.yaml file, such as a Bible book ' +
                         '(-p gen). Can specify multiple projects. Default: None (different converters will handle no or multiple ' +
                         'projects differently, such as compiling all into one PDF, or generating a PDF for each project)')
+    parser.add_argument('--no-upload', dest='upload', action='store_false', help="Do NOT upload files to the S3 CDN")
 
     args = parser.parse_args(sys.argv[1:])
+
+    upload = args.upload
+
     owner = args.owner
     if owner == "unfoldingword":
         owner = "unfoldingWord"
@@ -53,35 +57,34 @@ if __name__ == '__main__':
 
     lang, resource = repo_name.split('_')
     subject = None
-    for s, r in SUBJECT_ALIASES.items():
-        if resource == r[0]:
-            subject = s.replace(' ', '_')
-            break
+    for s, aliases in SUBJECT_ALIASES.items():
+        for alias in aliases:
+            if resource == alias:
+                subject = s.replace(' ', '_')
+                break
+        else:
+            continue
+        break
+
     input_format = args.input
-    if subject.startswith('TSV'):
-        input_format = "tsv"
+    if not input_format:
+        if subject.startswith('TSV'):
+            input_format = "tsv"
+        elif subject in ['Aligned_Bible', 'Bible']:
+            input_format = "usfm"
+        else:
+            input_format = "md"
 
     project_ids = []
-    if args.project_ids and len(args.project_ids) > 0:
-        for project_id in args.project_ids:
-            if project_id == "ot":
-                project_ids += ["gen", "exo", "lev", "num", "deu", "jos", "jdg", "rut", "1sa", "2sa", "1ki", "2ki", "1ch", "2ch", "ezr", "neh", "est", "job",
-                                "psa", "pro", "ecc", "sng", "isa", "jer", "lam", "ezk", "dan", "hos", "jol", "amo", "oba", "jon", "mic", "nam", "hab", "zep", "hag", "zec", "mal"]
-            elif project_id == "nt":
-                project_ids += ["mat", "mrk", "luk", "jhn", "act", "rom", "1co", "2co", "gal", "eph", "php", "col",
-                                "1ti", "2ti", "1th", "2th", "tit", "phm", "heb", "jas", "1pe", "2pe", "1jn", "2jn", "3jn", "jud", "rev"]
-            else:
-                project_ids.append(project_id)
-
-    print(project_ids)
+    if args.project_ids:
+        project_ids = args.project_ids
 
     output_file = args.output_file
     if not output_file:
-        output_dir = os.path.join("/tmp", f"{repo_name}_{args.ref}")
-        # if os.path.exists(output_dir):
-        #     shutil.rmtree(output_dir)
-        output_file = os.path.join(output_dir, f"{repo_name}_{args.ref}.zip")
-    elif os.path.exists(output_file):
+        output_file = os.path.join("/tmp", f"{repo_name}_{args.ref}")    
+    if not output_file.endswith(".zip"):
+        output_file = os.path.join(output_file, f"{repo_name}_{args.ref}.zip")
+    if os.path.exists(output_file):
         if input(f"Are you sure you want to overwrite {output_file}? (y/n)") != "y":
             sys.exit()
 
@@ -107,8 +110,15 @@ if __name__ == '__main__':
     orig_pdf_files = sorted(glob(os.path.join(os.path.dirname(output_file), 'Output', '*.pdf')))
     if len(orig_pdf_files) < 1:
         print("NO PDF FILES WERE GENERATED!!!")
+        sys.exit(1)
+
+    print("PDF files were generated.")
+
+    if not upload:
+        print("Not uploading to S3 CDN")
         sys.exit()
 
+    print("Uploading...")
     mount_dir = os.path.join('/mnt', 'PDF')
     public_dir = os.path.join('/mnt', 'pCloud Drive', 'Public Folder')
     if not os.path.exists(os.path.join(mount_dir, '.mounted')):

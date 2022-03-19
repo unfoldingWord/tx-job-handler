@@ -21,8 +21,8 @@ TSV_TRANSLATION_QUESTIONS = "TSV Translation Questions"
 TSV_TRANSLATION_WORDS_LINKS = "TSV Translation Words Links"
 
 SUBJECT_ALIASES = {
-  ALIGNED_BIBLE: ['ult', 'ust', ALIGNED_BIBLE, ALIGNED_BIBLE.replace(" ", "_")],
-  BIBLE: ['ult', 'ust', BIBLE, BIBLE.replace(" ", "_"), 'usfm', 'bible'],
+  ALIGNED_BIBLE: ['ult', 'ust', ALIGNED_BIBLE, ALIGNED_BIBLE.replace(" ", "_"), 'usfm'],
+  BIBLE: [BIBLE, BIBLE.replace(" ", "_"), 'bible'],
   GREEK_NEW_TESTAMENT: ["ugnt", GREEK_NEW_TESTAMENT, GREEK_NEW_TESTAMENT.replace(" ", "_")],
   HEBREW_OLD_TESTAMENT: ["uhb", HEBREW_OLD_TESTAMENT, HEBREW_OLD_TESTAMENT.replace(" ", "_")],
   OBS_STUDY_NOTES: ["obs-sn", OBS_STUDY_NOTES, OBS_STUDY_NOTES.replace(" ", "_"), "Open Bible Study Notes"],

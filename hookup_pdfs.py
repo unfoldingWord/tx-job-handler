@@ -60,7 +60,8 @@ yaml.preserve_quotes = True
 
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
-    (BIBLE,                     BiblePdfConverter,   ('usfm'),  SUBJECT_ALIASES[BIBLE] + SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
+    (ALIGNED_BIBLE,             AlignedBiblePdfConverter, ('usfm'),                          SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
+    (BIBLE,                     BiblePdfConverter,        ('usfm'),                          SUBJECT_ALIASES[BIBLE], 'pdf'),
     (OPEN_BIBLE_STORIES,        ObsPdfConverter,     ('md','markdown','txt','text'), SUBJECT_ALIASES[OPEN_BIBLE_STORIES], 'pdf'),
     (OBS_STUDY_NOTES,           ObsSnPdfConverter,   ('md', 'markdown', 'txt', 'text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
     (OBS_STUDY_QUESTIONS,       ObsSqPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_STUDY_QUESTIONS], 'pdf'),

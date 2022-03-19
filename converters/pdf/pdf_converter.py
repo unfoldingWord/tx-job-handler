@@ -485,7 +485,12 @@ class PdfConverter(Converter):
             AppSettings.logger.removeHandler(self.output_logger_handler)
             self.output_logger_handler.close()
 
+    def get_default_project_ids(self):
+        return list(map(lambda project: project['identifier'], self.main_resource.projects))
+
     def generate_all_files(self):
+        if not self.project_ids:
+            self.project_ids = self.get_default_project_ids()
         for project_id in self.project_ids:
             self.reinit()
             self.project_id = project_id

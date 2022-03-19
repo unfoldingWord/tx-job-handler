@@ -50,18 +50,19 @@ sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit w
 
 # Columns are: 1/ converter name 2/ converter 3/ input formats 4/ resource types 5/ output format
 CONVERTER_TABLE = (
-    (BIBLE,                     BiblePdfConverter,   ('usfm'),  SUBJECT_ALIASES[BIBLE] + SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
-    (OPEN_BIBLE_STORIES,        ObsPdfConverter,     ('md','markdown','txt','text'), SUBJECT_ALIASES[OPEN_BIBLE_STORIES], 'pdf'),
-    (OBS_STUDY_NOTES,           ObsSnPdfConverter,   ('md', 'markdown', 'txt', 'text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
-    (OBS_STUDY_QUESTIONS,       ObsSqPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_STUDY_QUESTIONS], 'pdf'),
-    (OBS_TRANSLATION_NOTES,     ObsTnPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_TRANSLATION_NOTES], 'pdf'),
-    (OBS_TRANSLATION_QUESTIONS, ObsTqPdfConverter,   ('md','markdown','txt','text'), SUBJECT_ALIASES[OBS_TRANSLATION_QUESTIONS], 'pdf'),
-    (TRANSLATION_ACADEMY,       TaPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_ACADEMY], 'pdf'),
-    (TSV_STUDY_NOTES,           SnPdfConverter,      ('tsv'),                    SUBJECT_ALIASES[TSV_STUDY_NOTES], 'pdf'),
-    (TSV_STUDY_QUESTIONS,       SqPdfConverter,      ('tsv'),         SUBJECT_ALIASES[TSV_STUDY_QUESTIONS], 'pdf'),
-    (TSV_TRANSLATION_NOTES,     TnPdfConverter,      ('tsv'),         SUBJECT_ALIASES[TSV_TRANSLATION_NOTES], 'pdf'),
-    (TRANSLATION_QUESTIONS,     TqPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_QUESTIONS], 'pdf'),
-    (TRANSLATION_WORDS,         TwPdfConverter,      ('md','markdown','txt','text'), SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
+    (ALIGNED_BIBLE,             AlignedBiblePdfConverter, ('usfm'),                          SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
+    (BIBLE,                     BiblePdfConverter,        ('usfm'),                          SUBJECT_ALIASES[BIBLE], 'pdf'),
+    (OPEN_BIBLE_STORIES,        ObsPdfConverter,          ('md','markdown','txt','text'),    SUBJECT_ALIASES[OPEN_BIBLE_STORIES], 'pdf'),
+    (OBS_STUDY_NOTES,           ObsSnPdfConverter,        ('md', 'markdown', 'txt', 'text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
+    (OBS_STUDY_QUESTIONS,       ObsSqPdfConverter,        ('md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_STUDY_QUESTIONS], 'pdf'),
+    (OBS_TRANSLATION_NOTES,     ObsTnPdfConverter,        ('md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_TRANSLATION_NOTES], 'pdf'),
+    (OBS_TRANSLATION_QUESTIONS, ObsTqPdfConverter,        ('md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_TRANSLATION_QUESTIONS], 'pdf'),
+    (TRANSLATION_ACADEMY,       TaPdfConverter,           ('md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_ACADEMY], 'pdf'),
+    (TSV_STUDY_NOTES,           SnPdfConverter,           ('tsv'),                           SUBJECT_ALIASES[TSV_STUDY_NOTES], 'pdf'),
+    (TSV_STUDY_QUESTIONS,       SqPdfConverter,           ('tsv'),                           SUBJECT_ALIASES[TSV_STUDY_QUESTIONS], 'pdf'),
+    (TSV_TRANSLATION_NOTES,     TnPdfConverter,           ('tsv'),                           SUBJECT_ALIASES[TSV_TRANSLATION_NOTES], 'pdf'),
+    (TRANSLATION_QUESTIONS,     TqPdfConverter,           ('md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_QUESTIONS], 'pdf'),
+    (TRANSLATION_WORDS,         TwPdfConverter,           ('md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
     )
 
 if prefix not in ('', 'dev-'):
