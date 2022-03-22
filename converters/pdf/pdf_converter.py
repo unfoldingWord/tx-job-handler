@@ -577,44 +577,45 @@ class PdfConverter(Converter):
             base_url = f'file://{self.output_dir}'
             all_pages_fitted = False
             soup = BeautifulSoup(read_file(self.html_file), 'html.parser')
-            all_pages_fit = False
-            doc = None
-            tries = 0
-            while not all_pages_fit and tries < 10:
-                all_pages_fit = True
-                tries += 1
-                doc = HTML(string=str(soup), base_url=base_url).render()
-                for page_idx, page in enumerate(doc.pages):
-                    for anchor in page.anchors:
-                        if anchor.startswith('fit-to-page-'):
-                            if anchor not in doc.pages[page_idx-1].anchors:
-                                continue
-                            all_pages_fit = False
-                            diff = 0.05
-                            if page.anchors[anchor][1] > 90:
-                                diff = 0.1
-                            element = soup.find(id=anchor)
-                            if not element:
-                                continue
-                            if element.has_attr('style'):
-                                style = parseStyle(element['style'])
-                            else:
-                                style = CSSStyleDeclaration()
-                            if 'font-size' in style and style['font-size'] and style['font-size'].endswith('em'):
-                                font_size = float(style['font-size'].removesuffix('em'))
-                            else:
-                                font_size = 1.0
-                            font_size_str = f'{"%.2f"%(font_size - diff)}em'
-                            style['font-size'] = font_size_str
-                            css = style.cssText
-                            element['style'] = css
-                            self.log.info(f'RESIZING {anchor} to {font_size_str}... ({diff}, {page.anchors[anchor]})')
-                    write_file(os.path.join(self.output_dir, f'{self.file_project_and_ref}_resized.html'),
-                               str(soup))
-            if doc:
-                doc.write_pdf(self.pdf_file)
-                self.log.info('Generated PDF file.')
-                self.log.info(f'PDF file located at {self.pdf_file}')
+            doc = HTML(string=str(soup), base_url=base_url).render()
+            if self.main_resource.subject == OPEN_BIBLE_STORIES:
+                all_pages_fit = False
+                tries = 0
+                while not all_pages_fit and tries < 10:
+                    all_pages_fit = True
+                    tries += 1
+                    for page_idx, page in enumerate(doc.pages):
+                        for anchor in page.anchors:
+                            if anchor.startswith('fit-to-page-'):
+                                if anchor not in doc.pages[page_idx-1].anchors:
+                                    continue
+                                all_pages_fit = False
+                                diff = 0.05
+                                if page.anchors[anchor][1] > 90:
+                                    diff = 0.1
+                                element = soup.find(id=anchor)
+                                if not element:
+                                    continue
+                                if element.has_attr('style'):
+                                    style = parseStyle(element['style'])
+                                else:
+                                    style = CSSStyleDeclaration()
+                                if 'font-size' in style and style['font-size'] and style['font-size'].endswith('em'):
+                                    font_size = float(style['font-size'].removesuffix('em'))
+                                else:
+                                    font_size = 1.0
+                                font_size_str = f'{"%.2f"%(font_size - diff)}em'
+                                style['font-size'] = font_size_str
+                                css = style.cssText
+                                element['style'] = css
+                                self.log.info(f'RESIZING {anchor} to {font_size_str}... ({diff}, {page.anchors[anchor]})')
+                    if not all_pages_fit:
+                        doc = HTML(string=str(soup), base_url=base_url).render()
+                        write_file(os.path.join(self.output_dir, f'{self.file_project_and_ref}_resized.html'),
+                                    str(soup))
+            doc.write_pdf(self.pdf_file)
+            self.log.info('Generated PDF file.')
+            self.log.info(f'PDF file located at {self.pdf_file}')
         else:
             self.log.info(f'PDF file {self.pdf_file} is already there. Not generating. Use -r to force regeneration.')
 
@@ -1349,11 +1350,15 @@ class PdfConverter(Converter):
                         refs_to_try.insert(0, ref)
                     if ref.startswith("v") and ref[1:] not in refs_to_try:
                         refs_to_try.insert(1, ref[1:])
+            if (resource_name == "ugnt" or resource_name == "uhb") and self.owner != "Door43-Catalog":
+                owners_to_try.insert(0, "Door43-Catalog")
+                refs_to_try.insert(0, "master")
             repo_name = f'{lang}_{resource_name}'
             repo_dir = os.path.join(self.download_dir, repo_name)
-            if self.debug_mode:
-                if os.path.exists(repo_dir):
-                    return Resource(owner=self.owner, repo_name=repo_name, repo_dir=repo_dir, ref=ref)
+            if self.debug_mode and os.path.exists(repo_dir):
+                resource = Resource(owner=self.owner, repo_name=repo_name, repo_dir=repo_dir, ref=ref)
+                self.relation_resources[resource.identifier] = resource
+                continue
 
             entry = self.get_catalog_entry(resource_name, owners_to_try, langs_to_try, refs_to_try)
             if not entry:
@@ -1366,8 +1371,6 @@ class PdfConverter(Converter):
                     AppSettings.logger.critical("Exception when calling V5Api->v5_get_catalog_entry: %s\n" % e)
             if not entry:
                 continue
-
-            print(self.main_resource.owner, repo_name, ref)
             resource = Resource(subject=entry.subject, owner=entry.owner, repo_name=entry.name,
                                 ref=entry.branch_or_tag_name, zipball_url=entry.zipball_url)
             self.relation_resources[resource.identifier] = resource

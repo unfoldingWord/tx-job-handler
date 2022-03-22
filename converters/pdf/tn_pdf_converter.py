@@ -52,7 +52,7 @@ class TnPdfConverter(TsvPdfConverter):
         return html
 
     def populate_tn_book_data(self):
-        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number_padded}-{self.project_id.upper()}.tsv'
+        book_filename = f'{self.main_resource.identifier}_{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return

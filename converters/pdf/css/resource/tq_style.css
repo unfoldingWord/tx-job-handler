@@ -2,3 +2,25 @@ article.tq-verse {
     page-break-before: auto !important;
     break-before: auto !important;
 }
+
+article div.scripture {
+    border: 1px dashed lightgray;
+    margin: 0 10px 10px 10px;
+    padding: 5px;
+}
+
+.scripture {
+    margin-bottom: 0;
+}
+
+.scripture h3:first-child {
+    margin-top: 0;
+}
+
+.no-questions {
+    margin-top: 10px;
+}
+
+h5.verse-question-title {
+    margin: 0;
+}

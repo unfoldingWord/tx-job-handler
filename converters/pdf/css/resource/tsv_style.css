@@ -39,6 +39,11 @@ article table td {
     vertical-align: top;
 }
 
+div.notes {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
 div.notes .col1 {
     width: 35%;
     float: right;

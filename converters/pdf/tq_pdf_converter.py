@@ -14,7 +14,7 @@ import os
 import re
 import markdown2
 import general_tools.html_tools as html_tools
-from door43_tools.subjects import TSV_TRANSLATION_QUESTIONS
+from door43_tools.subjects import TSV_TRANSLATION_QUESTIONS, ALIGNED_BIBLE
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 from .pdf_converter import represent_int
@@ -28,7 +28,7 @@ from general_tools.usfm_utils import unalign_usfm
 DEFAULT_ULT_ID = 'ult'
 DEFAULT_UST_ID = 'ust'
 QUOTES_TO_IGNORE = ['general information:', 'connecting statement:']
-
+PROJECT_FULL = 'full' # Single PDF for all books of the Bible 
 
 class TqPdfConverter(TsvPdfConverter):
     my_subject = TSV_TRANSLATION_QUESTIONS
@@ -37,139 +37,47 @@ class TqPdfConverter(TsvPdfConverter):
         super().__init__(*args, **kwargs)
         self.tq_book_data = OrderedDict()
 
+    def get_default_project_ids(self):
+        return [PROJECT_FULL] + list(map(lambda project: project['identifier'], self.main_resource.projects))
+
+    @property
+    def project_title(self):
+        if self.project_id == PROJECT_FULL:
+            return ''
+        else:
+            if self.project:
+                return self.project['title']
+
+    @property
+    def file_id_project_str(self):
+        if self.project_id and self.project_id != PROJECT_FULL:
+            return super().file_id_project_str.upper()
+        else:
+            return ''
+
     def get_appendix_rcs(self):
         return
 
     def get_body_html(self):
-        self.log.info('Creating SQ for {0}...'.format(self.file_project_and_ref))
+        self.log.info('Creating TQ for {0}...'.format(self.file_project_and_ref))
         self.process_bibles()
-        for bible in self.alignment_bibles:
-            self.populate_book_data(bible.identifier)
-        self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
-        self.populate_tq_book_data()
         html = self.get_tq_html()
-        self.tq_book_data = None
+        self.tq_book_data = {}
         return html
 
-    def get_usfm_from_verse_objects(self, verse_objects):
-        usfm = ''
-        for idx, obj in enumerate(verse_objects):
-            if obj['type'] == 'milestone':
-                usfm += self.get_usfm_from_verse_objects(obj['children'])
-            elif obj['type'] == 'word':
-                if not self.next_follows_quote and obj['text'] != 's':
-                    usfm += ' '
-                usfm += obj['text']
-                self.next_follows_quote = False
-            elif obj['type'] == 'text':
-                obj['text'] = obj['text'].replace('\n', '').strip()
-                if not self.open_quote and len(obj['text']) > 2 and obj['text'][-1] == '"':
-                    obj['text'] = f"{obj['text'][:-1]} {obj['text'][-1]}"
-                if not self.open_quote and obj['text'] == '."':
-                    obj['text'] = '. "'
-                if len(obj['text']) and obj['text'][0] == '"' and not self.open_quote and obj['text'] not in ['-', '—']:
-                    usfm += ' '
-                usfm += obj['text']
-                if obj['text'].count('"') == 1:
-                    self.open_quote = not self.open_quote
-                if self.open_quote and '"' in obj['text'] or obj['text'] in ['-', '—', '(', '[']:
-                    self.next_follows_quote = True
-            elif obj['type'] == 'quote':
-                obj['text'] = obj['text'].replace('\n', '').strip() if 'text' in obj else ''
-                if idx == len(verse_objects) - 1 and obj['tag'] == 'q' and len(obj['text']) == 0:
-                    self.last_ended_with_quote_tag = True
-                else:
-                    usfm += f"\n\\{obj['tag']} {obj['text'] if len(obj['text']) > 0 else ''}"
-                if obj['text'].count('"') == 1:
-                    self.open_quote = not self.open_quote
-                if self.open_quote and '"' in obj['text']:
-                    self.next_follows_quote = True
-            elif obj['type'] == 'section':
-                obj['text'] = obj['text'].replace('\n', '').strip() if 'text' in obj else ''
-            elif obj['type'] == 'paragraph':
-                obj['text'] = obj['text'].replace('\n', '').strip() if 'text' in obj else ''
-                if idx == len(verse_objects) - 1 and not obj['text']:
-                    self.last_ended_with_paragraph_tag = True
-                else:
-                    usfm += f"\n\\{obj['tag']}{obj['text']}\n"
-            elif obj['type'] == 'footnote':
-                obj['text'] = obj['text'].replace('\n', '').strip() if 'text' in obj else ''
-                usfm += f' \\{obj["tag"]} {obj["content"]} \\{obj["tag"]}*'
-            else:
-                self.log.error("ERROR! Not sure what to do with this:")
-                self.log.error(obj)
-                exit(1)
-        return usfm
-
-    def populate_book_data(self, bible_id, language_id=None):
-        if not language_id:
-            language_id = self.language_id
-        bible_path = os.path.join(self.resources_dir, language_id, 'bibles', bible_id)
-        if not bible_path:
-            self.log.error(f'{bible_path} not found!')
-            exit(1)
-        bible_version_path = get_latest_version_path(bible_path)
-        if not bible_version_path:
-            self.log.error(f'No versions found in {bible_path}!')
-            exit(1)
-
-        book_data = OrderedDict()
-        book_file = os.path.join(self.resources[bible_id].repo_dir, f'{self.book_number}-{self.project_id.upper()}.usfm')
-        book_usfm = read_file(book_file)
-
-        unaligned_usfm = unalign_usfm(book_usfm)
-        self.log.info(f'Converting {self.project_id.upper()} from USFM to HTML...')
-        book_html, warnings = SingleFilelessHtmlRenderer({self.project_id.upper(): unaligned_usfm}).render()
-        html_verse_splits = re.split(r'(<span id="[^"]+-ch-0*(\d+)-v-(\d+(?:-\d+)?)" class="v-num">)', book_html)
-        usfm_chapter_splits = re.split(r'\\c ', unaligned_usfm)
-        usfm_verse_splits = None
-        chapter_verse_index = 0
-        for i in range(1, len(html_verse_splits), 4):
-            chapter = html_verse_splits[i+1]
-            verses = html_verse_splits[i+2]
-            if chapter not in book_data:
-                book_data[chapter] = OrderedDict()
-                usfm_chapter = f'\\c {usfm_chapter_splits[int(chapter)]}'
-                usfm_verse_splits = re.split(r'\\v ', usfm_chapter)
-                chapter_verse_index = 0
-            chapter_verse_index += 1
-            verse_usfm = f'\\v {usfm_verse_splits[chapter_verse_index]}'
-            verse_html = html_verse_splits[i] + html_verse_splits[i+3]
-            verse_html = re.split('<h2', verse_html)[0]  # remove next chapter since only split on verses
-            verse_soup = BeautifulSoup(verse_html, 'html.parser')
-            for tag in verse_soup.find_all():
-                if (not tag.contents or len(tag.get_text(strip=True)) <= 0) and tag.name not in ['br', 'img']:
-                    tag.decompose()
-            verse_html = str(verse_soup)
-            verses = re.findall(r'\d+', verses)
-            for verse in verses:
-                verse = verse.lstrip('0')
-                book_data[chapter][verse] = {
-                    'usfm': verse_usfm,
-                    'html': verse_html
-                }
-        self.book_data[bible_id] = book_data
-
     def populate_tq_book_data(self):
-        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number}-{self.project_id.upper()}.tsv'
+        book_filename = f'{self.main_resource.identifier}_{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return
-        book_data = OrderedDict()
+        book_data = {}
         reader = self.unicode_csv_reader(open(book_filepath))
         header = next(reader)
         row_count = 1
         for row in reader:
             row_count += 1
-            verse_data = {
-                'contextId': None,
-                'row': row_count,
-                'alignments': {
-                    self.ult: None,
-                    self.ust: None
-                }
-            }
             found = False
+            verse_data = {}
             for idx, field in enumerate(header):
                 field = field.strip()
                 if idx >= len(row):
@@ -182,134 +90,109 @@ class TqPdfConverter(TsvPdfConverter):
                     verse_data[field] = row[idx]
             if not found:
                 continue
-            chapter = verse_data['Chapter'].lstrip('0')
-            verse = verse_data['Verse'].lstrip('0')
-            if verse_data['Occurrence']:
-                occurrence = int(verse_data['Occurrence'])
+            
+            reference = verse_data['Reference']
+            if ':' not in reference:
+                continue
+            chapter, start_verse = reference.split(':')
+            chapter = chapter.lstrip('0')
+            start_verse = start_verse.lstrip('0')
+            if '-' in start_verse:
+                start_verse, end_verse = start_verse.split('-')
             else:
-                occurrence = 1
-            tq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
-            tq_title = f'{verse_data["GLQuote"]}'
-            if verse_data['OrigQuote']:
-                context_id = None
-                if not context_id and chapter.isdigit() and verse.isdigit():
-                    context_id = {
-                        'reference': {
-                            'chapter': int(chapter),
-                            'verse': int(verse)
-                        },
-                        'rc': f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
-                        'quote': verse_data['OrigQuote'],
-                        'occurrence': occurrence,
-                        'quoteString': verse_data['OrigQuote']
-                    }
-                if context_id:
-                    context_id['rc'] += f'/{verse_data["ID"]}'
-                    context_id['quoteString'] = verse_data['OrigQuote']
-                    verse_data['contextId'] = context_id
-                    verse_data['alignments'] = {
-                        self.ult: self.get_aligned_text(self.ult, context_id),
-                        self.ust: self.get_aligned_text(self.ust, context_id)
-                    }
-                if verse_data['alignments'][self.ult]:
-                    tq_title = flatten_alignment(verse_data['alignments'][self.ult]) + f' ({self.ult.upper()})'
-                    if verse_data['alignments'][self.ust]:
-                        tq_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust]) + f' ({self.ust.upper()})'
-                else:
-                    tq_title = f'{verse_data["GLQuote"]}'
-            tq_rc = self.create_rc(tq_rc_link, title=tq_title)
-            verse_data['title'] = tq_title
-            verse_data['rc'] = tq_rc
-            if chapter not in book_data:
-                book_data[chapter] = OrderedDict()
-            if verse not in book_data[chapter]:
-                book_data[chapter][verse] = []
-            book_data[str(chapter)][str(verse)].append(verse_data)
+                end_verse = start_verse
+            if verse_data['Question'] and verse_data['Response'] and chapter.isdigit() and start_verse.isdigit() and end_verse.isdigit():
+                rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{start_verse.zfill(3)}/{verse_data["ID"]}'
+                question = f'{verse_data["Question"]}'
+                rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{start_verse.zfill(3)}'
+                data = {
+                    'start_verse': start_verse,
+                    'end_verse': end_verse,
+                    'rc': self.create_rc(rc_link, title=question),
+                    'question': question,
+                    'response': verse_data['Response'],
+                }
+                if chapter not in book_data:
+                    book_data[chapter] = OrderedDict()
+                if start_verse not in book_data[chapter]:
+                    book_data[chapter][start_verse] = []
+                book_data[chapter][start_verse].append(data)
         self.tq_book_data = book_data
 
     def get_tq_html(self):
-        tq_html = f'''
-<section id="{self.language_id}-{self.name}-{self.project_id}" class="{self.name}">
-    <h1 class="section-header hidden">{self.simple_title}</h1>
-        <h2 class="section-header">{self.project_title}</h2>
-'''
-        if 'front' in self.tq_book_data and 'intro' in self.tq_book_data['front']:
-            book_intro = markdown2.markdown(self.tq_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'))
-            book_intro_title = html_tools.get_title_from_html(book_intro)
-            book_intro = self.fix_tq_links(book_intro, 'intro')
-            book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
-            # HANDLE FRONT INTRO RC LINKS
-            book_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/front/intro'
-            book_intro_rc = self.add_rc(book_intro_rc_link, title=book_intro_title)
-            book_intro = f'''
-    <article id="{book_intro_rc.article_id}">
-        {book_intro}
-    </article>
-'''
-            book_intro_rc.set_article(book_intro)
-            tq_html += book_intro
-        for chapter in BOOK_CHAPTER_VERSES[self.project_id]:
-            self.log.info(f'Chapter {chapter}...')
-            chapter_title = f'{self.project_title} {chapter}'
-            # HANDLE INTRO RC LINK
-            chapter_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}'
-            chapter_rc = self.add_rc(chapter_rc_link, title=chapter_title)
-            tq_html += f'''
-    <section id="{chapter_rc.article_id}" class="chapter no-break-articles">
-        <h3 class="section-header" header-level="2">{chapter_title}</h3>
-'''
-            if 'intro' in self.tq_book_data[chapter]:
-                self.log.info('Generating chapter info...')
-                chapter_intro = markdown2.markdown(self.tq_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"))
-                # Remove leading 0 from chapter header
-                chapter_intro = re.sub(r'<h(\d)>([^>]+) 0+([1-9])', r'<h\1>\2 \3', chapter_intro, 1, flags=re.MULTILINE | re.IGNORECASE)
-                chapter_intro = html_tools.make_first_header_section_header(chapter_intro, level=4, no_toc=True, header_level=3)
-                chapter_intro_title = html_tools.get_title_from_html(chapter_intro)
-                chapter_intro = self.fix_tq_links(chapter_intro, chapter)
-                # HANDLE INTRO RC LINK
-                chapter_intro_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/chapter_intro'
-                chapter_intro_rc = self.add_rc(chapter_intro_rc_link, title=chapter_intro_title)
-                chapter_intro = f'''
-        <article id="{chapter_intro_rc.article_id}">
-            {chapter_intro}
-        </article>
-'''
-                chapter_intro_rc.set_article(chapter_intro)
-                tq_html += chapter_intro
+        full = False
+        if not self.project_id:
+            self.project_id = PROJECT_FULL
+        if self.project_id == PROJECT_FULL:
+            projects = self.main_resource.projects
+            full = True
+        else:
+            projects = [self.main_resource.find_project(self.project_id)]
+        tq_html = ""
 
-            for verse in range(1,  int(BOOK_CHAPTER_VERSES[self.project_id][chapter]) + 1):
-                verse = str(verse)
-                self.log.info(f'Generating verse {chapter}:{verse}...')
-                tq_html += self.get_tq_article(chapter, verse)
+        for idx, project in enumerate(projects):
+            self.project_id = project['identifier']
+            self.tq_book_data = OrderedDict()
+            self.book_data = OrderedDict()
+            for resource in self.resources.values():
+                if resource.subject == ALIGNED_BIBLE:
+                    self.populate_book_data(resource.identifier, resource.language_id)
+            self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
+            self.populate_tq_book_data()
+
+            tq_html += f'''
+<section id="{self.language_id}-{self.name}-{project["identifier"]}" class="{self.name}">
+    <h1 class="section-header hidden{" no-toc" if idx > 0 else ""}">{self.simple_title}</h1>
+        <h2 class="section-header">{project["title"]}</h2>
+'''
+            for chapter in BOOK_CHAPTER_VERSES[project["identifier"]]:
+                self.log.info(f'Chapter {chapter}...')
+                chapter_title = f'{project["title"]} {chapter}'
+                # HANDLE INTRO RC LINK
+                chapter_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{project["identifier"]}/{self.pad(chapter)}'
+                chapter_rc = self.add_rc(chapter_rc_link, title=chapter_title)
+                tq_html += f'''
+        <section id="{chapter_rc.article_id}" class="chapter no-break-articles">
+            <h3 class="section-header{" no-toc" if len(projects) > 0 else ""}" header-level="2">{chapter_title}</h3>
+'''
+                for verse in range(1,  int(BOOK_CHAPTER_VERSES[project["identifier"]][chapter]) + 1):
+                    verse = str(verse)
+                    self.log.info(f'Generating verse {chapter}:{verse}...')
+                    tq_html += self.get_tq_article(chapter, verse)
+                tq_html += '''
+        </section>
+    '''
             tq_html += '''
     </section>
-'''
-        tq_html += '''
-</section>
-'''
-        self.log.info('Done generating SQ HTML.')
+    '''
+        if full:
+            self.project_id = PROJECT_FULL
+        self.log.info('Done generating TQ HTML.')
         return tq_html
 
     def get_tq_article(self, chapter, verse):
         tq_title = f'{self.project_title} {chapter}:{verse}'
         tq_rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         tq_rc = self.add_rc(tq_rc_link, title=tq_title)
-        ult_text = self.get_plain_scripture(self.ult, chapter, verse)
-        ult_text = self.get_scripture_with_tq_quotes(self.ult, chapter, verse, self.create_rc(f'rc://{self.language_id}/ult/bible/{self.project_id}/{chapter}/{verse}', ult_text), ult_text)
-        ust_text = self.get_plain_scripture(self.ust, chapter, verse)
-        ust_text = self.get_scripture_with_tq_quotes(self.ust, chapter, verse, self.create_rc(f'rc://{self.language_id}/ust/bible/{self.project_id}/{chapter}/{verse}', ult_text), ust_text)
+        ult_text = self.get_plain_scripture(self.ult.identifier, chapter, verse)
+        ust_text = self.get_plain_scripture(self.ust.identifier, chapter, verse)
 
         tq_article = f'''
                 <article id="{tq_rc.article_id}">
                     <h4 class="section-header no-toc" header-level="2">{tq_title}</h4>
                     <div class="notes">
-                            <div class="col1">
-                                <h3 class="bible-resource-title">{self.ult.upper()}</h3>
+                            <div class="scripture">
+                                <h3 class="bible-resource-title">{self.ult.identifier.upper()}</h3>
                                 <div class="bible-text">{ult_text}</div>
-                                <h3 class="bible-resource-title">{self.ust.upper()}</h3>
+'''
+        if ust_text:
+            tq_article += f'''
+                                <h3 class="bible-resource-title">{self.ust.identifier.upper()}</h3>
                                 <div class="bible-text">{ust_text}</div>
+'''
+        tq_article += f'''
                             </div>
-                            <div class="col2">
+                            <div class="questions">
                                 {self.get_tq_article_text(chapter, verse)}
                             </div>
                     </div>
@@ -320,15 +203,13 @@ class TqPdfConverter(TsvPdfConverter):
 
     def get_tq_article_text(self, chapter, verse):
         verse_questions = ''
-        if verse in self.tq_book_data[chapter]:
-            for tq_question in self.tq_book_data[chapter][verse]:
-                question = markdown2.markdown(tq_question['OccurrenceNote'].replace('<br>', "\n"))
-                question = re.sub(r'</*p[^>]*>', '', question, flags=re.IGNORECASE | re.MULTILINE)
+        if chapter in self.tq_book_data and verse in self.tq_book_data[chapter]:
+            for data in self.tq_book_data[chapter][verse]:
                 verse_questions += f'''
-        <div id="{tq_question['rc'].article_id}" class="verse-question">
-            <h5 class="verse-question-title">{tq_question['title']}</h5>
+        <div id="{data['rc'].article_id}" class="verse-question">
+            <h5 class="verse-question-title">{data['question']}{f" (vv{data['start_verse']}-{data['end_verse']})" if data['start_verse'] != data['end_verse'] else ''}</h5>
             <div class="verse-question-text">
-                {question}
+                {data['response']}
             </div>
         </div>
 '''
@@ -350,7 +231,7 @@ class TqPdfConverter(TsvPdfConverter):
         footnote = ''
         if len(verses_and_footnotes) == 2:
             footnote = f'<div class="footnotes">{verses_and_footnotes[1]}'
-        if verse in self.tq_book_data[chapter]:
+        if chapter in self.tq_book_data and verse in self.tq_book_data[chapter]:
             tq_notes = self.tq_book_data[chapter][verse]
         else:
             tq_notes = []

@@ -66,9 +66,8 @@ class AlignedBiblePdfConverter(PdfConverter):
         if self.project_id == PROJECT_FULL:
             return ''
         else:
-            project = self.project
-            if project:
-                return project['title']
+            if self.project:
+                return self.project['title']
 
     def get_appendix_rcs(self):
         pass
