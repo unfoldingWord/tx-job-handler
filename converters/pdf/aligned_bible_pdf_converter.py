@@ -101,6 +101,8 @@ class AlignedBiblePdfConverter(PdfConverter):
 '''
         for project_idx, project in enumerate(projects):
             project_id = project['identifier']
+            if project_id not in BOOK_NUMBERS:
+                continue
             project_num = BOOK_NUMBERS[project_id]
             project_file = os.path.join(self.main_resource.repo_dir, f'{project_num}-{project_id.upper()}.usfm')
             usfm = read_file(project_file)

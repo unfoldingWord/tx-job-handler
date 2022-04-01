@@ -1365,7 +1365,7 @@ class PdfConverter(Converter):
                 # We didn't find an entry for all the possible guessed owners, langs and refs, so we just try to find any repo with the name in the catalog
                 try:
                     entries = AppSettings.catalog_api.v5_search(repo=repo_name)
-                    if 'data' in entries and len(entries['data']):
+                    if entries and len(entries.data):
                         entry = entries['data'][0]
                 except ApiException as e:
                     AppSettings.logger.critical("Exception when calling V5Api->v5_get_catalog_entry: %s\n" % e)
