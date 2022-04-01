@@ -122,8 +122,14 @@ class AlignedBiblePdfConverter(PdfConverter):
             chapter_headers = soup.find_all('h2')
             for chapter_header in chapter_headers:
                 chapter_title = chapter_header.text
-                chapter = re.search(r'\d+', chapter_title).group()
-                header_title = f'{book_title} {chapter}'
+                header_title = book_title
+                chapter = ''
+                if chapter_title:
+                    search = re.search(r'\d+', chapter_title)
+                    if search:
+                        chapter = search.group()
+                        if chapter:
+                            header_title = f'{book_title} {chapter}'
                 classes = ['section-header']
                 if len(projects) > 1:
                     classes += ['no-toc']
