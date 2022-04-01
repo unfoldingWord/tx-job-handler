@@ -84,9 +84,9 @@ if __name__ == '__main__':
         output_file = os.path.join("/tmp", f"{repo_name}_{args.ref}")    
     if not output_file.endswith(".zip"):
         output_file = os.path.join(output_file, f"{repo_name}_{args.ref}.zip")
-    if os.path.exists(output_file):
-        if input(f"Are you sure you want to overwrite {output_file}? (y/n)") != "y":
-            sys.exit()
+    # if os.path.exists(output_file):
+    #     if input(f"Are you sure you want to overwrite {output_file}? (y/n)") != "y":
+    #         sys.exit()
 
     data = {
         "output": output_file,
