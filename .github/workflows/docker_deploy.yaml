@@ -7,8 +7,8 @@ on:
       - develop
     tags:
       - v*
-    release:
-      types: [published]
+  release:
+    types: [published]
 
 jobs:
   publish-to-docker:

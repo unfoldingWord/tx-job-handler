@@ -43,10 +43,12 @@ if __name__ == '__main__':
                         '(-p gen). Can specify multiple projects. Default: None (different converters will handle no or multiple ' +
                         'projects differently, such as compiling all into one PDF, or generating a PDF for each project)')
     parser.add_argument('--no-upload', dest='upload', action='store_false', help="Do NOT upload files to the S3 CDN")
+    parser.add_argument('--dcs-domain', dest='dcs_domain', default='git.door43.org', help='DCS domain name. Default: git.door43.org')
 
     args = parser.parse_args(sys.argv[1:])
 
     upload = args.upload
+    dcs_domain = args.dcs_domain
 
     owner = args.owner
     if owner == "unfoldingword":
@@ -95,12 +97,12 @@ if __name__ == '__main__':
         "resource_type": subject,
         "input_format": input_format,
         "output_format": "pdf",
-        "source": f"https://git.door43.org/{owner}/{repo_name}/archive/{args.ref}.zip",
+        "source": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{args.ref}.zip",
         "repo_name": repo_name,
         "repo_owner": owner,
         "repo_ref": args.ref,
-        "repo_data_url": f"https://git.door43.org/{owner}/{repo_name}/archive/{args.ref}.zip",
-        "dcs_domain": "https://git.door43.org",
+        "repo_data_url": f"https:/{dcs_domain}/{owner}/{repo_name}/archive/{args.ref}.zip",
+        "dcs_domain": f"https://{dcs_domain}",
         "project_ids": project_ids,
     }
 
