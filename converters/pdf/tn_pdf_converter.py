@@ -34,9 +34,9 @@ class TnPdfConverter(TsvPdfConverter):
 
     def reinit(self):
         super().reinit()
-        self.tw_words_data = None
-        self.tn_groups_data = None
-        self.tn_book_data = None
+        self.tw_words_data = {}
+        self.tn_groups_data = {}
+        self.tn_book_data = {}
 
     def get_body_html(self):
         self.log.info('Creating TN for {0}...'.format(self.file_project_and_ref))
@@ -52,7 +52,7 @@ class TnPdfConverter(TsvPdfConverter):
         return html
 
     def populate_tn_book_data(self):
-        book_filename = f'{self.main_resource.identifier}_{self.project_id.upper()}.tsv'
+        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number_padded}-{self.project_id.upper()}.tsv'
         book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
         if not os.path.isfile(book_filepath):
             return
