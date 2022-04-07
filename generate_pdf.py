@@ -101,7 +101,7 @@ if __name__ == '__main__':
         "repo_name": repo_name,
         "repo_owner": owner,
         "repo_ref": args.ref,
-        "repo_data_url": f"https:/{dcs_domain}/{owner}/{repo_name}/archive/{args.ref}.zip",
+        "repo_data_url": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{args.ref}.zip",
         "dcs_domain": f"https://{dcs_domain}",
         "project_ids": project_ids,
     }
