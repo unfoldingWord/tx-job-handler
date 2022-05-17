@@ -33,7 +33,7 @@ class TdLanguage:
         :return: list<TdLanguage>
         """
         if not TdLanguage.language_list:
-            lang_file = 'http://td.unfoldingword.org/exports/langnames.json'
+            lang_file = 'https://td.unfoldingword.org/exports/langnames.json'
             langs = json.loads(url_utils.get_url(lang_file))
             for lang in langs:
                 TdLanguage.language_list[lang['lc']] = TdLanguage(lang)
