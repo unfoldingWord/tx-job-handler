@@ -141,7 +141,7 @@ def get_languages() -> Dict[str,Any]:
       …
     ]
     """
-    url = 'http://td.unfoldingword.org/exports/langnames.json'
+    url = 'https://td.unfoldingword.org/exports/langnames.json'
     return json.loads(get_url(url))
 
 
