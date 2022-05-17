@@ -38,7 +38,7 @@ class TqPdfConverter(TsvPdfConverter):
         self.tq_book_data = OrderedDict()
 
     def get_default_project_ids(self):
-        return [PROJECT_FULL] + list(map(lambda project: project['identifier'], self.main_resource.projects))
+       return [PROJECT_FULL] + list(map(lambda project: project['identifier'], self.main_resource.projects))
 
     @property
     def project_title(self):
@@ -62,7 +62,8 @@ class TqPdfConverter(TsvPdfConverter):
         self.log.info('Creating TQ for {0}...'.format(self.file_project_and_ref))
         self.process_bibles()
         html = self.get_tq_html()
-        self.tq_book_data = {}
+        del self.tq_book_data
+        del self.book_data
         return html
 
     def populate_tq_book_data(self):
@@ -94,20 +95,25 @@ class TqPdfConverter(TsvPdfConverter):
             reference = verse_data['Reference']
             if ':' not in reference:
                 continue
-            chapter, start_verse = reference.split(':')
+            chapter, verse_str = reference.split(':')
             chapter = chapter.lstrip('0')
-            start_verse = start_verse.lstrip('0')
-            if '-' in start_verse:
-                start_verse, end_verse = start_verse.split('-')
+            verse_str = verse_str.strip().lstrip('0')
+            multiverse = False
+            if ',' in verse_str:
+                start_verse = verse_str.split(',')[0].strip()
+                multiverse = True
             else:
-                end_verse = start_verse
-            if verse_data['Question'] and verse_data['Response'] and chapter.isdigit() and start_verse.isdigit() and end_verse.isdigit():
+                start_verse = verse_str
+            if '-' in start_verse:
+                start_verse = start_verse.split('-')[0].strip()
+                multiverse = True
+            if verse_data['Question'] and verse_data['Response'] and chapter.isdigit() and start_verse.isdigit():
                 rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help/{self.project_id}/{self.pad(chapter)}/{start_verse.zfill(3)}/{verse_data["ID"]}'
                 question = f'{verse_data["Question"]}'
                 rc_link = f'rc://{self.language_id}/{self.main_resource.identifier}/help///{self.project_id}/{self.pad(chapter)}/{start_verse.zfill(3)}'
                 data = {
                     'start_verse': start_verse,
-                    'end_verse': end_verse,
+                    'reference': verse_str if multiverse else '',
                     'rc': self.create_rc(rc_link, title=question),
                     'question': question,
                     'response': verse_data['Response'],
@@ -207,7 +213,7 @@ class TqPdfConverter(TsvPdfConverter):
             for data in self.tq_book_data[chapter][verse]:
                 verse_questions += f'''
         <div id="{data['rc'].article_id}" class="verse-question">
-            <h5 class="verse-question-title">{data['question']}{f" (vv{data['start_verse']}-{data['end_verse']})" if data['start_verse'] != data['end_verse'] else ''}</h5>
+            <h5 class="verse-question-title">{data['question']}{f" (vv{data['reference']})" if data['reference'] else ''}</h5>
             <div class="verse-question-text">
                 {data['response']}
             </div>

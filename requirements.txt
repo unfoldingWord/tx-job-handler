@@ -12,7 +12,7 @@ pyyaml==6.0
 py-dateutil==2.2
 
 # boto3 is used by aws_tools
-boto3==1.21.18
+boto3==1.23.1
 
 # pyparsing is used by usfm_tools/parseUsfm.py
 pyparsing==3.0.7
@@ -26,13 +26,13 @@ markdown2==2.4.2
 #usfm-tools==0.0.22
 
 # BeautifulSoup is used by converters/md2html_converter.py
-beautifulsoup4==4.10.0
+beautifulsoup4==4.11.1
 
 # used by pdf converter
 jsonpickle==2.1.0
-weasyprint==54.2
-dcs_api_client==1.16.3
-dcs_catalog_client==1.16.3
+weasyprint==55.0
+dcs_api_client==1.16.8
+dcs_catalog_client==1.16.8
 googletrans==4.0.0rc1
 cssutils==2.4.0
 ruamel.yaml==0.17.21

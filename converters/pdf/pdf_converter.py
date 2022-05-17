@@ -343,9 +343,15 @@ class PdfConverter(Converter):
         locale['google_lang'] = google_lang
         translator = googletrans.Translator()
         for key, value in locale['translations'].items():
-            translation = translator.translate(value, src='en', dest=google_lang)
+            translation=None
+            try:
+                translation = translator.translate(value, src='en', dest=google_lang)
+            except:
+                pass
             if translation and translation.text:
                 locale['translations'][key] = translation.text
+            else:
+                locale['translations'][key] = value
         write_file(locale_file, json.dumps(locale, sort_keys=True, indent=2, ensure_ascii=False))
         return locale
 
@@ -368,6 +374,7 @@ class PdfConverter(Converter):
         return rc
 
     def add_error_message(self, source_rc, bad_rc_link, message=None):
+        print(message)
         if source_rc:
             if source_rc.rc_link not in self.errors:
                 self.errors[source_rc.rc_link] = {
@@ -498,7 +505,7 @@ class PdfConverter(Converter):
             self.generate_pdf_file()
 
     def generate_html_file(self):
-        if not os.path.exists(self.html_file) or self.debug_mode:
+        if not os.path.exists(self.html_file):
             self.log.info(f'Creating HTML file for {self.file_project_and_ref}...')
 
             self.log.info('Generating cover page HTML...')
@@ -571,7 +578,7 @@ class PdfConverter(Converter):
         if not os.path.exists(self.html_file):
             self.log.error('No HTML to process. Not generating PDF.')
             return
-        if not os.path.exists(self.pdf_file) or self.debug_mode:
+        if not os.path.exists(self.pdf_file):
             self.log.info(f'Generating PDF file {self.pdf_file}...')
             # Convert HTML to PDF with weasyprint
             base_url = f'file://{self.output_dir}'
@@ -780,7 +787,10 @@ class PdfConverter(Converter):
                 if not os.path.exists(full_file_path):
                     os.makedirs(os.path.dirname(full_file_path), exist_ok=True)
                     self.log.info(f'Downloading {url} to {full_file_path}...')
-                    download_file(url, full_file_path)
+                    try:
+                        download_file(url, full_file_path)
+                    except:
+                        pass
                 img['src'] = file_path
         return str(soup)
 
@@ -1088,7 +1098,7 @@ class PdfConverter(Converter):
                                    x[1].linking_level == APPENDIX_LINKING_LEVEL,
                             self.appendix_rcs.items()))
         sorted_rcs = sorted(filtered_rcs.items(),
-                            key=lambda x: x[1].title.lower())
+                            key=lambda x: x[1].title.lower() if x[1].title else '')
         for item in sorted_rcs:
             rc = item[1]
             if rc.article:
@@ -1321,9 +1331,9 @@ class PdfConverter(Converter):
                 repo = f'{lang}_{resource_name}'
                 for ref in refs:
                     try:
-                        return AppSettings.catalog_api.v5_get_catalog_entry(owner, repo, ref)
+                        return AppSettings.catalog_api.catlog_get_entry(owner, repo, ref)
                     except ApiException as e:
-                        AppSettings.logger.critical("Exception when calling V5Api->v5_get_catalog_entry: %s\n" % e)
+                        AppSettings.logger.critical("Exception when calling V5Api->catalog_get_entry: %s\n" % e)
 
     def process_relation_resources(self):
         for relation in self.main_resource.relation:
@@ -1364,11 +1374,11 @@ class PdfConverter(Converter):
             if not entry:
                 # We didn't find an entry for all the possible guessed owners, langs and refs, so we just try to find any repo with the name in the catalog
                 try:
-                    entries = AppSettings.catalog_api.v5_search(repo=repo_name)
+                    entries = AppSettings.catalog_api.catalog_search(repo=repo_name)
                     if entries and len(entries.data):
                         entry = entries['data'][0]
                 except ApiException as e:
-                    AppSettings.logger.critical("Exception when calling V5Api->v5_get_catalog_entry: %s\n" % e)
+                    AppSettings.logger.critical("Exception when calling V5Api->catalog_search: %s\n" % e)
             if not entry:
                 continue
             resource = Resource(subject=entry.subject, owner=entry.owner, repo_name=entry.name,
@@ -1453,11 +1463,11 @@ class PdfConverter(Converter):
 
         for keyed_args in keyed_args_to_find_best_match:
             try:
-                response = AppSettings.catalog_api.v5_search(subject=subject, sort='released', order='desc', **keyed_args)
+                response = AppSettings.catalog_api.catalog_search(subject=subject, sort='released', order='desc', **keyed_args)
                 if response and response.ok and len(response.data):
                     return response.data
             except ApiException as e:
-                AppSettings.logger.critical("Exception when calling V5Api->v5_search: %s\n" % e)
+                AppSettings.logger.critical("Exception when calling V5Api->catalog_search: %s\n" % e)
         return []
 
     def find_resources(self, subject, lang=None):

@@ -1,0 +1,25 @@
+{
+  "google_lang": "id",
+  "source": "en",
+  "target": "id",
+  "translations": {
+    "contributors": "Kontributor",
+    "copyrights_and_licensing": "Hak Cipta dan Lisensi",
+    "date": "Tanggal",
+    "go_back_to": "Kembali ke",
+    "in_order_to_understand_this_topic": "Untuk memahami topik ini, akan lebih baik untuk dibaca",
+    "new_testament": "Perjanjian Baru",
+    "next_we_recommend_you_learn_about": "Selanjutnya kami sarankan Anda belajar tentang",
+    "no_notes_for_this_verse": "Tidak ada catatan untuk ayat ini.",
+    "no_questions_for_this_verse": "Tidak ada pertanyaan untuk ayat ini.",
+    "no_study_notes_for_this_frame": "Tidak ada catatan studi untuk bingkai ini",
+    "old_testament": "Perjanjian Lama",
+    "published_by": "Diterbitkan oleh",
+    "study_notes": "Catatan Studi",
+    "study_questions": "Pertanyaan belajar",
+    "table_of_contents": "Daftar isi",
+    "this_page_answers_the_question": "Halaman ini menjawab pertanyaan",
+    "version": "Versi: kapan"
+  },
+  "translator": "google"
+}

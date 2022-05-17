@@ -1,0 +1,25 @@
+{
+  "google_lang": "ar",
+  "source": "en",
+  "target": "ar",
+  "translations": {
+    "contributors": "المساهمين",
+    "copyrights_and_licensing": "حقوق الطبع والنشر والترخيص",
+    "date": "تاريخ",
+    "go_back_to": "ارجع إلى",
+    "in_order_to_understand_this_topic": "من أجل فهم هذا الموضوع ، سيكون من الجيد القراءة",
+    "new_testament": "العهد الجديد",
+    "next_we_recommend_you_learn_about": "بعد ذلك نوصيك بالتعرف على",
+    "no_notes_for_this_verse": "لا توجد ملاحظات لهذه الآية.",
+    "no_questions_for_this_verse": "لا توجد أسئلة لهذه الآية.",
+    "no_study_notes_for_this_frame": "لا توجد ملاحظات دراسة لهذا الإطار",
+    "old_testament": "العهد القديم",
+    "published_by": "نشرت من قبل",
+    "study_notes": "ملاحظات الدراسة",
+    "study_questions": "أسئلة الدراسة",
+    "table_of_contents": "جدول المحتويات",
+    "this_page_answers_the_question": "هذه الصفحة تجيب على السؤال",
+    "version": "الإصدار"
+  },
+  "translator": "google"
+}

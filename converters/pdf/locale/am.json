@@ -1,0 +1,25 @@
+{
+  "google_lang": "am",
+  "source": "en",
+  "target": "am",
+  "translations": {
+    "contributors": "አስተዋጽፋዎች",
+    "copyrights_and_licensing": "የቅጂ መብት እና ፈቃድ መስጠት",
+    "date": "ቀን",
+    "go_back_to": "ተመለስ ወደ",
+    "in_order_to_understand_this_topic": "ይህንን ርዕስ ለመረዳት ሲሉ ማንበብ ጥሩ ነው",
+    "new_testament": "አዲስ ኪዳን",
+    "next_we_recommend_you_learn_about": "ቀጣዩ ስለ እርስዎ እንዲማሩ እንመክርዎታለን",
+    "no_notes_for_this_verse": "ለዚህ ጥቅስ ምንም ማስታወሻዎች የሉም.",
+    "no_questions_for_this_verse": "ለዚህ ጥቅስ ምንም ጥያቄዎች የሉም.",
+    "no_study_notes_for_this_frame": "ለዚህ ክፈፍ ምንም የጥናት ማስታወሻዎች የሉም",
+    "old_testament": "ብሉይ ኪዳን",
+    "published_by": "የታተመ በ",
+    "study_notes": "የጥናት ማስታወሻዎች",
+    "study_questions": "የጥናት ጥያቄዎች",
+    "table_of_contents": "ዝርዝር ሁኔታ",
+    "this_page_answers_the_question": "ይህ ገጽ ለጥያቄው መልስ ይሰጣል",
+    "version": "ስሪት"
+  },
+  "translator": "google"
+}

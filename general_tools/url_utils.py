@@ -70,6 +70,7 @@ def _get_url(url:str, catch_exception:bool, urlopen:Callable[[str],bytes]) -> Un
 
 def download_file(url:str, outfile:str) -> None:
     """Downloads a file and saves it."""
+    print("URL: "+url)
     _download_file(url, outfile, urlopen=urllib2.urlopen)
 
 
@@ -137,7 +138,7 @@ def get_languages() -> Dict[str,Any]:
       …
     ]
     """
-    url = 'http://td.unfoldingword.org/exports/langnames.json'
+    url = 'https://td.unfoldingword.org/exports/langnames.json'
     return json.loads(get_url(url))
 
 

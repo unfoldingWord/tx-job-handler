@@ -169,7 +169,7 @@ def process_pdfs(pj_prefix, langs=None, subjects=None, owners=None, repos=None, 
     items = []
 
     if stage:
-        response = AppSettings.catalog_client.v5_search(subject=subjects, owner=owners, repo=repos, lang=langs, tag=tags, stage=stage)
+        response = AppSettings.catalog_client.catalog_search(subject=subjects, owner=owners, repo=repos, lang=langs, tag=tags, stage=stage)
         if not response or not response.ok or len(response.data):
             AppSettings.logger.error(f'No entries found.')
             exit(1)

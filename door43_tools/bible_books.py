@@ -1,4 +1,6 @@
-BOOK_NAMES = {
+from collections import OrderedDict
+
+BOOK_NAMES = OrderedDict({
     'frt': 'Front Matter',
     'gen': 'Genesis',
     'exo': 'Exodus',
@@ -67,9 +69,9 @@ BOOK_NAMES = {
     'jud': 'Jude',
     'rev': 'Revelation',
     'bak': 'Back Matter'
-}
+})
 
-BOOK_NUMBERS = {
+BOOK_NUMBERS = OrderedDict({
     'frt': 'A0',
     'gen': '01',
     'exo': '02',
@@ -138,7 +140,7 @@ BOOK_NUMBERS = {
     'jud': '66',
     'rev': '67',
     'bak': 'A1'
-}
+})
 
 BOOK_CHAPTER_VERSES = {
     'frt': {},

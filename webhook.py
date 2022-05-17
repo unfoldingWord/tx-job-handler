@@ -53,7 +53,7 @@ from converters.usfm2html_converter import Usfm2HtmlConverter
 from door43_tools.subjects import SUBJECT_ALIASES
 from door43_tools.subjects import ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES, OBS_STUDY_NOTES, OBS_STUDY_QUESTIONS, \
     OBS_TRANSLATION_NOTES, OBS_TRANSLATION_QUESTIONS, TRANSLATION_ACADEMY, TRANSLATION_WORDS, TRANSLATION_QUESTIONS, \
-    TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, TSV_TRANSLATION_NOTES, TSV_TRANSLATION_QUESTIONS
+    TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, TSV_TRANSLATION_NOTES, TSV_TRANSLATION_QUESTIONS, GREEK_NEW_TESTAMENT, HEBREW_OLD_TESTAMENT
 from converters.pdf.aligned_bible_pdf_converter import AlignedBiblePdfConverter
 from converters.pdf.bible_pdf_converter import BiblePdfConverter
 from converters.pdf.obs_pdf_converter import ObsPdfConverter
@@ -108,8 +108,7 @@ CONVERTER_TABLE = (
                     'Greek_New_Testament','Hebrew_Old_Testament',
                     'bible', 'reg',
                     'other',),                                                      'html'),
-    (ALIGNED_BIBLE,             AlignedBiblePdfConverter, ('usfm'),                       SUBJECT_ALIASES[ALIGNED_BIBLE], 'pdf'),
-    (BIBLE,                     BiblePdfConverter,        ('usfm'),                       SUBJECT_ALIASES[BIBLE], 'pdf'),
+    (ALIGNED_BIBLE,             AlignedBiblePdfConverter, ('usfm'),                       SUBJECT_ALIASES[ALIGNED_BIBLE] + SUBJECT_ALIASES[BIBLE] + SUBJECT_ALIASES[GREEK_NEW_TESTAMENT] + SUBJECT_ALIASES[HEBREW_OLD_TESTAMENT], 'pdf'),
     (OPEN_BIBLE_STORIES,        ObsPdfConverter,    ('', 'md','markdown','txt','text'),   SUBJECT_ALIASES[OPEN_BIBLE_STORIES], 'pdf'),
     (OBS_STUDY_NOTES,           ObsSnPdfConverter, ('', 'md', 'markdown', 'txt', 'text'), SUBJECT_ALIASES[OBS_STUDY_NOTES], 'pdf'),
     (OBS_STUDY_QUESTIONS,       ObsSqPdfConverter, ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_STUDY_QUESTIONS], 'pdf'),
@@ -180,7 +179,7 @@ def get_converter_module(gcm_job:Dict[str,Any], output_format:str) -> Tuple[Opti
     :return TxModule:
     """
     for converter_name, converter_class, input_formats, resource_types, opf in CONVERTER_TABLE:
-        if gcm_job['input_format'] in input_formats and opf == output_format:
+        if gcm_job and 'input_format' in gcm_job and gcm_job['input_format'] in input_formats and opf and opf == output_format:
             if gcm_job['resource_type'] in resource_types:
                 return converter_name, converter_class
             if 'other' in resource_types:

@@ -1,0 +1,25 @@
+{
+  "google_lang": "es",
+  "source": "en",
+  "target": "es-419",
+  "translations": {
+    "contributors": "Contributors",
+    "copyrights_and_licensing": "Derechos de autor y licencias",
+    "date": "Fecha",
+    "go_back_to": "Volver a",
+    "in_order_to_understand_this_topic": "Para comprender este tema, sería bueno leer",
+    "new_testament": "Nuevo Testamento",
+    "next_we_recommend_you_learn_about": "A continuación le recomendamos que aprenda sobre",
+    "no_notes_for_this_verse": "No hay notas para este versículo.",
+    "no_questions_for_this_verse": "No hay preguntas para este versículo.",
+    "no_study_notes_for_this_frame": "No hay notas de estudio para este marco",
+    "old_testament": "Viejo Testamento",
+    "published_by": "Publicado por",
+    "study_notes": "Notas de estudio",
+    "study_questions": "Preguntas de estudio",
+    "table_of_contents": "Tabla de contenido",
+    "this_page_answers_the_question": "Esta página responde a la pregunta",
+    "version": "Versión"
+  },
+  "translator": "google"
+}

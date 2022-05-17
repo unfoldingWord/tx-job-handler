@@ -118,7 +118,7 @@ class TaPdfConverter(PdfConverter):
         return articles_html
 
     def get_articles_from_toc(self, project_id, section, toc_level=2):
-        if 'sections' not in section:
+        if 'sections' not in section or not section['sections']:
             return ''
         source_rc = self.create_rc(f'rc://{self.language_id}/ta/man/{project_id}/toc.yaml')
         articles_html = ''

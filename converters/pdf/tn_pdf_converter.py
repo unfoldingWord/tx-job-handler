@@ -1,4 +1,4 @@
-42#!/usr/bin/env python3
+#!/usr/bin/env python3
 #
 #  Copyright (c) 2020 unfoldingWord
 #  http://creativecommons.org/licenses/MIT/

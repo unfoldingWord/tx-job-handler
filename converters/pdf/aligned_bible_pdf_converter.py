@@ -99,7 +99,7 @@ class AlignedBiblePdfConverter(PdfConverter):
         bible_html = f'''
 <section id="{self.language_id}-{self.name}" class="bible {self.name}-bible bible-{self.project_id} {self.name}-bible-{self.project_id}">
 '''
-        for project_idx, project in enumerate(projects):
+        for project in projects:
             project_id = project['identifier']
             if project_id not in BOOK_NUMBERS:
                 continue
