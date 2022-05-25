@@ -1,11 +1,13 @@
 import json
 import os
-import sys
 import zipfile
 import shutil
 import yaml
+import tempfile
+from glob import glob
 from mimetypes import MimeTypes
 from typing import Dict, List, Any, Optional, Union
+from distutils.version import LooseVersion
 
 from general_tools.data_utils import json_serial
 from app_settings.app_settings import AppSettings
@@ -141,7 +143,7 @@ def write_file(filepath:str, file_contents:Union[str,Dict[str,Any]], indent=None
         else:
             text_to_write = json.dumps(file_contents, sort_keys=True, indent=indent, default=json_serial)
 
-    with open(filepath, 'wt', encoding='utf-8') as out_file:
+    with open(filepath, 'wt', encoding='utf8') as out_file:
         out_file.write(text_to_write)
 
 
@@ -237,3 +239,71 @@ def empty_folder(folder_path:str, only_prefix:Optional[str]=None) -> None:
                 shutil.rmtree(filepath)
             except OSError:
                 os.remove(filepath)
+
+
+def symlink(target, link_name, overwrite=False):
+    """
+    Create a symbolic link named link_name pointing to target.
+    If link_name exists then FileExistsError is raised, unless overwrite=True.
+    When trying to overwrite a directory, IsADirectoryError is raised.
+    """
+    if not overwrite:
+        if not os.path.exists(link_name):
+            os.symlink(target, link_name)
+        return
+
+    # os.replace() may fail if files are on different filesystems
+    link_dir = os.path.dirname(link_name)
+
+    # Create link to target with temporary filename
+    while True:
+        temp_link_name = tempfile.mktemp(dir=link_dir)
+
+        # os.* functions mimic as closely as possible system functions
+        # The POSIX symlink() returns EEXIST if link_name already exists
+        # https://pubs.opengroup.org/onlinepubs/9699919799/functions/symlink.html
+        try:
+            os.symlink(target, temp_link_name)
+            break
+        except FileExistsError:
+            pass
+
+    # Replace link_name with temp_link_name
+    try:
+        # Pre-empt os.replace on a directory with a nicer message
+        if os.path.isdir(link_name):
+            raise IsADirectoryError(f"Cannot symlink over existing directory: '{link_name}'")
+        os.replace(temp_link_name, link_name)
+    except Exception:
+        if os.path.islink(temp_link_name):
+            os.remove(temp_link_name)
+        raise
+
+
+def get_latest_version_path(parent_path):
+    version = get_latest_version(parent_path)
+    if version:
+        return os.path.join(parent_path, version)
+    else:
+        return None
+
+
+def get_latest_version(parent_path):
+    versions = get_versions(parent_path)
+    if len(versions):
+        return versions[-1]
+    else:
+        return None
+
+
+def get_versions(parent_path):
+    versions = get_child_directories(parent_path, 'v[0-9]*')
+    versions.sort(key=LooseVersion)
+    return versions
+
+
+def get_child_directories(parent_path, mask='*'):
+    child_paths = glob(os.path.join(parent_path, mask))
+    child_dirs = [os.path.basename(child_path) for child_path in child_paths if os.path.isdir(child_path)]
+    return child_dirs
+

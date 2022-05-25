@@ -1,15 +1,25 @@
 # NOTE: This docker container is built automatically
 #       from Travis-CI after passing unit tests
 
-FROM python:alpine
+FROM nikolaik/python-nodejs:latest
 
 COPY . /code
 WORKDIR /code
 
+# Update apt-get
+RUN apt-get update -y -qq
+
+# Install packages needed for weasyprint
+RUN apt-get install -y -qq apt libpango-1.0-0 libharfbuzz0b libpangoft2-1.0-0
+
+# Upgrade pip3 and install the requirements
 RUN pip3 install --upgrade pip
 RUN pip3 install --requirement requirements.txt
 
-CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_HTML_Job_Handler" ]
+# Install the npm modules we use for generating some Bible content in JSON format
+RUN cd converters/pdf/resources && npm ci
+
+CMD [ "rq", "worker", "--config", "rq_settings", "--name", "tX_Job_Handler" ]
 
 # Define environment variables
 # NOTE: The following environment variables are expected to be set:

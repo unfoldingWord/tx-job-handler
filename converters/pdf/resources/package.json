@@ -1,0 +1,26 @@
+{
+  "name": "pdf_converters_js_code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "start.js",
+  "scripts": {
+    "start": "node start.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/register": "^7.11.5",
+    "babel-polyfill": "^6.26.0",
+    "fs-extra": "^10.0.0",
+    "js-yaml": "^4.1.0",
+    "path-extra": "^4.3.0",
+    "rimraf": "^3.0.2",
+    "string-punctuation-tokenizer": "^2.2.0",
+    "tc-source-content-updater": "^1.2.12",
+    "tsv-groupdata-parser": "^0.10.3",
+    "usfm-js": "^2.1.0",
+    "yargs": "^17.3.1"
+  }
+}

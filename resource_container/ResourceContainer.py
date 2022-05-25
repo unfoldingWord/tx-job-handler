@@ -119,12 +119,12 @@ class Project:
 
     @property
     def sort(self) -> str:
-        return self.project.get('sort', '1')
+        return self.project.get('sort', 0)
 
 
     @property
     def versification(self) -> str:
-        return self.project.get('versification', 'kjv')
+        return self.project.get('versification', 'ufw')
 
 
     @property

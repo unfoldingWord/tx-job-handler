@@ -1,0 +1,25 @@
+{
+  "google_lang": "sw",
+  "source": "en",
+  "target": "sw",
+  "translations": {
+    "contributors": "Washiriki",
+    "copyrights_and_licensing": "Haki miliki na leseni.",
+    "date": "Tarehe",
+    "go_back_to": "Rudi tena",
+    "in_order_to_understand_this_topic": "Ili kuelewa mada hii, itakuwa nzuri kusoma",
+    "new_testament": "Agano Jipya",
+    "next_we_recommend_you_learn_about": "Halafu tunapendekeza kujifunza kuhusu",
+    "no_notes_for_this_verse": "Hakuna maelezo ya aya hii.",
+    "no_questions_for_this_verse": "Hakuna maswali kwa aya hii.",
+    "no_study_notes_for_this_frame": "Hakuna maelezo ya utafiti kwa sura hii.",
+    "old_testament": "Agano la Kale",
+    "published_by": "Iliyochapishwa na",
+    "study_notes": "Maelezo ya Utafiti.",
+    "study_questions": "Maswali ya Funzo",
+    "table_of_contents": "Jedwali la Yaliyomo",
+    "this_page_answers_the_question": "Ukurasa huu unajibu swali hilo.",
+    "version": "Toleo."
+  },
+  "translator": "google"
+}

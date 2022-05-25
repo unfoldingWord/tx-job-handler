@@ -1,0 +1,25 @@
+{
+  "google_lang": "ml",
+  "source": "en",
+  "target": "ml",
+  "translations": {
+    "contributors": "സംഭാവകർ",
+    "copyrights_and_licensing": "പകർപ്പവകാശവും ലൈസൻസിംഗും",
+    "date": "തീയതി",
+    "go_back_to": "തിരികെ പോകുക",
+    "in_order_to_understand_this_topic": "ഈ വിഷയം മനസിലാക്കാൻ, വായിക്കുന്നത് നല്ലതാണ്",
+    "new_testament": "പുതിയ നിയമം",
+    "next_we_recommend_you_learn_about": "അടുത്തതായി ഞങ്ങൾ നിങ്ങൾ പഠിക്കാൻ ശുപാർശ ചെയ്യുന്നു",
+    "no_notes_for_this_verse": "ഈ വാക്യത്തിന് കുറിപ്പുകളൊന്നുമില്ല.",
+    "no_questions_for_this_verse": "ഈ വാക്യത്തിന് ചോദ്യങ്ങളൊന്നുമില്ല.",
+    "no_study_notes_for_this_frame": "ഈ ഫ്രെയിമിനായി പഠന കുറിപ്പുകളൊന്നുമില്ല",
+    "old_testament": "പഴയ നിയമം",
+    "published_by": "പ്രസിദ്ധീകരിച്ചത്",
+    "study_notes": "കുറിപ്പുകൾ പഠിക്കുക",
+    "study_questions": "ചോദ്യങ്ങൾ പഠിക്കുക",
+    "table_of_contents": "ഉള്ളടക്ക പട്ടിക",
+    "this_page_answers_the_question": "ഈ പേജ് ചോദ്യത്തിന് ഉത്തരം നൽകുന്നു",
+    "version": "ഭാഷം"
+  },
+  "translator": "google"
+}

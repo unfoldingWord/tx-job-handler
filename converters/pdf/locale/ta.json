@@ -1,0 +1,25 @@
+{
+  "google_lang": "ta",
+  "source": "en",
+  "target": "ta",
+  "translations": {
+    "contributors": "பங்களிப்பாளர்கள்",
+    "copyrights_and_licensing": "பதிப்புரிமை மற்றும் உரிமம்",
+    "date": "தேதி",
+    "go_back_to": "மீண்டும் செல்லுங்கள்",
+    "in_order_to_understand_this_topic": "இந்த தலைப்பை புரிந்து கொள்வதற்காக, அது படிக்க நல்லது",
+    "new_testament": "புதிய ஏற்பாடு",
+    "next_we_recommend_you_learn_about": "அடுத்து நாங்கள் கற்றுக்கொள்ள பரிந்துரைக்கிறோம்",
+    "no_notes_for_this_verse": "இந்த வசனத்திற்கு குறிப்புகள் எதுவும் இல்லை.",
+    "no_questions_for_this_verse": "இந்த வசனத்திற்கு எந்த கேள்வியும் இல்லை.",
+    "no_study_notes_for_this_frame": "இந்த சட்டத்திற்கான ஆய்வு குறிப்புகள் இல்லை",
+    "old_testament": "பழைய ஏற்பாடு",
+    "published_by": "வெளியிடப்பட்ட",
+    "study_notes": "ஆய்வு குறிப்புகள்",
+    "study_questions": "ஆய்வு கேள்விகள்",
+    "table_of_contents": "பொருளடக்கம்",
+    "this_page_answers_the_question": "இந்தப் பக்கம் கேள்விக்கு பதிலளிக்கிறது",
+    "version": "பதிப்பு"
+  },
+  "translator": "google"
+}

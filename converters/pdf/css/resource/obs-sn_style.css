@@ -1,0 +1,24 @@
+hr.frame-divider {
+    width: 75%;
+    text-align: center;
+}
+
+.frame {
+    padding-bottom: 5px;
+}
+
+.frame h3 {
+    margin: 0;
+}
+
+div.frame-text > p:first-child {
+    margin-top: 0 !important;
+}
+
+div.frame-text > p:last-child {
+    margin-bottom: 0 !important;
+}
+
+.bible-reference {
+    padding-top: 0 !important;
+}

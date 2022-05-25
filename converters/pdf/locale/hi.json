@@ -1,0 +1,25 @@
+{
+  "google_lang": "hi",
+  "source": "en",
+  "target": "hi",
+  "translations": {
+    "contributors": "योगदानकर्ताओं",
+    "copyrights_and_licensing": "कॉपीराइट और लाइसेंसिंग",
+    "date": "तारीख",
+    "go_back_to": "वापस जाओ",
+    "in_order_to_understand_this_topic": "इस विषय को समझने के लिए, यह पढ़ना अच्छा होगा",
+    "new_testament": "नए करार",
+    "next_we_recommend_you_learn_about": "इसके बाद हम आपको इसके बारे में जानने की सलाह देते हैं",
+    "no_notes_for_this_verse": "इस कविता के लिए कोई नोट्स नहीं हैं।",
+    "no_questions_for_this_verse": "इस कविता के लिए कोई सवाल नहीं है।",
+    "no_study_notes_for_this_frame": "इस फ्रेम के लिए कोई अध्ययन नोट नहीं",
+    "old_testament": "पुराना वसीयतनामा",
+    "published_by": "द्वारा प्रकाशित",
+    "study_notes": "अध्ययन नोट",
+    "study_questions": "अध्ययन प्रश्न",
+    "table_of_contents": "विषयसूची",
+    "this_page_answers_the_question": "यह पृष्ठ प्रश्न का उत्तर देता है",
+    "version": "संस्करण"
+  },
+  "translator": "google"
+}

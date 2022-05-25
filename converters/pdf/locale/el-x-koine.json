@@ -1,0 +1,25 @@
+{
+  "google_lang": "en",
+  "source": "en",
+  "target": "el-x-koine",
+  "translations": {
+    "contributors": "Contributors",
+    "copyrights_and_licensing": "Copyrights and Licensing",
+    "date": "Date",
+    "go_back_to": "Go back to",
+    "in_order_to_understand_this_topic": "In order to understand this topic, it would be good to read",
+    "new_testament": "New Testament",
+    "next_we_recommend_you_learn_about": "Next we recommend you learn about",
+    "no_notes_for_this_verse": "There are no notes for this verse.",
+    "no_questions_for_this_verse": "There are no questions for this verse.",
+    "no_study_notes_for_this_frame": "No study notes for this frame",
+    "old_testament": "Old Testament",
+    "published_by": "Published by",
+    "study_notes": "Study Notes",
+    "study_questions": "Study Questions",
+    "table_of_contents": "Table of Contents",
+    "this_page_answers_the_question": "This page answers the question",
+    "version": "Version"
+  },
+  "translator": "google"
+}

@@ -2,10 +2,12 @@ import sys
 import os
 import logging
 import re
+import dcs_api_client
+import dcs_catalog_client
+import boto3
+import watchtower
 
 from aws_tools.s3_handler import S3Handler
-from boto3 import Session
-from watchtower import CloudWatchLogHandler
 
 from rq_settings import debug_mode_flag
 
@@ -70,6 +72,9 @@ class AppSettings:
     # module_table_name = 'modules'
     # language_stats_table_name = 'language-stats'
     linter_messaging_name = 'linter_complete'
+    dcs_url = None
+    repo_client = None
+    catalog_client = None
 
     # Prefixing vars
     # All variables that we change based on production, development and testing environments.
@@ -78,8 +83,14 @@ class AppSettings:
     prefixable_vars = ['name', 'cdn_bucket_name', 'linter_messaging_name',]
 
     # Credentials—get the secret ones from environment variables
-    aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
-    aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
+    if 'AWS_ACCESS_KEY_ID' in os.environ:
+        aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
+    else:
+        aws_access_key_id = None
+    if 'AWS_SECRET_ACCESS_KEY' in os.environ:
+        aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
+    else:
+        aws_secret_access_key = None
     aws_region_name = 'us-west-2'
 
     # Handlers
@@ -112,21 +123,33 @@ class AppSettings:
         if 'prefix' in kwargs and kwargs['prefix'] != cls.prefix:
             cls.__prefix_vars(kwargs['prefix'])
         cls.set_vars(**kwargs)
+
+        if not cls.dcs_url:
+            cls.dcs_url = os.getenv('DCS_URL', default='https://develop.door43.org' if cls.prefix else 'https://git.door43.org')
+
+        api_config = dcs_api_client.Configuration()
+        api_config.host = f"{cls.dcs_url}/api/v1"
+        cls.repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
+
+        catalog_config = dcs_catalog_client.Configuration()
+        catalog_config.host = f"{cls.dcs_url}/api/catalog"
+        cls.catalog_api = dcs_catalog_client.V5Api(dcs_catalog_client.ApiClient(catalog_config))
+
         test_mode_flag = os.getenv('TEST_MODE', '')
         travis_flag = os.getenv('TRAVIS_BRANCH', '')
         log_group_name = f"{'' if test_mode_flag or travis_flag else cls.prefix}tX" \
                          f"{'_DEBUG' if debug_mode_flag else ''}" \
                          f"{'_TEST' if test_mode_flag else ''}" \
                          f"{'_TravisCI' if travis_flag else ''}"
-        boto3_session = Session(aws_access_key_id=cls.aws_access_key_id,
+        boto3_client = boto3.client("logs", aws_access_key_id=cls.aws_access_key_id,
                             aws_secret_access_key=cls.aws_secret_access_key,
                             region_name=cls.aws_region_name)
-        cls.watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
-                                                    # use_queues=False, # Because this forked process is quite transient
-                                                    log_group=log_group_name,
-                                                    stream_name=cls.name)
+        cls.watchtower_log_handler = watchtower.CloudWatchLogHandler(boto3_client=boto3_client,
+                                                        log_group_name=log_group_name,
+                                                        stream_name=cls.name)
         setup_logger(cls.logger, cls.watchtower_log_handler,
                                 logging.DEBUG if debug_mode_flag else logging.INFO)
+        print(cls.aws_access_key_id)
         cls.logger.debug(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{cls.aws_access_key_id[-2:]}'.")
 
 
