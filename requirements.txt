@@ -1,5 +1,10 @@
+anyio==3.6.1
 beautifulsoup4==4.11.1
-chardet==4.0.0
+brotli==1.0.9
+cssutils==2.4.0
+dcs-api-client==1.16.8
+dcs-catalog-client==1.16.8
+googletrans==4.0.0rc1
 markdown==3.3.7
 markdown2==2.4.3
 pip-chill==1.0.1
@@ -9,3 +14,5 @@ requests==2.27.1
 rq==1.10.1
 statsd==3.3.0
 watchtower==3.0.0
+weasyprint==55.0
+zopfli==0.2.1

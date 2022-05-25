@@ -1,0 +1,25 @@
+{
+  "google_lang": "hr",
+  "source": "en",
+  "target": "hr",
+  "translations": {
+    "contributors": "Suradnici",
+    "copyrights_and_licensing": "Autorska prava i licenciranje",
+    "date": "Datum",
+    "go_back_to": "Vrati se na",
+    "in_order_to_understand_this_topic": "Da bi razumjeli ovu temu, bilo bi dobro čitati",
+    "new_testament": "Novi zavjet",
+    "next_we_recommend_you_learn_about": "Zatim preporučujemo da naučite",
+    "no_notes_for_this_verse": "Nema bilješki za ovaj stih.",
+    "no_questions_for_this_verse": "Nema pitanja za ovaj stih.",
+    "no_study_notes_for_this_frame": "Nema napomena za ovaj okvir",
+    "old_testament": "Stari zavjet",
+    "published_by": "Objavio",
+    "study_notes": "Bilješke",
+    "study_questions": "Studija pitanja",
+    "table_of_contents": "Sadržaj",
+    "this_page_answers_the_question": "Ova stranica odgovara na pitanje",
+    "version": "Verzija"
+  },
+  "translator": "google"
+}

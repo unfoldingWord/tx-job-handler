@@ -1,0 +1,14 @@
+.frame {
+    padding-bottom: 5px;
+}
+
+.frame h3 {
+    margin: 0;
+}
+
+.obs-img {
+    padding: 0 0 5px 0;
+    width: 100% !important;
+    max-width: 640px;
+    display: inline;
+}

@@ -1,17 +1,12 @@
 from typing import Dict, Any, Optional, Union, Callable
 import json
 import shutil
-import sys
 import ssl
-from contextlib import closing
-import logging
-from time import sleep
-
 import urllib.request as urllib2
+from contextlib import closing
+from time import sleep
 from urllib.error import HTTPError
-
 from app_settings.app_settings import AppSettings
-
 
 
 def get_url(url:str, catch_exception:bool=False) -> Union[str,bool]:
@@ -75,6 +70,7 @@ def _get_url(url:str, catch_exception:bool, urlopen:Callable[[str],bytes]) -> Un
 
 def download_file(url:str, outfile:str) -> None:
     """Downloads a file and saves it."""
+    print("URL: "+url)
     _download_file(url, outfile, urlopen=urllib2.urlopen)
 
 
@@ -99,6 +95,7 @@ def _download_file(url:str, outfile:str, urlopen:Callable[[str],bytes]) -> None:
             ctx.verify_mode = ssl.CERT_NONE
             with closing(urlopen(url)) as request:
                 with open(outfile, 'wb') as fp:
+                    print(f"FILE {request}, {outfile}\n")
                     shutil.copyfileobj(request, fp)
         except HTTPError as e:
             if num_tries < MAX_TRIES \

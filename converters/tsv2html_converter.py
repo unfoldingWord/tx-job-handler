@@ -1,9 +1,7 @@
 import os
-import tempfile
+import string
 from bs4 import BeautifulSoup
 from shutil import copyfile
-import yaml
-import re
 from typing import List
 
 # import markdown
@@ -20,7 +18,7 @@ class Tsv2HtmlConverter(Converter):
     Class to convert TSV translationNotes into HTML pages.
     """
     # NOTE: Not all columns are passed from the preprocessor—only the used ones
-    EXPECTED_TAB_COUNT = 4 # So there's one more column than this
+    EXPECTED_TAB_COUNT = 8 # So there's one more column than this
         # (The preprocessor removes unneeded columns while fixing links.)
 
 
@@ -35,17 +33,14 @@ class Tsv2HtmlConverter(Converter):
         # convert_only_list = self.check_for_exclusive_convert()
         convert_only_list = [] # Not totally sure what the above line did
 
-        # Process the manifest file
-        self.manifest_dict = None
-        for source_filepath in filepaths:
-            if 'manifest.yaml' in source_filepath:
-                self.process_manifest(source_filepath)
-                break
-
         current_dir = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
             # Simple HTML template which includes $title and $content fields
-            template_html = template_file.read()
+            template_html = string.Template(template_file.read())
+
+        template_html = template_html.safe_substitute(
+            title=self.repo_subject.replace('_', ' '),
+            lang=self.manifest_dict['dublin_core']['language']['identifier'])
 
         # Convert tsv files and copy across other files
         num_successful_books = num_failed_books = 0
@@ -112,20 +107,6 @@ class Tsv2HtmlConverter(Converter):
         if len(original_string) <= max_length:
             return original_string
         return f"{original_string[:max_length*3//4]}…{original_string[-max_length//4:]}"
-
-
-    def process_manifest(self, manifest_file_path:str) -> None:
-        """
-        Load the yaml manifest from the given file path
-            into self.manifest_dict
-        """
-        # AppSettings.logger.debug(f"process_manifest({manifest_file_path}) …")
-        with open(manifest_file_path, 'rt') as manifest_file:
-            # TODO: Check if full_load (less safe for untrusted input) is required
-            #       See https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation
-            self.manifest_dict = yaml.safe_load(manifest_file)
-        AppSettings.logger.info(f"Loaded {len(self.manifest_dict)} manifest_dict main entries: {self.manifest_dict.keys()}")
-        # AppSettings.logger.debug(f"Got manifest_dict: {self.manifest_dict}")
 
 
     def get_book_names(self, filename:str) -> None:

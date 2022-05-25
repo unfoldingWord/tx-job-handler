@@ -1,0 +1,25 @@
+{
+  "google_lang": "bn",
+  "source": "en",
+  "target": "as",
+  "translations": {
+    "contributors": "অবদানকারী",
+    "copyrights_and_licensing": "কপিরাইট এবং লাইসেন্সিং",
+    "date": "তারিখ.",
+    "go_back_to": "ফিরে যান",
+    "in_order_to_understand_this_topic": "এই বিষয়টি বোঝার জন্য, এটি পড়তে ভাল হবে",
+    "new_testament": "নববিধান",
+    "next_we_recommend_you_learn_about": "পরবর্তী আমরা আপনাকে সম্পর্কে শিখতে সুপারিশ",
+    "no_notes_for_this_verse": "এই আয়াত জন্য কোন নোট আছে।",
+    "no_questions_for_this_verse": "এই আয়াতের জন্য কোন প্রশ্ন নেই।",
+    "no_study_notes_for_this_frame": "এই ফ্রেম জন্য কোন গবেষণা নোট",
+    "old_testament": "পুরনো উইল",
+    "published_by": "দ্বারা প্রকাশিত",
+    "study_notes": "অধ্যয়ন নোট",
+    "study_questions": "অধ্যয়ন প্রশ্ন",
+    "table_of_contents": "সুচিপত্র",
+    "this_page_answers_the_question": "এই পৃষ্ঠাটি প্রশ্নের উত্তর দেয়",
+    "version": "সংস্করণ"
+  },
+  "translator": "google"
+}

@@ -1,5 +1,6 @@
 import os
 import tempfile
+import string
 from bs4 import BeautifulSoup
 from shutil import copyfile
 
@@ -23,7 +24,9 @@ class Usfm2HtmlConverter(Converter):
         current_dir = os.path.dirname(os.path.realpath(__file__))
         with open(os.path.join(current_dir, 'templates', 'template.html')) as template_file:
             # Simple HTML template which includes $title and $content fields
-            template_html = template_file.read()
+            template_html = string.Template(template_file.read())
+
+        template_html = template_html.safe_substitute(lang=self.manifest_dict['dublin_core']['language']['identifier'])
 
         # Convert usfm files and copy across other files
         num_successful_books = num_failed_books = 0

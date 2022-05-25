@@ -1,0 +1,23 @@
+{
+  "source": "en",
+  "target": "shu",
+  "translations": {
+    "table_of_contents": "Jaduwal hanal mahtuwiyat",
+    "copyrights_and_licensing": "Hukhukh hanal ta’alif wa nachir wa tarkhis",
+    "date": "Tarikh",
+    "published_by": "Nacharat min",
+    "version": "Al isdar",
+    "contributors": "Nas al sa’ado (al musahimiin)",
+    "study_notes": "Icharat al daris",
+    "study_questions": "as’ilat al daris",
+    "go_back_to": "Gabbil fi… (arja ila...)",
+    "this_page_answers_the_question": "Safha al di ti rud le sual",
+    "no_study_notes_for_this_frame": "Mafi icharat al daris fi bakan da (fil itar da)",
+    "in_order_to_understand_this_topic": "Le achan tafaham al mawduu da, yi kun seme bilhain le tagri",
+    "next_we_recommend_you_learn_about": "Baaden, natlubu minnak le ti ti’alim fi",
+    "no_notes_for_this_verse": "Mafi icharat al daris le aya al di.",
+    "old_testament": "Ahad al Gadim",
+    "new_testament": "Ahad al Jedid"
+  },
+  "translator": "native"
+}
