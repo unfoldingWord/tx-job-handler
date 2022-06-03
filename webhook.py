@@ -16,6 +16,9 @@ from time import time
 import sys
 import traceback
 import requests
+import boto3
+import watchtower
+import logging
 
 from rq import get_current_job, Queue
 from statsd import StatsClient # Graphite front-end
@@ -421,9 +424,6 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         AppSettings.logger.critical(f"{e}: {traceback.format_exc()}")
         AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
         # Now attempt to log it to an additional, separate FAILED log
-        import logging
-        from boto3 import Session
-        from watchtower import CloudWatchLogHandler
         logger2 = logging.getLogger(prefixed_name)
         test_mode_flag = os.getenv('TEST_MODE', '')
         travis_flag = os.getenv('TRAVIS_BRANCH', '')
@@ -432,13 +432,14 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
                          f"{'_TEST' if test_mode_flag else ''}" \
                          f"{'_TravisCI' if travis_flag else ''}"
         aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
-        boto3_session = Session(aws_access_key_id=aws_access_key_id,
-                            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
+        boto3_client = boto3.client("logs", aws_access_key_id=aws_access_key_id,
+                            aws_secret_access_key=aws_secret_access_key,
                             region_name='us-west-2')
-        failure_watchtower_log_handler = CloudWatchLogHandler(boto3_session=boto3_session,
-                                                    use_queues=False,
-                                                    log_group=log_group_name,
-                                                    stream_name=prefixed_name)
+        failure_watchtower_log_handler = watchtower.CloudWatchLogHandler(boto3_client=boto3_client,
+                                                use_queues=False,
+                                                log_group_name=log_group_name,
+                                                stream_name=prefixed_name)
         logger2.addHandler(failure_watchtower_log_handler)
         logger2.setLevel(logging.DEBUG)
         logger2.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{aws_access_key_id[-2:]}'.")
