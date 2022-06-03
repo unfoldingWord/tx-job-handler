@@ -14,20 +14,15 @@ import json
 from datetime import datetime, timedelta, date
 from time import time
 import sys
-sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 import traceback
-
-# Library (PyPI) imports
 import requests
+
 from rq import get_current_job, Queue
 from statsd import StatsClient # Graphite front-end
-
-# Local imports
 from rq_settings import prefix, debug_mode_flag, webhook_queue_name
 from general_tools.file_utils import unzip, remove_tree, empty_folder
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
-
 from linters.obs_linter import ObsLinter
 from linters.obs_notes_linter import ObsNotesLinter
 from linters.ta_linter import TaLinter
@@ -37,11 +32,11 @@ from linters.tw_linter import TwLinter
 from linters.markdown_linter import MarkdownLinter
 from linters.usfm_linter import UsfmLinter
 from linters.lexicon_linter import LexiconLinter
-
 from converters.md2html_converter import Md2HtmlConverter
 from converters.tsv2html_converter import Tsv2HtmlConverter
 from converters.usfm2html_converter import Usfm2HtmlConverter
 
+sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 
 # NOTE: The following two tables are each scanned in order
 #       (so put 'other' entries lower)
@@ -89,12 +84,12 @@ AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
 tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
-job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
+job_handler_stats_prefix = f"{tx_stats_prefix}.tx-job-handler"
 
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
 graphite_url = os.getenv('GRAPHITE_HOSTNAME', 'localhost')
-stats_client = StatsClient(host=graphite_url, port=8125)
+stats_client = StatsClient(host=graphite_url, port=8125, prefix=job_handler_stats_prefix)
 
 
 
@@ -300,8 +295,8 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
                                    f" contains {os.listdir(source_folder_path)}")
 
     # Save some stats
-    stats_client.incr(f"{job_handler_stats_prefix}.jobs.HTML.input.{queued_json_payload['input_format']}")
-    stats_client.incr(f"{job_handler_stats_prefix}.jobs.HTML.subject.{queued_json_payload['resource_type']}")
+    stats_client.incr(f"jobs.HTML.input.{queued_json_payload['input_format']}")
+    stats_client.incr(f"jobs.HTML.subject.{queued_json_payload['resource_type']}")
 
 
     # Find the correct linter and converter
@@ -357,7 +352,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        stats_client.incr(f'{job_handler_stats_prefix}.callbacks.HTML.attempted')
+        stats_client.incr('callbacks.HTML.attempted')
         response:Optional[requests.Response]
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
@@ -405,7 +400,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     """
     AppSettings.logger.debug("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
-    stats_client.incr(f'{job_handler_stats_prefix}.jobs.HTML.attempted')
+    stats_client.incr('jobs.HTML.attempted')
 
     AppSettings.logger.info(f"Clearing /tmp folder…")
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
@@ -414,7 +409,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     our_queue= Queue(webhook_queue_name, connection=get_current_job().connection)
     len_our_queue = len(our_queue) # Should normally sit at zero here
     # AppSettings.logger.debug(f"Queue '{webhook_queue_name}' length={len_our_queue}")
-    stats_client.gauge(f'{tx_stats_prefix}.enqueue-job.queue.length.current', len_our_queue)
+    stats_client.gauge(f'{webhook_queue_name}.queue.length.current', len_our_queue)
     AppSettings.logger.info(f"Updated stats for '{tx_stats_prefix}.enqueue-job.queue.length.current' to {len_our_queue}")
 
     try:
@@ -453,13 +448,13 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
-    stats_client.timing(f'{job_handler_stats_prefix}.job.HTML.duration', elapsed_milliseconds)
+    stats_client.timing(f'job.HTML.duration', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
-    stats_client.incr(f'{job_handler_stats_prefix}.jobs.HTML.completed')
+    stats_client.incr('jobs.HTML.completed')
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 

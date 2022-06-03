@@ -1,29 +1,18 @@
-# rq and statsd/Graphite and requests are used by the job handler
-rq==1.9.0
-click==8.0.1
-statsd==3.3.0
-requests==2.24.0
-watchtower==0.8.0
-
-# yaml is used by file_utils used by ResourceContainer
-pyyaml==5.3.1
-
-# dateutil is used by data_utils used by ResourceContainer
+anyio==3.6.1
+beautifulsoup4==4.11.1
+brotli==1.0.9
+cssutils==2.4.0
+dcs-api-client==1.16.8
+dcs-catalog-client==1.16.8
+googletrans==4.0.0rc1
+markdown==3.3.7
+markdown2==2.4.3
+pip-chill==1.0.1
 py-dateutil==2.2
-
-# boto3 is used by aws_tools
-boto3==1.16.1
-
-# pyparsing is used by usfm_tools/parseUsfm.py
-pyparsing==2.4.7
-
-# markdown is used by converters/md2html_converter.py
-markdown==3.3.1
-markdown2==2.3.10
-
-# usfm-tools (transform) is used by converters/usfm2html_converter.py
-# We copied in the files and updated to Python3
-#usfm-tools==0.0.22
-
-# BeautifulSoup is used by converters/md2html_converter.py
-beautifulsoup4==4.9.3
+pyyaml==6.0
+requests==2.27.1
+rq==1.10.1
+statsd==3.3.0
+watchtower==3.0.0
+weasyprint==55.0
+zopfli==0.2.1
