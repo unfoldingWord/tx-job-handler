@@ -285,6 +285,8 @@ class Resource:
         if '* ' in release.body:
           release_body = release.body
           break
+    else:
+        release_body = self.uw_release.body
     if not release_body or '* ' not in release_body:
       print(f"{self.name} needs a release with a body containing the books!")
       sys.exit(1)
@@ -372,6 +374,7 @@ class Resource:
 
   def generate_pdf(self):
     pdf_path = output_file=f'/tmp/pdfs/{self.name}'
+    print("PDF PATH: "+pdf_path)
     if not os.path.exists(pdf_path):
       generate_pdf(repo_name=self.name, output_file=pdf_path)
 
@@ -445,10 +448,6 @@ class OLResource(Resource):
     repo.git.commit(m=f'Version {self.next_version}')
     repo.git.push('--set-upstream', 'origin', branch)
 
-  def generate_pdf(self):
-    pass
-
-
 class TQResource(Resource):
 
   def make_d43_prepub_branch(self):
@@ -517,6 +516,11 @@ class Publisher:
     # for resource in self.resources.values():
     #   resource.publish()
     for resource in self.resources.values():
+      print(resource.name)
+      if resource.name not in ['el-x-koine_ugnt', 'hbo_uhb']:
+        print("HERE1")
+        continue
+      print("HERE2")
       resource.generate_pdf()
 
 

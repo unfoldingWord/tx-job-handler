@@ -1331,7 +1331,7 @@ class PdfConverter(Converter):
                 repo = f'{lang}_{resource_name}'
                 for ref in refs:
                     try:
-                        return AppSettings.catalog_api.catlog_get_entry(owner, repo, ref)
+                        return AppSettings.catalog_api.catalog_get_entry(owner, repo, ref)
                     except ApiException as e:
                         AppSettings.logger.critical("Exception when calling V5Api->catalog_get_entry: %s\n" % e)
 
