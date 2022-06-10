@@ -513,14 +513,9 @@ class Publisher:
       'en_tn': Resource(name='en_tn', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
     })
 
-    # for resource in self.resources.values():
-    #   resource.publish()
     for resource in self.resources.values():
-      print(resource.name)
-      if resource.name not in ['el-x-koine_ugnt', 'hbo_uhb']:
-        print("HERE1")
-        continue
-      print("HERE2")
+      resource.publish()
+    for resource in self.resources.values():
       resource.generate_pdf()
 
 
