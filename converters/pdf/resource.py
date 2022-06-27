@@ -163,7 +163,7 @@ class Resource(object):
     def catalog_entry(self):
         if not self._catalog_entry:
             try:
-                self._catalog_entry = AppSettings.catalog_api.catlog_get_entry(self.owner, self.repo_name, self.ref)
+                self._catalog_entry = AppSettings.catalog_api.catalog_get_entry(self.owner, self.repo_name, self.ref)
             except ApiException as e:
                 print("Exception when calling V5Api->catalog_get_entry: %s\n" % e)
         return self._catalog_entry
