@@ -26,4 +26,4 @@ QUEUES = [webhook_queue_name]
 #SENTRY_DSN = 'sync+http://public:secret@example.com/1'
 
 # Our stuff
-debug_mode_flag = getenv('DEBUG_MODE', None)
+debug_mode_flag = getenv('DEBUG_MODE', 'True').lower() not in ['false', 'f', '', 0]

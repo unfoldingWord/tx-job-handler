@@ -18,9 +18,9 @@
     "path-extra": "^4.3.0",
     "rimraf": "^3.0.2",
     "string-punctuation-tokenizer": "^2.2.0",
-    "tc-source-content-updater": "^1.2.12",
-    "tsv-groupdata-parser": "^0.10.3",
-    "usfm-js": "^2.1.0",
-    "yargs": "^17.3.1"
+    "tc-source-content-updater": "^1.4.3",
+    "tsv-groupdata-parser": "^0.12.1",
+    "usfm-js": "^3.4.0",
+    "yargs": "^17.5.1"
   }
 }

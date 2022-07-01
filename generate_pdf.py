@@ -97,26 +97,30 @@ def generate_pdf(repo_name, owner='unfoldingWord', ref=None, dcs_domain='git.doo
     #     if input(f"Are you sure you want to overwrite {output_file}? (y/n)") != "y":
     #         return
 
-    data = {
-        "output": output_file,
-        "job_id": f"Door43--{owner}--{repo_name}",
-        "identifier": f"{owner}--{repo_name}",
-        "resource_type": subject,
-        "input_format": input_format,
-        "output_format": "pdf",
-        "source": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{ref}.zip",
-        "repo_name": repo_name,
-        "repo_owner": owner,
-        "repo_ref": ref,
-        "repo_data_url": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{ref}.zip",
-        "dcs_domain": f"https://{dcs_domain}",
-        "project_ids": project_ids,
-    }
-
-    print(data)
-    process_tx_job("dev", data)
-
     orig_pdf_files = sorted(glob(os.path.join(os.path.dirname(output_file), 'Output', '*.pdf')))
+
+    if len(orig_pdf_files) < 1:
+        data = {
+            "output": output_file,
+            "job_id": f"Door43--{owner}--{repo_name}",
+            "identifier": f"{owner}--{repo_name}",
+            "resource_type": subject,
+            "input_format": input_format,
+            "output_format": "pdf",
+            "source": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{ref}.zip",
+            "repo_name": repo_name,
+            "repo_owner": owner,
+            "repo_ref": ref,
+            "repo_data_url": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{ref}.zip",
+            "dcs_domain": f"https://{dcs_domain}",
+            "project_ids": project_ids,
+        }
+    
+        print(data)
+        process_tx_job("dev", data)
+
+        orig_pdf_files = sorted(glob(os.path.join(os.path.dirname(output_file), 'Output', '*.pdf')))
+
     if len(orig_pdf_files) < 1:
         print("NO PDF FILES WERE GENERATED!!!")
         sys.exit(1)
