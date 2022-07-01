@@ -309,6 +309,7 @@ def handle_book(BBB:str, nn:str) -> Tuple[int,int]:
     handled_USFM_line = True; finished_USFM = False
     handled_TWL_line = True; finished_TWL = False
     added_origL_words = True
+    twls_done = {}
     while True:
         # Get a new USFM line if necessary
         if handled_USFM_line and not finished_USFM:
@@ -332,6 +333,22 @@ def handle_book(BBB:str, nn:str) -> Tuple[int,int]:
             try:
                 twl_C, twl_V, orig_TWL_words, occurrence, tw_category, tw_word = adjust_TWL_TSV_fields(next(TWL_source_line_generator))
                 if debugMode: print(f"Got TWL {BBB} {twl_C}:{twl_V}, '{orig_TWL_words}', {occurrence}, '{tw_category}/{tw_word}' with {len(outstanding_TWL_orig_words_list)} {outstanding_TWL_orig_words_list} and {len(origLang_words_in_this_USFM_verse)} {origLang_words_in_this_USFM_verse}")
+                while twl_C in twls_done and twl_V in twls_done[twl_C] and tw_category in twls_done[twl_C][twl_V] and tw_word in twls_done[twl_C][twl_V][tw_category] and orig_TWL_words in twls_done[twl_C][twl_V][tw_category][tw_word] and occurrence in twls_done[twl_C][twl_V][tw_category][tw_word]:
+                    print("HERE!")
+                    print(twls_done[twl_C][twl_V])
+                    exit(1)
+                    ocurrence += 1
+                if twl_C not in twls_done:
+                    twls_done[twl_C] = {}
+                if twl_V not in twls_done[twl_C]:
+                    twls_done[twl_C][twl_V] = {}
+                if tw_category not in twls_done[twl_C][twl_V]:
+                    twls_done[twl_C][twl_V][tw_category] = {}
+                if tw_word not in twls_done[twl_C][twl_V][tw_category]:
+                    twls_done[twl_C][twl_V][tw_category][tw_word] = {}
+                if orig_TWL_words not in twls_done[twl_C][twl_V][tw_category][tw_word]:
+                    twls_done[twl_C][twl_V][tw_category][tw_word][orig_TWL_words] = {}
+                twls_done[twl_C][twl_V][tw_category][tw_word][orig_TWL_words][occurrence] = True
                 handled_TWL_line = False
             except StopIteration:
                 # print("      Finished TWL"); orig_TWL_words = ''
@@ -349,7 +366,8 @@ def handle_book(BBB:str, nn:str) -> Tuple[int,int]:
         if usfm_C > twl_C+1 \
         or (usfm_C == twl_C+1 and usfm_V > 1) \
         or  (usfm_C == twl_C and usfm_V > twl_V+1):
-            raise Exception(f"USFM {BBB} {usfm_C}:{usfm_V} went too far past TWL {twl_C}:{twl_V} '{orig_TWL_words}' {occurrence}")
+            print(f"ERROR: USFM {BBB} {usfm_C}:{usfm_V} went too far past TWL {twl_C}:{twl_V} '{orig_TWL_words}' {occurrence}")
+            break
 
         if not handled_USFM_line:
             # Clear the word list for new verses
@@ -550,7 +568,9 @@ def handle_book(BBB:str, nn:str) -> Tuple[int,int]:
                 handled_USFM_line = True
                 continue
 
-        raise Exception(f"Why are we looping in {BBB} USFM {usfm_C}:{usfm_V} with TWL {twl_C}:{twl_V} '{orig_TWL_words}': {tw_word}")
+        print(f"Why are we looping in {BBB} USFM {usfm_C}:{usfm_V} with TWL {twl_C}:{twl_V} '{orig_TWL_words}': {tw_word}")
+        handled_TWL_line = True
+        # raise Exception(f"Why are we looping in {BBB} USFM {usfm_C}:{usfm_V} with TWL {twl_C}:{twl_V} '{orig_TWL_words}': {tw_word}")
 
     # if new_USFM_lines: print(f"Created USFM ({len(new_USFM_lines)}): {new_USFM_lines}")
     # assert finished_USFM and finished_TWL

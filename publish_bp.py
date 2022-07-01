@@ -32,13 +32,15 @@ AWS_ACCESS_KEY_ID = getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = getenv("AWS_SECRET_ACCESS_KEY")
 DCS_TOKEN = getenv("DCS_TOKEN")
 DCS_DOMAIN = getenv("DCS_DOMAIN", "qa.door43.org")
-PUBLISH_DIR = getenv("PUBLISH_DIR", "/tmp/publish")
-BOOKS_PUBLISHED = ["rut",  "ezr",  "neh",  "est",  "oba",  "jon",  "luk",  "eph",  "php",  "col",  "1th",  "1ti",  "2ti",  "tit",  "phm",  "jas",  "2pe",  "1jn",  "2jn",  "3jn", "jud"]
+PUBLISH_DIR = getenv("PUBLISH_DIR", "/tmp/publish2")
+PDFS_DIR = getenv("PDFS_DIR", "/tmp/pdfs2")
+BOOKS_PUBLISHED = ["exo", "rut",  "ezr",  "neh",  "est",  "oba",  "jon",  "luk",  "jhn", "eph",  "php",  "col",  "1th",  "1ti",  "2ti",  "tit",  "phm",  "jas",  "2pe",  "1jn",  "2jn",  "3jn", "jud"]
 RESOURCES = ["uhb", "ugnt", "tw", "twl", "ult", "ust", "ta", "tq", "tn"]
 NO_PDF_REPOS = ["uhb", "ugnt", "twl"]
 D43_IS_FORK = ["tw", "ult", "ust", "ta", "tn"]
 DATE = datetime.now().strftime('%Y-%m-%d')
 YEAR = datetime.now().strftime('%Y')
+BP_STAGING = 'bp_staging'
 
 INVERTED_BOOK_NAMES = {v: k for k, v in BOOK_NAMES.items()}
 
@@ -163,7 +165,7 @@ class Resource:
   def d43_pr(self):
     if not self._d43_pr:
       for pr in self.d43_prs:
-        if pr.head.label == self.prepub_branch_name:
+        if pr.head.label == 'master' and pr.head.repo.owner.login  == BP_STAGING:
           self._d43_pr = pr
           break
     return self._d43_pr
@@ -185,7 +187,7 @@ class Resource:
     self.make_uw_pr()
 
   def publish_to_d43(self):
-    self.make_d43_prepub_branch()
+    self.update_bp_staging()
     self.make_d43_pr()
 
   def make_uw_prepub_branch(self):
@@ -341,24 +343,20 @@ class Resource:
       print(f"FAILED TO CREATE/UPDATE PULL REQUEST FOR {self.name}")
       sys.exit(1)    
 
-  def make_d43_prepub_branch(self):
-    try:
-      self.repo_api.repo_delete_branch('Door43-Catalog', self.name, self.prepub_branch_name)
-    except ApiException:
-      pass
-    tmp_path = '/tmp/publish'
+  def update_bp_staging(self):
+    tmp_path = PUBLISH_DIR
     os.makedirs(tmp_path, exist_ok=True)
     repo_path = os.path.join(tmp_path, self.name)
     shutil.rmtree(repo_path, ignore_errors=True)    
     repo = Repo.clone_from(f'git@{self.dcs}:unfoldingWord/{self.name}.git', repo_path, branch=self.prepub_branch_name)
-    repo.git.push(f'git@{self.dcs}:Door43-Catalog/{self.name}.git')
+    repo.git.push(f'git@{self.dcs}:{BP_STAGING}/{self.name}.git', f'{self.prepub_branch_name}:master', '-f')
 
   def make_d43_pr(self):
     if not self.d43_pr:
       body = dcs_api_client.CreatePullRequestOption(
         title=f'Version {self.next_version}',
-        head=self.prepub_branch_name,
-        base=self.repo.default_branch,
+        head=f'{BP_STAGING}:master',
+        base='master',
         body=self.generate_release_notes()
       )
       resp = self.repo_api.repo_create_pull_request('Door43-Catalog', self.name, body=body)
@@ -367,26 +365,22 @@ class Resource:
         title=f'Version {self.next_version}',
         body=self.generate_release_notes()
       )
-      resp = self.repo_api.repo_edit_pull_request('Door43-Catalog', self.name, self.uw_pr.number, body=body)
+      resp = self.repo_api.repo_edit_pull_request('Door43-Catalog', self.name, self.d43_pr.number, body=body)
     if not resp:
-      print(f"FAILED TO CREATE/UPDATE PULL REQUEST FOR Door43-Cagtalog/{self.name}")
+      print(f"FAILED TO CREATE/UPDATE PULL REQUEST FOR Door43-Catalog/{self.name}")
       sys.exit(1)    
 
   def generate_pdf(self):
-    pdf_path = output_file=f'/tmp/pdfs/{self.name}'
+    pdf_path = os.path.join(PDFS_DIR, self.name);
     print("PDF PATH: "+pdf_path)
-    if not os.path.exists(pdf_path):
-      generate_pdf(repo_name=self.name, output_file=pdf_path)
+    # if not os.path.exists(pdf_path):
+    generate_pdf(repo_name=self.name, output_file=pdf_path, upload=self.upload)
 
 
 class BibleResource(Resource):
   
-  def make_d43_prepub_branch(self):
-    try:
-      self.repo_api.repo_delete_branch('Door43-Catalog', self.name, self.prepub_branch_name)
-    except ApiException:
-      pass
-    tmp_path = '/tmp/publish'
+  def update_bp_staging(self):
+    tmp_path = PUBLISH_DIR
     os.makedirs(tmp_path, exist_ok=True)
     repo_path = os.path.join(tmp_path, self.name)
     shutil.rmtree(repo_path, ignore_errors=True)    
@@ -404,8 +398,11 @@ class BibleResource(Resource):
     with open(manifest_path, "w") as manifest_fp:
       manifest_fp.write(manifest_dump)
     repo.git.add('*')
-    repo.git.commit(m=f'Version {self.next_version}')
-    repo.git.push(f'git@{self.dcs}:Door43-Catalog/{self.name}.git')
+    try:
+      repo.git.commit(m=f'Version {self.next_version}')
+      repo.git.push(f'git@{self.dcs}:{BP_STAGING}/{self.name}.git', f'{self.prepub_branch_name}:master', '-f')
+    except:
+      pass
 
 
 class TWLResource(Resource):
@@ -420,38 +417,36 @@ class TWLResource(Resource):
 
 class OLResource(Resource):
   
-  def make_d43_prepub_branch(self):
-    tmp_path = '/tmp/publish'
+  def update_bp_staging(self):
+    tmp_path = PUBLISH_DIR
     os.makedirs(tmp_path, exist_ok=True)
     ol_path = os.path.join(tmp_path, self.name)
     twl_path = os.path.join(tmp_path, 'en_twl')
     shutil.rmtree(ol_path, ignore_errors=True)
     shutil.rmtree(twl_path, ignore_errors=True)
     
-    repo = Repo.clone_from(f'git@{self.dcs}:Door43-Catalog/{self.name}.git', ol_path) #, filter=['tree:0','blob:none'], sparse=True)
+    repo = Repo.clone_from(f'git@{self.dcs}:{BP_STAGING}/{self.name}.git', ol_path) #, filter=['tree:0','blob:none'], sparse=True)
 
-    for b in repo.remote().refs:
-      if b.name == f'{repo.remote().name}/{self.prepub_branch_name}':
-        repo.remote().push(refspec=(":%s" % b.remote_head))
-    branch = repo.create_head(self.prepub_branch_name)
-    branch.checkout()
-    
     upstream = repo.create_remote(f'upstream', f'git@{self.dcs}:unfoldingWord/{self.name}.git')
     upstream.fetch(self.prepub_branch_name, filter=['tree:0','blob:none'])
     repo.git.checkout(f'upstream/{self.prepub_branch_name}', '*.usfm', '*.md', '*.yaml')
 
     Repo.clone_from(f'git@{self.dcs}:unfoldingWord/en_twl.git', twl_path, 
-      branch=self.publisher.resources['en_twl'].prepub_branch_name,
+      branch=self.publisher.resources['twl'].prepub_branch_name,
       filter=['tree:0','blob:none'], sparse=True)
     insert_twl_into_ol(ol_path, twl_path)    
+
     repo.git.add('*')
-    repo.git.commit(m=f'Version {self.next_version}')
-    repo.git.push('--set-upstream', 'origin', branch)
+    try:
+      repo.git.commit(m=f'Version {self.next_version}')
+      repo.git.push('--set-upstream', 'origin', 'master')
+    except:
+      pass
 
 class TQResource(Resource):
 
-  def make_d43_prepub_branch(self):
-    tmp_path = '/tmp/publish'
+  def update_bp_staging(self):
+    tmp_path = PUBLISH_DIR
     os.makedirs(tmp_path, exist_ok=True)
     tsv_path = os.path.join(tmp_path, f'{self.name}_tsv')
     md_path = os.path.join(tmp_path, f'{self.name}_md')
@@ -460,31 +455,30 @@ class TQResource(Resource):
 
     Repo.clone_from(f'git@{self.dcs}:unfoldingWord/{self.name}.git', tsv_path, branch=self.prepub_branch_name)    
 
-    repo = Repo.clone_from(f'git@{self.dcs}:Door43-Catalog/{self.name}.git', md_path) #, filter=['tree:0','blob:none'], sparse=True)
+    repo = Repo.clone_from(f'git@{self.dcs}:{BP_STAGING}/{self.name}.git', md_path) #, filter=['tree:0','blob:none'], sparse=True)
     upstream = repo.create_remote(f'upstream', f'git@{self.dcs}:unfoldingWord/{self.name}.git')
     upstream.fetch(self.prepub_branch_name, filter=['tree:0','blob:none'])
 
-    for b in repo.remote().refs:
-      if b.name == f'{repo.remote().name}/{self.prepub_branch_name}':
-        repo.remote().push(refspec=(":%s" % b.remote_head))
-    branch = repo.create_head(self.prepub_branch_name)
-    branch.checkout()
-    
     repo.git.checkout(f'upstream/{self.prepub_branch_name}', '*.md', '*.yaml')
 
-    convert_tsv_tq_to_md_tq(tsv_path, md_path)    
+    convert_tsv_tq_to_md_tq(tsv_path, md_path)
     repo.git.add('*')
-    repo.git.commit(m=f'Version {self.next_version}')
-    repo.git.push('--set-upstream', 'origin', branch)
+    try:
+      repo.git.commit(m=f'Version {self.next_version}')
+      repo.git.push('--set-upstream', 'origin', 'master')
+    except:
+      pass
 
 
 class Publisher:
 
-  def __init__(self, book_ids, working_dir=None, dcs='qa.door43.org', upload=True, debug=False):
+  def __init__(self, book_ids, resource_ids=RESOURCES, working_dir=None, dcs='qa.door43.org', upload=True, pdf_only=False, debug=False):
     self.dcs = dcs
     self.upload = upload
     self.debug = debug
+    self.pdf_only = pdf_only
     self.book_ids = book_ids
+    self.resource_ids = resource_ids
     self.resources = None
 
     self.working_dir = working_dir
@@ -502,21 +496,24 @@ class Publisher:
 
   def run(self):
     self.resources = OrderedDict({
-      'en_twl': TWLResource(name='en_twl', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'en_tw': Resource(name='en_tw', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'el-x-koine_ugnt': OLResource(name='el-x-koine_ugnt', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'hbo_uhb': OLResource(name='hbo_uhb', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'en_ult': BibleResource(name='en_ult', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'en_ust': BibleResource(name='en_ust', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'en_ta': Resource(name='en_ta', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'en_tq': TQResource(name='en_tq', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
-      'en_tn': Resource(name='en_tn', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'twl': TWLResource(name='en_twl', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'tw': Resource(name='en_tw', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'ugnt': OLResource(name='el-x-koine_ugnt', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'uhb': OLResource(name='hbo_uhb', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'ult': BibleResource(name='en_ult', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'ust': BibleResource(name='en_ust', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'ta': Resource(name='en_ta', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'tq': TQResource(name='en_tq', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
+      'tn': Resource(name='en_tn', publisher=self, dcs=self.dcs, working_dir=self.working_dir, upload=self.upload, debug=self.debug),
     })
 
-    for resource in self.resources.values():
-      resource.publish()
-    for resource in self.resources.values():
-      resource.generate_pdf()
+    if not self.pdf_only:
+      for resource_id, resource in self.resources.items():
+        if resource_id in self.resource_ids:
+          resource.publish()
+    for resource_id, resource in self.resources.items():
+      if resource_id in self.resource_ids:
+        resource.generate_pdf()
 
 
 def main():
@@ -528,6 +525,9 @@ def main():
     parser.add_argument('--dcs', dest='dcs', default=DCS_DOMAIN, help=f'DCS domain name. Default: {DCS_DOMAIN}')
     parser.add_argument('-b', '--book', metavar='BOOK ID', dest='book_ids', required=True, action='append',
                         help='Book ID of the book(s) being published this release')
+    parser.add_argument('-r', '--resource', metavar='RESOURCE ID', dest='resource_ids', required=False, action='append',
+                        help='Resource ID of the resources to process. Defaults to all resources.')
+    parser.add_argument('--pdf-only', dest="pdf_only", action='store_true', help="Only process the PDFs. Default: false")
 
     args = parser.parse_args(sys.argv[1:])
 
@@ -535,11 +535,16 @@ def main():
     debug = args.debug
     dcs = args.dcs
     book_ids = args.book_ids
+    resource_ids = args.resource_ids
+    pdf_only = args.pdf_only
 
     for book_id in book_ids:
       if book_id not in BOOK_NAMES:
         print(f"Invalid Book ID: {book_id}")
         sys.exit(1)
+    
+    if not resource_ids:
+      resource_ids = RESOURCES;
 
     working_dir = args.working_dir
 
@@ -555,7 +560,7 @@ def main():
 
     print(f"DCS: {dcs}")
 
-    publisher = Publisher(book_ids=book_ids, working_dir=working_dir, dcs=dcs, upload=upload, debug=debug)
+    publisher = Publisher(book_ids=book_ids, resource_ids=resource_ids, working_dir=working_dir, dcs=dcs, upload=upload, pdf_only=pdf_only, debug=debug)
     publisher.run()
     exit(1)
 
