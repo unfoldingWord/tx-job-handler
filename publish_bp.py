@@ -34,7 +34,7 @@ DCS_TOKEN = getenv("DCS_TOKEN")
 DCS_DOMAIN = getenv("DCS_DOMAIN", "qa.door43.org")
 PUBLISH_DIR = getenv("PUBLISH_DIR", "/tmp/publish2")
 PDFS_DIR = getenv("PDFS_DIR", "/tmp/pdfs2")
-BOOKS_PUBLISHED = ["exo", "rut",  "ezr",  "neh",  "est",  "oba",  "jon",  "luk",  "jhn", "eph",  "php",  "col",  "1th",  "1ti",  "2ti",  "tit",  "phm",  "jas",  "2pe",  "1jn",  "2jn",  "3jn", "jud"]
+BOOKS_PUBLISHED = ["exo", "rut",  "ezr",  "neh",  "est",  "oba",  "jon",  "luk",  "jhn", "eph",  "php",  "col",  "1th",  "1ti",  "2ti",  "tit",  "phm",  "jas",  "1pe", "2pe",  "1jn",  "2jn",  "3jn", "jud"]
 RESOURCES = ["uhb", "ugnt", "tw", "twl", "ult", "ust", "ta", "tq", "tn"]
 NO_PDF_REPOS = ["uhb", "ugnt", "twl"]
 D43_IS_FORK = ["tw", "ult", "ust", "ta", "tn"]
@@ -76,7 +76,7 @@ class Resource:
     self._uw_pr = None
     self._d43_prs = []
     self._d43_pr = None
-  
+
   @property
   def repo(self):
     if not self._repo:
@@ -95,7 +95,7 @@ class Resource:
     if not self._version:
       self._version = self.manifest['dublin_core']['version']
     return self._version
-  
+
   @property
   def next_version(self):
     if not self._next_version:
@@ -125,7 +125,7 @@ class Resource:
       else:
         self._should_publish = True
     return self._should_publish
-  
+
   @property
   def prepub_branch_name(self):
     return f"prePub{self.next_version}"
@@ -145,7 +145,7 @@ class Resource:
     if not self._uw_prs:
       self._uw_prs = self.repo_api.repo_list_pull_requests('unfoldingWord', self.name, state='open')
     return self._uw_prs
-  
+
   @property
   def uw_pr(self):
     if not self._uw_pr:
@@ -160,7 +160,7 @@ class Resource:
     if not self._d43_prs:
       self._d43_prs = self.repo_api.repo_list_pull_requests('Door43-Catalog', self.name, state='open')
     return self._d43_prs
-  
+
   @property
   def d43_pr(self):
     if not self._d43_pr:
@@ -197,7 +197,7 @@ class Resource:
     except ApiException:
       self.branch = self.repo_api.repo_create_branch('unfoldingWord', self.name, body=dcs_api_client.CreateBranchRepoOption(old_branch_name=self.repo.default_branch, new_branch_name=self.prepub_branch_name))
       print(f"Created branch for unfoldingWord/{self.name} as {self.prepub_branch_name}")
-  
+
   def update_uw_files(self):
     self.update_uw_manifest()
     self.update_uw_license()
@@ -245,7 +245,7 @@ class Resource:
     if orig_license != new_license:
       body = dcs_api_client.UpdateFileOptions(branch=self.prepub_branch_name, sha=license_contents.sha, content=b64encode(new_license.encode('utf-8')).decode('utf-8'))
       self.repo_api.repo_update_file('unfoldingWord', self.name, 'LICENSE.md', body)
-  
+
   def make_uw_release(self):
     if self.uw_release:
       try:
@@ -268,7 +268,7 @@ class Resource:
     body = dcs_api_client.CreateReleaseOption(
       name=f'Version {self.next_version}',
       tag_name=f'v{self.next_version}',
-      prerelease=False,
+      prerelease=True,
       draft=False,
       target_commitish="master",
       body=self.generate_release_notes()
@@ -378,7 +378,7 @@ class Resource:
 
 
 class BibleResource(Resource):
-  
+
   def update_bp_staging(self):
     tmp_path = PUBLISH_DIR
     os.makedirs(tmp_path, exist_ok=True)
@@ -406,7 +406,7 @@ class BibleResource(Resource):
 
 
 class TWLResource(Resource):
-  
+
   def publish_to_d43(self):
     # WE DO NOT PUBLISH THIS RESOURCE TO D43
     pass
@@ -416,7 +416,7 @@ class TWLResource(Resource):
     pass
 
 class OLResource(Resource):
-  
+
   def update_bp_staging(self):
     tmp_path = PUBLISH_DIR
     os.makedirs(tmp_path, exist_ok=True)
@@ -424,7 +424,7 @@ class OLResource(Resource):
     twl_path = os.path.join(tmp_path, 'en_twl')
     shutil.rmtree(ol_path, ignore_errors=True)
     shutil.rmtree(twl_path, ignore_errors=True)
-    
+
     repo = Repo.clone_from(f'git@{self.dcs}:{BP_STAGING}/{self.name}.git', ol_path) #, filter=['tree:0','blob:none'], sparse=True)
 
     upstream = repo.create_remote(f'upstream', f'git@{self.dcs}:unfoldingWord/{self.name}.git')
@@ -434,6 +434,7 @@ class OLResource(Resource):
     Repo.clone_from(f'git@{self.dcs}:unfoldingWord/en_twl.git', twl_path, 
       branch=self.publisher.resources['twl'].prepub_branch_name,
       filter=['tree:0','blob:none'], sparse=True)
+
     insert_twl_into_ol(ol_path, twl_path)    
 
     repo.git.add('*')
@@ -445,7 +446,45 @@ class OLResource(Resource):
 
 class TQResource(Resource):
 
+  def update_bp_manifest(self):
+    orig_manifest_contents = self.repo_api.repo_get_contents(BP_STAGING, self.name, filepath="manifest.yaml", ref="master")
+    orig_manifest_str = b64decode(orig_manifest_contents.content).decode('utf-8')
+    new_manifest = ruamel.yaml.round_trip_load(orig_manifest_str, preserve_quotes=True)
+    new_manifest['dublin_core']['modified'] = new_manifest['dublin_core']['issued'] = datetime.now().strftime('%Y-%m-%d')
+    new_manifest['dublin_core']['version'] = self.next_version
+    for idx, source in enumerate(new_manifest['dublin_core']['source']):
+      if source['identifier'] == self.manifest['dublin_core']['identifier'] and source['language'] == self.manifest['dublin_core']['language']:
+        new_manifest['dublin_core']['source'][idx]['version'] = self.prev_version
+    for idx, relation in enumerate(new_manifest['dublin_core']['relation']):
+      lang, rest = relation.split('/')
+      if '?' in rest:
+        resource, rest = rest.split('?')
+      else:
+        resource = rest
+      repo_name = f"{lang}_{resource}"
+      if repo_name in self.publisher.resources:
+        new_manifest['dublin_core']['relation'][idx] = f"{lang}/{resource}?v={self.publisher.resources[repo_name].next_version}"
+    for idx, source in enumerate(new_manifest['dublin_core']['source']):
+      repo_name = f'{source["language"]}_{source["identifier"]}'
+      if repo_name in self.publisher.resources:
+        if repo_name == self.name:
+          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[repo_name].version
+        else:
+          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[repo_name].next_version          
+    new_manifest_str = ruamel.yaml.round_trip_dump(new_manifest, explicit_start=True, width=4096)
+    if orig_manifest_str != new_manifest_str:
+      manifest_contents = self.repo_api.repo_get_contents(BP_STAGING, self.name, filepath="manifest.yaml", ref='master')
+      body = dcs_api_client.UpdateFileOptions(
+        branch='master',
+        sha=manifest_contents.sha,
+        content=b64encode(new_manifest_str.encode('utf-8')).decode('utf-8'),
+        message=f'Version {self.next_version}'
+      )
+      self.repo_api.repo_update_file(BP_STAGING, self.name, 'manifest.yaml', body)
+
   def update_bp_staging(self):
+    self.update_bp_manifest()
+
     tmp_path = PUBLISH_DIR
     os.makedirs(tmp_path, exist_ok=True)
     tsv_path = os.path.join(tmp_path, f'{self.name}_tsv')
@@ -456,12 +495,9 @@ class TQResource(Resource):
     Repo.clone_from(f'git@{self.dcs}:unfoldingWord/{self.name}.git', tsv_path, branch=self.prepub_branch_name)    
 
     repo = Repo.clone_from(f'git@{self.dcs}:{BP_STAGING}/{self.name}.git', md_path) #, filter=['tree:0','blob:none'], sparse=True)
-    upstream = repo.create_remote(f'upstream', f'git@{self.dcs}:unfoldingWord/{self.name}.git')
-    upstream.fetch(self.prepub_branch_name, filter=['tree:0','blob:none'])
-
-    repo.git.checkout(f'upstream/{self.prepub_branch_name}', '*.md', '*.yaml')
 
     convert_tsv_tq_to_md_tq(tsv_path, md_path)
+
     repo.git.add('*')
     try:
       repo.git.commit(m=f'Version {self.next_version}')
@@ -486,7 +522,7 @@ class Publisher:
       self.temp_dir = tempfile.mkdtemp(prefix='publisher')
     else:
       self.temp_dir = working_dir
-    
+
     if not os.path.exists(self.temp_dir):
       os.makedirs(self.temp_dir)
 
@@ -542,7 +578,7 @@ def main():
       if book_id not in BOOK_NAMES:
         print(f"Invalid Book ID: {book_id}")
         sys.exit(1)
-    
+
     if not resource_ids:
       resource_ids = RESOURCES;
 
