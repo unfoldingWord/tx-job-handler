@@ -598,7 +598,6 @@ def main():
 
     publisher = Publisher(book_ids=book_ids, resource_ids=resource_ids, working_dir=working_dir, dcs=dcs, upload=upload, pdf_only=pdf_only, debug=debug)
     publisher.run()
-    exit(1)
 
 
 if __name__ == '__main__':
