@@ -217,8 +217,7 @@ class Resource:
         resource, rest = rest.split('?')
       else:
         resource = rest
-      repo_name = f"{lang}_{resource}"
-      if repo_name in self.publisher.resources:
+      if resource in self.publisher.resources:
         new_manifest['dublin_core']['relation'][idx] = f"{lang}/{resource}?v={self.publisher.resources[repo_name].next_version}"
     for idx, source in enumerate(new_manifest['dublin_core']['source']):
       repo_name = f'{source["language"]}_{source["identifier"]}'
@@ -461,8 +460,7 @@ class TQResource(Resource):
         resource, rest = rest.split('?')
       else:
         resource = rest
-      repo_name = f"{lang}_{resource}"
-      if repo_name in self.publisher.resources:
+      if resource in self.publisher.resources:
         new_manifest['dublin_core']['relation'][idx] = f"{lang}/{resource}?v={self.publisher.resources[repo_name].next_version}"
     for idx, source in enumerate(new_manifest['dublin_core']['source']):
       repo_name = f'{source["language"]}_{source["identifier"]}'
