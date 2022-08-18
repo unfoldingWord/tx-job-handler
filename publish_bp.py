@@ -218,14 +218,14 @@ class Resource:
       else:
         resource = rest
       if resource in self.publisher.resources:
-        new_manifest['dublin_core']['relation'][idx] = f"{lang}/{resource}?v={self.publisher.resources[repo_name].next_version}"
+        new_manifest['dublin_core']['relation'][idx] = f"{lang}/{resource}?v={self.publisher.resources[resource].next_version}"
     for idx, source in enumerate(new_manifest['dublin_core']['source']):
       repo_name = f'{source["language"]}_{source["identifier"]}'
       if repo_name in self.publisher.resources:
         if repo_name == self.name:
-          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[repo_name].version
+          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[resource].version
         else:
-          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[repo_name].next_version          
+          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[resource].next_version
     new_manifest_str = ruamel.yaml.round_trip_dump(new_manifest, explicit_start=True, width=4096)
     if orig_manifest_str != new_manifest_str:
       manifest_contents = self.repo_api.repo_get_contents('unfoldingWord', self.name, filepath="manifest.yaml", ref=self.prepub_branch_name)
@@ -461,14 +461,14 @@ class TQResource(Resource):
       else:
         resource = rest
       if resource in self.publisher.resources:
-        new_manifest['dublin_core']['relation'][idx] = f"{lang}/{resource}?v={self.publisher.resources[repo_name].next_version}"
+        new_manifest['dublin_core']['relation'][idx] = f"{lang}/{resource}?v={self.publisher.resources[resource].next_version}"
     for idx, source in enumerate(new_manifest['dublin_core']['source']):
       repo_name = f'{source["language"]}_{source["identifier"]}'
       if repo_name in self.publisher.resources:
         if repo_name == self.name:
-          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[repo_name].version
+          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[resource].version
         else:
-          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[repo_name].next_version          
+          new_manifest['dublin_core']['source'][idx]['version'] = self.publisher.resources[resource].next_version
     new_manifest_str = ruamel.yaml.round_trip_dump(new_manifest, explicit_start=True, width=4096)
     if orig_manifest_str != new_manifest_str:
       manifest_contents = self.repo_api.repo_get_contents(BP_STAGING, self.name, filepath="manifest.yaml", ref='master')
