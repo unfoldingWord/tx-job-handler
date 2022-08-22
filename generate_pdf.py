@@ -99,7 +99,7 @@ def generate_pdf(repo_name, owner='unfoldingWord', ref=None, dcs_domain='git.doo
 
     orig_pdf_files = sorted(glob(os.path.join(os.path.dirname(output_file), 'Output', '*.pdf')))
 
-    if len(orig_pdf_files) < 1:
+    if len(orig_pdf_files) < 1 or (len(orig_pdf_files) > 2 and len(orig_pdf_files) != 67):
         data = {
             "output": output_file,
             "job_id": f"Door43--{owner}--{repo_name}",
