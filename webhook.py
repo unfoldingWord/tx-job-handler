@@ -127,13 +127,12 @@ AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
 tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
-job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
+job_handler_stats_prefix = f"{tx_stats_prefix}.tx-job-handler"
 
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
 graphite_url = os.getenv('GRAPHITE_HOSTNAME', 'localhost')
-stats_client = StatsClient(host=graphite_url, port=8125)
-
+stats_client = StatsClient(host=graphite_url, port=8125, prefix=job_handler_stats_prefix)
 
 
 def get_linter_module(glm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
@@ -364,8 +363,8 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
                                 f" contains {os.listdir(source_folder_path)}")
 
     # Save some stats
-    stats_client.incr(f"{job_handler_stats_prefix}.jobs.HTML.input.{queued_json_payload['input_format']}")
-    stats_client.incr(f"{job_handler_stats_prefix}.jobs.HTML.subject.{queued_json_payload['resource_type']}")
+    stats_client.incr(f"jobs.HTML.input.{queued_json_payload['input_format']}")
+    stats_client.incr(f"jobs.HTML.subject.{queued_json_payload['resource_type']}")
 
 
     # Find the correct linter and converter
@@ -420,7 +419,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        stats_client.incr(f'{job_handler_stats_prefix}.callbacks.HTML.attempted')
+        stats_client.incr(f'callbacks.HTML.attempted')
         response:Optional[requests.Response]
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
@@ -468,7 +467,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     """
     AppSettings.logger.debug("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     start_time = time()
-    stats_client.incr(f'{job_handler_stats_prefix}.jobs.HTML.attempted')
+    stats_client.incr(f'jobs.HTML.attempted')
 
     AppSettings.logger.info(f"Clearing /tmp folder…")
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
@@ -477,7 +476,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     our_queue= Queue(webhook_queue_name, connection=get_current_job().connection)
     len_our_queue = len(our_queue) # Should normally sit at zero here
     # AppSettings.logger.debug(f"Queue '{webhook_queue_name}' length={len_our_queue}")
-    stats_client.gauge(f'{tx_stats_prefix}.enqueue-job.queue.length.current', len_our_queue)
+    stats_client.gauge(f'queue.length.current', len_our_queue)
     AppSettings.logger.info(f"Updated stats for '{tx_stats_prefix}.enqueue-job.queue.length.current' to {len_our_queue}")
 
     try:
@@ -516,13 +515,13 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
-    stats_client.timing(f'{job_handler_stats_prefix}.job.HTML.duration', elapsed_milliseconds)
+    stats_client.timing('job.HTML.duration', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
-    stats_client.incr(f'{job_handler_stats_prefix}.jobs.HTML.completed')
+    stats_client.incr(f'jobs.HTML.completed')
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
