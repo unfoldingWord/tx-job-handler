@@ -1,0 +1,25 @@
+{
+  "google_lang": "th",
+  "source": "en",
+  "target": "th",
+  "translations": {
+    "contributors": "ผู้มีส่วนร่วม",
+    "copyrights_and_licensing": "ลิขสิทธิ์และใบอนุญาต",
+    "date": "วันที่",
+    "go_back_to": "กลับไป",
+    "in_order_to_understand_this_topic": "เพื่อที่จะเข้าใจหัวข้อนี้จะเป็นการดีที่จะอ่าน",
+    "new_testament": "พันธสัญญาใหม่",
+    "next_we_recommend_you_learn_about": "ต่อไปเราขอแนะนำให้คุณเรียนรู้เกี่ยวกับ",
+    "no_notes_for_this_verse": "ไม่มีโน้ตสำหรับข้อนี้",
+    "no_questions_for_this_verse": "ไม่มีคำถามสำหรับข้อนี้",
+    "no_study_notes_for_this_frame": "ไม่มีบันทึกการศึกษาสำหรับเฟรมนี้",
+    "old_testament": "พันธสัญญาเดิม",
+    "published_by": "เผยเเพร่โดย",
+    "study_notes": "บันทึกการศึกษา",
+    "study_questions": "คำถามเรียน",
+    "table_of_contents": "สารบัญ",
+    "this_page_answers_the_question": "หน้านี้ตอบคำถาม",
+    "version": "รุ่น"
+  },
+  "translator": "google"
+}

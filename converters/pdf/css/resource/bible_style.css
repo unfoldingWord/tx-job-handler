@@ -1,0 +1,184 @@
+.bible-book {
+    column-count: 2;
+    margin: 0 !important;
+    text-align: justify;
+    justify-content: space-between;
+    text-rendering: geometricPrecision;
+}
+
+.bible-book-wrapper {
+    width: 320px;
+    height: 100%;
+    min-height: 100px;
+}
+
+.bible-book-psa,
+.bible-ot .bible-book,
+.bible-all .bible-book {
+    column-count: 1 !important;
+}
+
+.bible-book-psa .bible-book-wrapper,
+.bible-ot .bible-book .bible-book-wrapper,
+.bbile-all .bible-book .bible-book-wrapper {
+    width: auto !important;
+    height: auto !important;
+    min-height: auto !important;
+}
+
+.bible-book h1 {
+    text-align: center;
+    margin-bottom: 0;
+}
+
+.quote.selah {
+    float: right;
+}
+
+.quote.right {
+    display: block;
+    float: right;
+}
+
+span.d {
+    text-align: center;
+    font-style: italic;
+    display: block;
+    padding: 0 10px;
+    width: 300px;
+}
+
+p.indent .quote {
+    text-indent: 0 !important;
+}
+
+p.indent {
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-bottom: 0 !important;
+    text-indent: -2em;
+    padding-left: 2em;
+    clear: both; /* so anything floating right in the above quote won't flow into this one */
+}
+
+p.indent + p.indent {
+    margin-top: 0 !important;
+}
+
+p.indent-1 {
+    padding-left: 3em !important;
+}
+
+p.indent-2 {
+    padding-left: 4em !important;
+}
+
+p.indent-3 {
+    padding-left: 5em !important;
+}
+
+.c-num {
+    color: gray;
+}
+
+.v-num {
+    color: gray;
+    margin-right: 2px;
+}
+
+.tetragrammaton {
+    font-variant: small-caps;
+}
+.footnotes {
+    font-size: 0.8em;
+}
+.footnotes-hr {
+    width: 90%;
+}
+
+.page {
+    height: 1165px;
+    padding-bottom: 10px;
+    width: 900px;
+    overflow: hidden;
+    margin: 0;
+    page-break-inside: avoid !important;
+    page-break-after: always !important;
+    position: relative;
+}
+
+.col {
+    width: 420px;
+    padding: 10px;
+    min-height: 600px;
+    page-break-inside: avoid !important;
+    position: absolute;
+    top: 0;
+}
+
+.footnotesSection {
+    width: 420px;
+    padding: 0 10px;
+    page-break-inside: avoid !important;
+    position: absolute;
+    bottom: 0;
+}
+
+.footnotesSection > div.footnote:first-child {
+    border-top: solid #9a9a9a 1px;
+}
+
+.left {
+    left: 0;
+}
+
+.right {
+    right: 0;
+}
+
+.col > p {
+    text-align: justify;
+    padding: 0;
+    margin-top: 22px;
+    margin-bottom: 22px;
+    page-break-inside: avoid !important;
+}
+
+.col > :first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.col > :last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+sup {
+    vertical-align: baseline;
+    position: relative;
+    top: -0.4em;
+}
+
+.split-paragraph {
+    text-align-last: justify;
+	text-align: justify;
+}
+.split-paragraph:after {
+    content: "";
+    display: inline-block;
+    width: 100%;
+}
+
+.is, .s {
+    text-align: center;
+}
+
+.is3, .s3, .s4 {
+    text-align: left !important;
+}
+
+.quote.acrostic.heading {
+    text-align: center;
+    font-style: italic;
+}

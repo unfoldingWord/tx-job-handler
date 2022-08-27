@@ -1,0 +1,25 @@
+{
+  "google_lang": "mg",
+  "source": "en",
+  "target": "plt",
+  "translations": {
+    "contributors": "mpandray anjara",
+    "copyrights_and_licensing": "Copyright sy ny fahazoan-dàlana",
+    "date": "Daty",
+    "go_back_to": "Miverina any",
+    "in_order_to_understand_this_topic": "Mba hahatakarana an'io lohahevitra io dia tsara ny mamaky",
+    "new_testament": "Vaovao Testamenta Vaovao",
+    "next_we_recommend_you_learn_about": "Manaraka izahay dia manoro hevitra anao hianatra momba",
+    "no_notes_for_this_verse": "Tsy misy naoty momba an'io andininy io.",
+    "no_questions_for_this_verse": "Tsy misy fanontaniana momba an'io andininy io.",
+    "no_study_notes_for_this_frame": "Tsy misy naoty fandalinana ho an'ity firafitra ity",
+    "old_testament": "Testamenta Taloha",
+    "published_by": "Navoakan'i",
+    "study_notes": "Fianarana Fianarana",
+    "study_questions": "Fanontaniana Fianarana",
+    "table_of_contents": "Fizahan-takelaka",
+    "this_page_answers_the_question": "Ity pejy ity dia mamaly ny fanontaniana",
+    "version": "Malagasy Bible"
+  },
+  "translator": "google"
+}

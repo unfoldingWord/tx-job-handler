@@ -1,0 +1,25 @@
+{
+  "google_lang": "mr",
+  "source": "en",
+  "target": "mr",
+  "translations": {
+    "contributors": "योगदानकर्ते",
+    "copyrights_and_licensing": "कॉपीराइट आणि परवाना",
+    "date": "तारीख",
+    "go_back_to": "परत जा",
+    "in_order_to_understand_this_topic": "हा विषय समजण्यासाठी, वाचणे चांगले होईल",
+    "new_testament": "नवा करार",
+    "next_we_recommend_you_learn_about": "पुढे आम्ही आपल्याला शिकण्याची शिफारस करतो",
+    "no_notes_for_this_verse": "या श्लोकसाठी कोणतेही नोट नाहीत.",
+    "no_questions_for_this_verse": "या श्लोकसाठी कोणतेही प्रश्न नाहीत.",
+    "no_study_notes_for_this_frame": "या फ्रेमसाठी कोणतेही अभ्यास नोट्स नाहीत",
+    "old_testament": "ओल्ड टेस्टमेंट",
+    "published_by": "द्वारे प्रकाशित",
+    "study_notes": "अभ्यास नोट्स",
+    "study_questions": "अभ्यास अभ्यास",
+    "table_of_contents": "सामुग्री सारणी",
+    "this_page_answers_the_question": "हे पृष्ठ प्रश्नाचे उत्तर देते",
+    "version": "आवृत्ती"
+  },
+  "translator": "google"
+}

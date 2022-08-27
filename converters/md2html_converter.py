@@ -58,8 +58,9 @@ class Md2HtmlConverter(Converter):
                     continue
                 html = markdown.markdown(md)
                 html = html_template.safe_substitute(
-                                            title=self.repo_subject.replace('_',' '),
-                                            content=html)
+                    title=self.repo_subject.replace('_',' '),
+                    lang=self.manifest_dict['dublin_core']['language']['identifier'],
+                    content=html)
                 html_filename = base_name_part + '.html'
                 output_filepath = os.path.join(self.output_dir, html_filename)
                 write_file(output_filepath, html)
@@ -102,8 +103,9 @@ class Md2HtmlConverter(Converter):
                     continue
                 html = markdown.markdown(md)
                 html = html_template.safe_substitute(
-                                            title=self.repo_subject.replace('_',' '),
-                                            content=html)
+                    title=self.repo_subject.replace('_',' '),
+                    lang=self.manifest_dict['dublin_core']['language']['identifier'],
+                    content=html)
                 html_filename = base_name_part + '.html'
                 output_filepath = os.path.join(self.output_dir, html_filename)
                 write_file(output_filepath, html)
@@ -245,6 +247,7 @@ class Md2HtmlConverter(Converter):
 
                 html = html_template.safe_substitute(
                                         title=self.repo_subject.replace('_',' '),
+                                        lang=self.manifest_dict['dublin_core']['language']['identifier'],
                                         content=html)
                 if prefix and debug_mode_flag:
                     write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)
@@ -377,6 +380,7 @@ class Md2HtmlConverter(Converter):
 
     def convert_markdown(self) -> None:
         self.log.info("Converting Markdown files…")
+        debug_mode_flag = False
 
         # Find the first directory that has md files.
         files = get_files(directory=self.files_dir, exclude=self.EXCLUDED_FILES)
@@ -462,6 +466,7 @@ class Md2HtmlConverter(Converter):
 
                 html = html_template.safe_substitute(
                                         title=self.repo_subject.replace('_',' '),
+                                        lang=self.manifest_dict['dublin_core']['language']['identifier'],
                                         content=html)
                 if prefix and debug_mode_flag:
                     write_file(os.path.join(self.debug_dir, base_name_part+'.2.html'), html)

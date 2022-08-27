@@ -162,7 +162,7 @@ class TnTsvLinter(Linter):
                     tab_count = tsv_line.count('\t')
                     if not started:
                         # AppSettings.logger.debug(f"TSV header line is '{tsv_line}'")
-                        if tsv_line != 'Book	Chapter	Verse	OrigQuote	OccurrenceNote':
+                        if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
                             self.log.warning(f"Unexpected TSV header line: '{tsv_line}' in {filename}")
                             error_count += 1
                         started = True

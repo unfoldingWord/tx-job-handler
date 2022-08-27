@@ -1,0 +1,25 @@
+{
+  "google_lang": "te",
+  "source": "en",
+  "target": "te",
+  "translations": {
+    "contributors": "చందాదారులు",
+    "copyrights_and_licensing": "కాపీరైట్లు మరియు లైసెన్సింగ్",
+    "date": "తేదీ",
+    "go_back_to": "తిరిగి వెళ్ళండి",
+    "in_order_to_understand_this_topic": "ఈ అంశాన్ని అర్థం చేసుకోవడానికి, అది చదవడానికి మంచిది",
+    "new_testament": "కొత్త నిబంధన",
+    "next_we_recommend_you_learn_about": "మేము మీరు గురించి తెలుసుకోవడానికి సిఫార్సు చేస్తున్నాము",
+    "no_notes_for_this_verse": "ఈ పద్యం కోసం నోట్స్ లేవు.",
+    "no_questions_for_this_verse": "ఈ పద్యం కోసం ఎటువంటి ప్రశ్నలు లేవు.",
+    "no_study_notes_for_this_frame": "ఈ ఫ్రేమ్ కోసం ఏ అధ్యయనం నోట్స్",
+    "old_testament": "పాత నిబంధన",
+    "published_by": "ద్వారా ప్రచురించబడింది",
+    "study_notes": "అధ్యయనం నోట్స్",
+    "study_questions": "అధ్యయన ప్రశ్నలు",
+    "table_of_contents": "విషయ సూచిక",
+    "this_page_answers_the_question": "ఈ పేజీ ప్రశ్నకు సమాధానమిస్తుంది",
+    "version": "సంస్కరణ: Telugu"
+  },
+  "translator": "google"
+}

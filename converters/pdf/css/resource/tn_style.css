@@ -1,0 +1,22 @@
+span.notes {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+span.notes.highlight a.tw-phrase {
+    text-decoration: underline
+}
+
+span.notes.highlight span.highlight a.tw-phrase {
+    text-decoration: double;
+    font-weight: 900;
+}
+
+.tn-checking .highlight {
+    background-color: yellow;
+}
+
+span.tw-phrase {
+    color: #0000BB !important;
+}
+

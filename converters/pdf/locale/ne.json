@@ -1,0 +1,25 @@
+{
+  "google_lang": "ne",
+  "source": "en",
+  "target": "ne",
+  "translations": {
+    "contributors": "योगदानकर्ताहरू",
+    "copyrights_and_licensing": "प्रतिलिपि अधिकार र इजाजत पत्र",
+    "date": "खजुर",
+    "go_back_to": "फिर्ता जानुहोस्",
+    "in_order_to_understand_this_topic": "यस शीर्षकलाई बुझ्नको लागि यो पढ्नु राम्रो हुन्छ",
+    "new_testament": "नया नियम",
+    "next_we_recommend_you_learn_about": "अर्को हामी तपाईंलाई सिफारिस गर्दछौं",
+    "no_notes_for_this_verse": "यस पदका लागि त्यहाँ नोटहरू छैनन्।",
+    "no_questions_for_this_verse": "यस पदको लागि कुनै प्रश्नहरू छैनन्।",
+    "no_study_notes_for_this_frame": "यस फ्रेमको लागि कुनै अध्ययन नोटहरू छैनन्",
+    "old_testament": "पुरानो नियम",
+    "published_by": "द्वारा प्रकाशित",
+    "study_notes": "अध्ययन नोटहरू",
+    "study_questions": "अध्ययन प्रश्नहरू",
+    "table_of_contents": "सामग्रीको तालिका",
+    "this_page_answers_the_question": "यो पृष्ठले प्रश्नको उत्तर दिन्छ",
+    "version": "रुपान्तर"
+  },
+  "translator": "google"
+}
