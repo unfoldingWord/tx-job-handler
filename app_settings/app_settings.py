@@ -8,7 +8,6 @@ import boto3
 import watchtower
 
 from aws_tools.s3_handler import S3Handler
-
 from rq_settings import debug_mode_flag
 
 

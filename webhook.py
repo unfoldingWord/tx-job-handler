@@ -23,18 +23,17 @@ import sys
 import threading
 sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 import traceback
-
-# Library (PyPI) imports
 import requests
+import boto3
+import watchtower
+import logging
+
 from rq import get_current_job, Queue
 from statsd import StatsClient # Graphite front-end
-
-# Local imports
 from rq_settings import prefix, debug_mode_flag, webhook_queue_name
 from general_tools.file_utils import unzip, remove_tree, empty_folder
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
-
 from linters.obs_linter import ObsLinter
 from linters.obs_notes_linter import ObsNotesLinter
 from linters.ta_linter import TaLinter
@@ -44,7 +43,6 @@ from linters.tw_linter import TwLinter
 from linters.markdown_linter import MarkdownLinter
 from linters.usfm_linter import UsfmLinter
 from linters.lexicon_linter import LexiconLinter
-
 from converters.converter import Converter
 from converters.md2html_converter import Md2HtmlConverter
 from converters.tsv2html_converter import Tsv2HtmlConverter
@@ -67,7 +65,6 @@ from converters.pdf.ta_pdf_converter import TaPdfConverter
 from converters.pdf.tn_pdf_converter import TnPdfConverter
 from converters.pdf.tq_pdf_converter import TqPdfConverter
 from converters.pdf.tw_pdf_converter import TwPdfConverter
-
 
 # NOTE: The following two tables are each scanned in order
 #       (so put 'other' entries lower)
@@ -499,13 +496,14 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
                          f"{'_TEST' if test_mode_flag else ''}" \
                          f"{'_TravisCI' if travis_flag else ''}"
         aws_access_key_id = os.environ['AWS_ACCESS_KEY_ID']
+        aws_secret_access_key = os.environ['AWS_SECRET_ACCESS_KEY']
         boto3_client = boto3.client("logs", aws_access_key_id=aws_access_key_id,
-                            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+                            aws_secret_access_key=aws_secret_access_key,
                             region_name='us-west-2')
         failure_watchtower_log_handler = watchtower.CloudWatchLogHandler(boto3_client=boto3_client,
-                                                    use_queues=False,
-                                                    log_group_name=log_group_name,
-                                                    stream_name=prefixed_name)
+                                                use_queues=False,
+                                                log_group_name=log_group_name,
+                                                stream_name=prefixed_name)
         logger2.addHandler(failure_watchtower_log_handler)
         logger2.setLevel(logging.DEBUG)
         logger2.info(f"Logging to AWS CloudWatch group '{log_group_name}' using key '…{aws_access_key_id[-2:]}'.")
@@ -515,7 +513,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
-    stats_client.timing('job.HTML.duration', elapsed_milliseconds)
+    stats_client.timing(f'job.HTML.duration', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
