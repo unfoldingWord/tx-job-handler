@@ -20,9 +20,9 @@ RUN pip3 install --requirement requirements.txt
 # Install the npm modules we use for generating some Bible content in JSON format
 RUN cd converters/pdf/resources && npm ci
 
-ENV WORKER_NAME dev-tx-job-handler
+ENV WORKER_NAME "tx-job-handler"
 
-CMD [ "rq", "worker", "--config", "rq_settings", "--name", "$WORKER_NAME" ]
+CMD rq worker --config rq_settings --name $WORKER_NAME
 
 # Define environment variables
 # NOTE: The following environment variables are optional:
