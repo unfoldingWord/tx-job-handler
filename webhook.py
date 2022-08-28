@@ -20,7 +20,6 @@ import json
 from datetime import datetime, timedelta, date
 from time import time
 import sys
-import threading
 sys.setrecursionlimit(1500) # Default is 1,000—beautifulSoup hits this limit with UST
 import traceback
 import requests
@@ -485,9 +484,6 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         AppSettings.logger.critical(f"{e}: {traceback.format_exc()}")
         AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
         # Now attempt to log it to an additional, separate FAILED log
-        import logging
-        import boto3
-        import watchtower
         logger2 = logging.getLogger(prefixed_name)
         test_mode_flag = os.getenv('TEST_MODE', '')
         travis_flag = os.getenv('TRAVIS_BRANCH', '')
