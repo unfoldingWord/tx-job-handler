@@ -470,10 +470,10 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     start_time = time()
     stats_client.incr(f'jobs.{stats_output_cat}.attempted')
     stats_client.incr(f'jobs.attempted')
-    stats_client.incr(f'jobs.{stats_output_cat}.workers')
-    stats_client.incr(f'jobs.{stats_output_cat}.workers.{WORKER_NAME}')
     stats_client.incr(f'jobs.workers')
     stats_client.incr(f'jobs.workers.{WORKER_NAME}')
+    stats_client.incr(f'jobs.{stats_output_cat}.workers')
+    stats_client.incr(f'jobs.{stats_output_cat}.workers.{WORKER_NAME}')
 
     AppSettings.logger.info(f"Clearing /tmp folder…")
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
@@ -529,10 +529,6 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
 
     stats_client.incr(f'jobs.{stats_output_cat}.completed')
     stats_client.incr(f'jobs.completed')
-    stats_client.decr(f'jobs.{stats_output_cat}.workers')
-    stats_client.decr(f'jobs.workers')
-    stats_client.decr(f'jobs.{stats_output_cat}.workers.{WORKER_NAME}')
-    stats_client.decr(f'jobs.workers.{WORKER_NAME}')
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
