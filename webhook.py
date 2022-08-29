@@ -29,7 +29,7 @@ import logging
 
 from rq import get_current_job, Queue
 from statsd import StatsClient # Graphite front-end
-from rq_settings import prefix, debug_mode_flag, webhook_queue_name
+from rq_settings import prefix, debug_mode_flag, webhook_queue_name, WORKER_NAME
 from general_tools.file_utils import unzip, remove_tree, empty_folder
 from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
@@ -359,9 +359,12 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
                                 f" contains {os.listdir(source_folder_path)}")
 
     # Save some stats
-    stats_client.incr(f"jobs.HTML.input.{queued_json_payload['input_format']}")
-    stats_client.incr(f"jobs.HTML.subject.{queued_json_payload['resource_type']}")
-
+    stats_output_cat = queued_json_payload['output_format'].upper()
+    stats_client.incr(f"jobs.output.{stats_output_cat}")
+    stats_client.incr(f"jobs.{stats_output_cat}.input.{queued_json_payload['input_format']}")
+    stats_client.incr(f"jobs.{stats_output_cat}.subject.{queued_json_payload['resource_type']}")
+    stats_client.incr(f"jobs.input.{queued_json_payload['input_format']}")
+    stats_client.incr(f"jobs.subject.{queued_json_payload['resource_type']}")
 
     # Find the correct linter and converter
     AppSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
@@ -372,7 +375,7 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     AppSettings.logger.info(f"Got door43_pages_converter = {door43_pages_converter_name}")
 
     # Run the linter first
-    if linter and False:
+    if linter:
         build_log_dict['status'] = 'linting'
         build_log_dict['message'] = 'tX job linting…'
         build_log_dict['lint_module'] = linter_name
@@ -415,7 +418,8 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        stats_client.incr(f'callbacks.HTML.attempted')
+        stats_client.incr(f'callbacks.{stats_output_cat}.attempted')
+        stats_client.incr(f'callbacks.attempted')
         response:Optional[requests.Response]
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
@@ -462,8 +466,14 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
             then the job gets added to the 'failed' queue.
     """
     AppSettings.logger.debug("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
+    stats_output_cat = queued_json_payload["output_format"].upper()
     start_time = time()
-    stats_client.incr(f'jobs.HTML.attempted')
+    stats_client.incr(f'jobs.{stats_output_cat}.attempted')
+    stats_client.incr(f'jobs.attempted')
+    stats_client.incr(f'jobs.{stats_output_cat}.workers')
+    stats_client.incr(f'jobs.{stats_output_cat}.workers.{WORKER_NAME}')
+    stats_client.incr(f'jobs.workers')
+    stats_client.incr(f'jobs.workers.{WORKER_NAME}')
 
     AppSettings.logger.info(f"Clearing /tmp folder…")
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
@@ -509,13 +519,20 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
-    stats_client.timing(f'job.HTML.duration', elapsed_milliseconds)
+    stats_client.timing(f'job.{stats_output_cat}.duration', elapsed_milliseconds)
+    stats_client.timing(f'job.{stats_output_cat}.duration.{WORKER_NAME}', elapsed_milliseconds)
+    stats_client.timing(f'job.duration.{WORKER_NAME}', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
-    stats_client.incr(f'jobs.HTML.completed')
+    stats_client.incr(f'jobs.{stats_output_cat}.completed')
+    stats_client.incr(f'jobs.completed')
+    stats_client.decr(f'jobs.{stats_output_cat}.workers')
+    stats_client.decr(f'jobs.workers')
+    stats_client.decr(f'jobs.{stats_output_cat}.workers.{WORKER_NAME}')
+    stats_client.decr(f'jobs.workers.{WORKER_NAME}')
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
