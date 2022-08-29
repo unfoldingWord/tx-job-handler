@@ -19,7 +19,7 @@ prefix = getenv('QUEUE_PREFIX', '') # Gets (optional) QUEUE_PREFIX environment v
 suffix = getenv('QUEUE_SUFFIX', '') # Used to switch to a different queue, e.g., '_1'
 webhook_queue_name = prefix + queue_name + suffix
 QUEUES = [webhook_queue_name]
-WORKER_NAME = getenv('WORKER_NAME', 'tx-job-handler_worker-1')
+WORKER_NAME = getenv('WORKER_NAME', 'worker-1')
 
 # If you're using Sentry to collect your runtime exceptions, you can use this
 # to configure RQ for it in a single step
