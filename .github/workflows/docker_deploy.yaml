@@ -61,7 +61,7 @@ jobs:
         with:
           workdir: .
           name: unfoldingword/tx_job_handler
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
           dockerfile: ${{ steps.vars.outputs.docker_file }}
           tags: ${{ steps.vars.outputs.docker_tags }}
