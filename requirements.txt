@@ -13,9 +13,9 @@ pip-chill==1.0.1
 py-dateutil==2.2
 pyyaml==6.0
 requests==2.27.1
-rq==1.10.1
+rq==1.11.1
 ruamel.yaml==0.17.21
 statsd==3.3.0
 watchtower==3.0.0
-weasyprint==55.0
+weasyprint==56.1
 zopfli==0.2.1
