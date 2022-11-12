@@ -708,12 +708,12 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
         # if "the best copies" in token.value:
         #     print(f"renderText({token.value})")
         if self.footnoteFlag:
-            self.footnote_text += f' {self.escape(token.value)} '
+            if self.fqaAfterFlag:
+                self.fqaAfterFlag = False
+                # If not just punctuation mark(s) after the \fqa* then add a space
+                if not re.match(r'^\W+$', token.value):
+                    self.footnote_text += ' '
+            self.footnote_text += {self.escape(token.value)} + ' '
         else:
-            value = token.value + ' '
-            if self.fqaAfterFlag and not re.match(r'^\W+$', token.value):
-                # If only punctuation mark(s) after the \fqa* then don't add space
-                value = ' ' + value
-            self.fqaAfterFlag = False
-            self.write(value) # write function does escaping of non-break space
+            self.write(f' {token.value} ') # write function does escaping of non-break space
 # end of class SingleHTMLRenderer
