@@ -27,6 +27,7 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
 
         self.footnoteFlag = False
         self.fqaFlag = False
+        self.fqaAfterFlag = False
         self.footnotes = {}
         self.footnote_id = ''
         self.footnote_num = 1
@@ -542,6 +543,7 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
         if self.fqaFlag:
             self.footnote_text += '</i>' + token.value
         self.fqaFlag = False
+        self.fqaAfterFlag = True
 
 
     def closeFootnote(self):
@@ -549,6 +551,7 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
         #     print(f"closeFootnote() with {self.footnoteFlag} and '{self.footnote_text}'")
         if self.footnoteFlag:
             self.footnoteFlag = False
+            self.fqaAfterFlag = False
             self.renderFQA_E(UsfmToken(''))
             self.footnotes[self.footnote_id] = {
                 'text': self.footnote_text,
@@ -707,5 +710,10 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
         if self.footnoteFlag:
             self.footnote_text += f' {self.escape(token.value)} '
         else:
-            self.write(f' {token.value} ') # write function does escaping of non-break space
+            value = token.value + ' '
+            if self.fqaAfterFlag and not re.match(r'^\W+$', token.value):
+                # If only punctuation mark(s) after the \fqa* then don't add space
+                value = ' ' + value
+            self.fqaAfterFlag = False
+            self.write(value) # write function does escaping of non-break space
 # end of class SingleHTMLRenderer
