@@ -77,8 +77,13 @@ def get_font_families_with_fallbacks(lang_code):
     font_families = get_font_families(lang_code)
     if font_families:
         if font_families[0] in PRECEDING_FONT_FAMILIES:
-            font_families += PRECEDING_FONT_FAMILIES[font_families[0]]
-        font_families += get_fallbacks(font_families[-1])
+            for font_family in PRECEDING_FONT_FAMILIES[font_families[0]]:
+                if font_family not in font_families:
+                    font_families.insert(0, font_family)
+        fallbacks = get_fallbacks(font_families[-1])
+        for fallback in fallbacks:
+          if fallback not in font_families:
+            font_families.append(fallback)
         return font_families
     else:
         return DEFAULT_FALLBACK
