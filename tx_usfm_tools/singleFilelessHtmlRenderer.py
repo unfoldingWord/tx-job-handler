@@ -27,7 +27,7 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
 
         self.footnoteFlag = False
         self.fqaFlag = False
-        self.fqaAfterFlag = False
+        self.fqaEndFlag = False
         self.footnotes = {}
         self.footnote_id = ''
         self.footnote_num = 1
@@ -543,7 +543,7 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
         if self.fqaFlag:
             self.footnote_text += '</i>' + token.value
         self.fqaFlag = False
-        self.fqaAfterFlag = True
+        self.fqaEndFlag = True
 
 
     def closeFootnote(self):
@@ -551,7 +551,7 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
         #     print(f"closeFootnote() with {self.footnoteFlag} and '{self.footnote_text}'")
         if self.footnoteFlag:
             self.footnoteFlag = False
-            self.fqaAfterFlag = False
+            self.fqaEndFlag = False
             self.renderFQA_E(UsfmToken(''))
             self.footnotes[self.footnote_id] = {
                 'text': self.footnote_text,
@@ -708,8 +708,8 @@ class SingleFilelessHtmlRenderer(AbstractRenderer):
         # if "the best copies" in token.value:
         #     print(f"renderText({token.value})")
         if self.footnoteFlag:
-            if self.fqaAfterFlag:
-                self.fqaAfterFlag = False
+            if self.fqaEndFlag:
+                self.fqaEndFlag = False
                 # If not just punctuation mark(s) after the \fqa* then add a space
                 if not re.match(r'^\W+$', token.value):
                     self.footnote_text += ' '

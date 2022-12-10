@@ -59,7 +59,7 @@ class AppSettings:
     For all things used for by this app, from DB connection to global handlers
     """
     _resetable_cache_ = {}
-    name = 'tX-HTML-Job-Handler' # Only used for logging and for testing AppSettings resets
+    name = 'tx_job_handler' # Only used for logging and for testing AppSettings resets
     dirty = False
 
     # Stage Variables, defaults

@@ -123,12 +123,12 @@ AppSettings(prefix=prefix)
 if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
 tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
-job_handler_stats_prefix = f"{tx_stats_prefix}.tx-job-handler"
-
+job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
+enqueue_job_stats_prefix = f"{tx_stats_prefix}.enequeue-job"
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
 graphite_url = os.getenv('GRAPHITE_HOSTNAME', 'localhost')
-stats_client = StatsClient(host=graphite_url, port=8125, prefix=job_handler_stats_prefix)
+stats_client = StatsClient(host=graphite_url, port=8125)
 
 
 def get_linter_module(glm_job:Dict[str,Any]) -> Tuple[Optional[str],Any]:
@@ -360,11 +360,11 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
 
     # Save some stats
     stats_output_cat = queued_json_payload['output_format'].upper()
-    stats_client.incr(f"jobs.output.{stats_output_cat}")
-    stats_client.incr(f"jobs.{stats_output_cat}.input.{queued_json_payload['input_format']}")
-    stats_client.incr(f"jobs.{stats_output_cat}.subject.{queued_json_payload['resource_type']}")
-    stats_client.incr(f"jobs.input.{queued_json_payload['input_format']}")
-    stats_client.incr(f"jobs.subject.{queued_json_payload['resource_type']}")
+    stats_client.incr(f"{job_handler_stats_prefix}.jobs.output.{stats_output_cat}")
+    stats_client.incr(f"{job_handler_stats_prefix}.jobs.{stats_output_cat}.input.{queued_json_payload['input_format']}")
+    stats_client.incr(f"{job_handler_stats_prefix}.jobs.{stats_output_cat}.subject.{queued_json_payload['resource_type']}")
+    stats_client.incr(f"{job_handler_stats_prefix}.jobs.input.{queued_json_payload['input_format']}")
+    stats_client.incr(f"{job_handler_stats_prefix}.jobs.subject.{queued_json_payload['resource_type']}")
 
     # Find the correct linter and converter
     AppSettings.logger.debug(f"Finding linter and converter for {queued_json_payload['input_format']}"
@@ -376,11 +376,12 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
 
     # Run the linter first
     if linter:
-        build_log_dict['status'] = 'linting'
-        build_log_dict['message'] = 'tX job linting…'
-        build_log_dict['lint_module'] = linter_name
-        # Log dict gets updated by the following line
-        do_linting(build_log_dict, source_folder_path, linter_name, linter)
+        if queued_json_payload['output_format'] != "pdf":
+            build_log_dict['status'] = 'linting'
+            build_log_dict['message'] = 'tX job linting…'
+            build_log_dict['lint_module'] = linter_name
+            # Log dict gets updated by the following line
+            do_linting(build_log_dict, source_folder_path, linter_name, linter)
     else:
         warning_message = f"No linter was found to lint {queued_json_payload['input_format']}" \
                           f" {queued_json_payload['resource_type']}"
@@ -418,8 +419,8 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
             if isinstance(value, (datetime, date)):
                 callback_payload[key] = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        stats_client.incr(f'callbacks.{stats_output_cat}.attempted')
-        stats_client.incr(f'callbacks.attempted')
+        stats_client.incr(f'{job_handler_stats_prefix}.callbacks.{stats_output_cat}.attempted')
+        stats_client.incr(f'{job_handler_stats_prefix}.callbacks.attempted')
         response:Optional[requests.Response]
         try:
             response = requests.post(queued_json_payload['callback'], json=callback_payload)
@@ -482,7 +483,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     our_queue= Queue(webhook_queue_name, connection=get_current_job().connection)
     len_our_queue = len(our_queue) # Should normally sit at zero here
     # AppSettings.logger.debug(f"Queue '{webhook_queue_name}' length={len_our_queue}")
-    stats_client.gauge(f'queue.length.current', len_our_queue)
+    stats_client.gauge(f'{enqueue_job_stats_prefix}.queue.length.current', len_our_queue)
     AppSettings.logger.info(f"Updated stats for '{tx_stats_prefix}.enqueue-job.queue.length.current' to {len_our_queue}")
 
     try:
@@ -519,16 +520,16 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
         raise e # We raise the exception again so it goes into the failed queue
 
     elapsed_milliseconds = round((time() - start_time) * 1000)
-    stats_client.timing(f'job.{stats_output_cat}.duration', elapsed_milliseconds)
-    stats_client.timing(f'job.{stats_output_cat}.duration.{WORKER_NAME}', elapsed_milliseconds)
-    stats_client.timing(f'job.duration.{WORKER_NAME}', elapsed_milliseconds)
+    stats_client.timing(f'{job_handler_stats_prefix}.job.{stats_output_cat}.duration', elapsed_milliseconds)
+    stats_client.timing(f'{job_handler_stats_prefix}.job.{stats_output_cat}.duration.{WORKER_NAME}', elapsed_milliseconds)
+    stats_client.timing(f'{job_handler_stats_prefix}.job.duration.{WORKER_NAME}', elapsed_milliseconds)
     if elapsed_milliseconds < 2000:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {elapsed_milliseconds:,} milliseconds.")
     else:
         AppSettings.logger.info(f"{prefix}tX job handling for {job_descriptive_name} completed in {round(time() - start_time)} seconds.")
 
-    stats_client.incr(f'jobs.{stats_output_cat}.completed')
-    stats_client.incr(f'jobs.completed')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.{stats_output_cat}.completed')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.completed')
     AppSettings.close_logger() # Ensure queued logs are uploaded to AWS CloudWatch
 # end of job function
 
