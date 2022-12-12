@@ -469,12 +469,12 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     AppSettings.logger.debug("tX JobHandler received a job" + (" (in debug mode)" if debug_mode_flag else ""))
     stats_output_cat = queued_json_payload["output_format"].upper()
     start_time = time()
-    stats_client.incr(f'jobs.{stats_output_cat}.attempted')
-    stats_client.incr(f'jobs.attempted')
-    stats_client.incr(f'jobs.workers')
-    stats_client.incr(f'jobs.workers.{WORKER_NAME}')
-    stats_client.incr(f'jobs.{stats_output_cat}.workers')
-    stats_client.incr(f'jobs.{stats_output_cat}.workers.{WORKER_NAME}')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.{stats_output_cat}.attempted')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.attempted')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.workers')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.workers.{WORKER_NAME}')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.{stats_output_cat}.workers')
+    stats_client.incr(f'{job_handler_stats_prefix}.jobs.{stats_output_cat}.workers.{WORKER_NAME}')
 
     AppSettings.logger.info(f"Clearing /tmp folder…")
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
@@ -484,7 +484,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     len_our_queue = len(our_queue) # Should normally sit at zero here
     # AppSettings.logger.debug(f"Queue '{webhook_queue_name}' length={len_our_queue}")
     stats_client.gauge(f'{enqueue_job_stats_prefix}.queue.length.current', len_our_queue)
-    AppSettings.logger.info(f"Updated stats for '{tx_stats_prefix}.enqueue-job.queue.length.current' to {len_our_queue}")
+    AppSettings.logger.info(f"Updated stats for '{enqueue_job_stats_prefix}.queue.length.current' to {len_our_queue}")
 
     try:
         job_descriptive_name = process_tx_job(prefix, queued_json_payload)
