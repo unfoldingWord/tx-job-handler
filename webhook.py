@@ -124,7 +124,7 @@ if prefix not in ('', 'dev-'):
     AppSettings.logger.critical(f"Unexpected prefix: '{prefix}' — expected '' or 'dev-'")
 tx_stats_prefix = f"tx.{'dev' if prefix else 'prod'}"
 job_handler_stats_prefix = f"{tx_stats_prefix}.job-handler"
-enqueue_job_stats_prefix = f"{tx_stats_prefix}.enequeue-job"
+enqueue_job_stats_prefix = f"{tx_stats_prefix}.enqueue-job"
 
 # Get the Graphite URL from the environment, otherwise use a local test instance
 graphite_url = os.getenv('GRAPHITE_HOSTNAME', 'localhost')
