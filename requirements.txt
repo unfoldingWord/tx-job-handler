@@ -19,3 +19,4 @@ statsd==3.3.0
 watchtower==3.0.0
 weasyprint==56.1
 zopfli==0.2.1
+pyparsing==3.0.7
