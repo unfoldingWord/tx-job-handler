@@ -190,7 +190,8 @@ class PdfConverter(Converter):
                 return DEFAULT_REF
             return self._repo_ref
         elif self.version != self.main_resource.ref and f'v{self.version}' != self.main_resource.ref:
-            return f'{self._repo_ref}_{self.main_resource.last_commit_sha}'
+            # return f'{self._repo_ref}_{self.main_resource.last_commit_sha}'
+            return f'{self._repo_ref}'
         else:
             return f'v{self.main_resource.version}'
 
