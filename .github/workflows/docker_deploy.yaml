@@ -57,7 +57,7 @@ jobs:
           echo "steps.vars.outputs.docker_file:" ${{ steps.vars.outputs.docker_file }}
 
       - name: Publish Docker Github Action
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           workdir: .
           name: unfoldingword/tx_job_handler
