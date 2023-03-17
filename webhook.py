@@ -50,10 +50,12 @@ from converters.usfm2html_converter import Usfm2HtmlConverter
 from door43_tools.subjects import SUBJECT_ALIASES
 from door43_tools.subjects import ALIGNED_BIBLE, BIBLE, OPEN_BIBLE_STORIES, OBS_STUDY_NOTES, OBS_STUDY_QUESTIONS, \
     OBS_TRANSLATION_NOTES, OBS_TRANSLATION_QUESTIONS, TRANSLATION_ACADEMY, TRANSLATION_WORDS, TRANSLATION_QUESTIONS, \
+    TSV_OBS_TRANSLATION_NOTES, TSV_OBS_TRANSLATION_QUESTIONS, \
     TSV_STUDY_NOTES, TSV_STUDY_QUESTIONS, TSV_TRANSLATION_NOTES, TSV_TRANSLATION_QUESTIONS, GREEK_NEW_TESTAMENT, HEBREW_OLD_TESTAMENT
 from converters.pdf.aligned_bible_pdf_converter import AlignedBiblePdfConverter
 from converters.pdf.bible_pdf_converter import BiblePdfConverter
 from converters.pdf.obs_pdf_converter import ObsPdfConverter
+from converters.pdf.obs_tn_tsv_to_pdf_converter import ObsTnTsvToPdfConverter
 from converters.pdf.obs_sn_pdf_converter import ObsSnPdfConverter
 from converters.pdf.obs_sq_pdf_converter import ObsSqPdfConverter
 from converters.pdf.obs_tn_pdf_converter import ObsTnPdfConverter
@@ -76,8 +78,8 @@ LINTER_TABLE = (
                                                 'OBS_Translation_Notes',
                                                 'OBS_Translation_Questions'),             ),
     ('ta',       TaLinter,       ('md',),      ('Translation_Academy','ta'),              ),
-    # ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('TSV_Translation_Notes','tn'),            ),
-    # ('tn',       TnLinter,       ('md',),      ('Translation_Notes','tn'),                ),
+    ('tn-tsv',   TnTsvLinter,    ('tsv',),     ('TSV_Translation_Notes','tn'),            ),
+    ('tn',       TnLinter,       ('md',),      ('Translation_Notes','tn'),                ),
     ('tq',       TqLinter,       ('md',),      ('Translation_Questions','tq'),            ),
     ('tw',       TwLinter,       ('md',),      ('Translation_Words','tw'),                ),
     ('lexicon',  LexiconLinter,  ('md',),      ('Greek_Lexicon','Hebrew-Aramaic_Lexicon'), ),
@@ -96,9 +98,9 @@ CONVERTER_TABLE = (
                     'Translation_Words','tw', 'Translation_Notes','tn',
                     'Greek_Lexicon', 'Hebrew-Aramaic_Lexicon',
                 'other',),                                                          'html'),
-    # ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
-    #                 ('TSV_Translation_Notes','tn',
-    #                 'other',),                                                      'html'),
+    ('tsv2html',  Tsv2HtmlConverter,  ('tsv',),
+                    ('TSV_Translation_Notes','tn',
+                    'other',),                                                      'html'),
     ('usfm2html', Usfm2HtmlConverter, ('usfm',),
                     ('Bible','Aligned_Bible',
                     'Greek_New_Testament','Hebrew_Old_Testament',
@@ -112,6 +114,8 @@ CONVERTER_TABLE = (
     (OBS_TRANSLATION_QUESTIONS, ObsTqPdfConverter, ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[OBS_TRANSLATION_QUESTIONS], 'pdf'),
     (TRANSLATION_ACADEMY,       TaPdfConverter,    ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_ACADEMY], 'pdf'),
     (TRANSLATION_WORDS,         TwPdfConverter,    ('', 'md','markdown','txt','text'),    SUBJECT_ALIASES[TRANSLATION_WORDS], 'pdf'),
+    (TSV_OBS_TRANSLATION_NOTES, ObsTnTsvToPdfConverter,     ('', 'tsv'),                  SUBJECT_ALIASES[TSV_OBS_TRANSLATION_NOTES], 'pdf'),
+    # (TSV_OBS_TRANSLATION_QUESTIONS, ObsTqTsvToPdfConverter, ('', 'tsv'),                  SUBJECT_ALIASES[TSV_OBS_TRANSLATION_QUESTIONS], 'pdf'),
     (TSV_STUDY_NOTES,           SnPdfConverter,    ('', 'tsv'),                           SUBJECT_ALIASES[TSV_STUDY_NOTES], 'pdf'),
     (TSV_STUDY_QUESTIONS,       SqPdfConverter,    ('', 'tsv'),                           SUBJECT_ALIASES[TSV_STUDY_QUESTIONS], 'pdf'),
     (TSV_TRANSLATION_NOTES,     TnPdfConverter,    ('', 'tsv'),                           SUBJECT_ALIASES[TSV_TRANSLATION_NOTES], 'pdf'),
@@ -375,20 +379,20 @@ def process_tx_job(pj_prefix: str, queued_json_payload) -> str:
     AppSettings.logger.info(f"Got door43_pages_converter = {door43_pages_converter_name}")
 
     # Run the linter first
-    if linter:
-        if queued_json_payload['output_format'] != "pdf":
-            build_log_dict['status'] = 'linting'
-            build_log_dict['message'] = 'tX job linting…'
-            build_log_dict['lint_module'] = linter_name
-            # Log dict gets updated by the following line
-            do_linting(build_log_dict, source_folder_path, linter_name, linter)
-    else:
-        warning_message = f"No linter was found to lint {queued_json_payload['input_format']}" \
-                          f" {queued_json_payload['resource_type']}"
-        AppSettings.logger.warning(warning_message)
-        build_log_dict['lint_module'] = 'NO LINTER'
-        build_log_dict['linter_success'] = 'false'
-        build_log_dict['linter_warnings'] = [warning_message]
+    # if linter:
+    #     if queued_json_payload['output_format'] != "pdf":
+    #         build_log_dict['status'] = 'linting'
+    #         build_log_dict['message'] = 'tX job linting…'
+    #         build_log_dict['lint_module'] = linter_name
+    #         # Log dict gets updated by the following line
+    #         do_linting(build_log_dict, source_folder_path, linter_name, linter)
+    # else:
+    #     warning_message = f"No linter was found to lint {queued_json_payload['input_format']}" \
+    #                       f" {queued_json_payload['resource_type']}"
+    #     AppSettings.logger.warning(warning_message)
+    #     build_log_dict['lint_module'] = 'NO LINTER'
+    #     build_log_dict['linter_success'] = 'false'
+    #     build_log_dict['linter_warnings'] = [warning_message]
 
     # Now run the door43_pages_converter
     if door43_pages_converter:

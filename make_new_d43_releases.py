@@ -28,6 +28,7 @@ from door43_tools.bible_books import BOOK_NAMES
 from TWL_TSV6_insert_into_HebGrk import insert_twl_into_ol
 from TQ_TSV7_to_MD import convert_tsv_tq_to_md_tq
 from generate_pdf import generate_pdf
+from packaging import version
 
 AWS_ACCESS_KEY_ID = getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = getenv("AWS_SECRET_ACCESS_KEY")
@@ -112,7 +113,7 @@ class Publisher:
         'name': repo.full_name,
         'm_ver': m_ver,
         'r_ver': r_ver,
-        'needs_release': not r_ver or (r_ver < m_ver),
+        'needs_release': not r_ver or ('-' not in r_ver and '-' not in m_ver and (version.parse(r_ver) < version.parse(m_ver))),
         'resource': resource,
       }
       if not r_ver:

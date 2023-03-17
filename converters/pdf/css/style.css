@@ -509,3 +509,37 @@ span.highlight.split {
     font-style: italic;
     padding: 10px 0;
 }
+
+a.pageref.bold {
+    font-weight: bold !important;
+}
+
+a.pageref.black {
+    color: black !important;
+}
+
+a.pageref.round::after {
+    content: ' (p.' target-counter(attr(href), page) ')';
+}
+
+a.pageref.square:after {
+    content: ' [p.' target-counter(attr(href), page) ']';
+}
+
+h4 {
+    margin-bottom: 0 !important;
+}
+
+h5 {
+    padding-top: 10px;
+    padding-bottom: 5px;
+    margin: 0;
+}
+
+h5 > p {
+    margin: 0;
+}
+
+.contents {
+    padding-left: 2em;
+}

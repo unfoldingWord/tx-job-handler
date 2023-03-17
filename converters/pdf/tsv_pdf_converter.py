@@ -369,10 +369,10 @@ QUOTE: {quote_string}
         html = ''.join(['%s' % x for x in soup.body.contents]).strip()
         return html
 
-    def get_go_back_to_html(self, source_rc):
+    def get_referenced_in_html(self, source_rc):
         if source_rc.linking_level == 0:
             return ''
-        go_back_tos = []
+        referenced_ins = []
         book_started = False
         for rc_link in source_rc.references:
             if rc_link in self.rcs:
@@ -390,13 +390,13 @@ QUOTE: {quote_string}
                     else:
                         text = rc.title
                     book_started = True
-                go_back_tos.append('<a href="#{0}">{1}</a>'.format(rc.article_id, text))
-        go_back_to_html = ''
-        if len(go_back_tos):
-            go_back_tos_string = '; '.join(go_back_tos)
-            go_back_to_html = f'''
+                referenced_ins.append('<a href="#{0}">{1}</a>'.format(rc.article_id, text))
+        referenced_in_html = ''
+        if len(referenced_ins):
+            referenced_ins_string = '; '.join(referenced_ins)
+            referenced_in_html = f'''
     <div class="go-back-to">
-        (<strong>{self.translate('go_back_to')}:</strong> {go_back_tos_string})
+        (<strong>{self.translate('referenced_in')}:</strong> {referenced_ins_string})
     </div>
 '''
-        return go_back_to_html
+        return referenced_in_html

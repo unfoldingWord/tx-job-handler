@@ -16,7 +16,7 @@ import markdown2
 from bs4 import BeautifulSoup
 from door43_tools.subjects import OBS_TRANSLATION_NOTES
 from glob import glob
-from .pdf_converter import PdfConverter
+from .tsv_pdf_converter import TsvPdfConverter
 from general_tools.file_utils import load_json_object
 from general_tools import obs_tools, html_tools, alignment_tools
 from general_tools.url_utils import get_url, download_file
@@ -46,7 +46,7 @@ TN_TITLES_TO_IGNORE = {
 }
 
 
-class ObsTnPdfConverter(PdfConverter):
+class ObsTnPdfConverter(TsvPdfConverter):
     my_subject = OBS_TRANSLATION_NOTES
 
     def __init__(self, *args, **kwargs):

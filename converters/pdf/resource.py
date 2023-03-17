@@ -22,7 +22,7 @@ from dcs_api_client.rest import ApiException
 
 DEFAULT_OWNER = 'unfoldingWord'
 DEFAULT_REF = 'master'
-OWNERS = [DEFAULT_OWNER, 'Door43-Catalog', 'STR', 'PCET', 'EXEGETICAL-BCS', 'ru_gl', 'ne_gl', 'hi_gl']
+OWNERS = [DEFAULT_OWNER, 'PCET', 'EXEGETICAL-BCS', 'ru_gl', 'ne_gl', 'hi_gl']
 LOGO_MAP = {
     'sn': 'utn',
     'sq': 'utq',

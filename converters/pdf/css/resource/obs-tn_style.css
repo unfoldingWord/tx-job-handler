@@ -12,3 +12,9 @@
     max-width: 640px;
     display: inline;
 }
+
+.frame-divider {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
