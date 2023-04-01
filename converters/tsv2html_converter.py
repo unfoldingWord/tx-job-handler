@@ -258,7 +258,7 @@ class Tsv2HtmlConverter(Converter):
                 output_html += f'<p>{OrigQuote}</p>\n'
             if OccurrenceNote:
                 output_html += markdown2.markdown(OccurrenceNote \
-                                                    .replace('<br>','\n').replace('<br/>','\n') \
+                                                    .replace('<br>','\n').replace('<br/>','\n').replace('\\n','\n') \
                                                     .replace('\n#','\n###')) # Increment heading levels by 2
                 # for bit in OccurrenceNote.split('<br>'):
                 #     if bit.startswith('# '):
