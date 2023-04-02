@@ -1442,7 +1442,7 @@ class PdfConverter(Converter):
                 entries = AppSettings.catalog_api.catalog_search(
                     repo=repo_name)
                 if entries and len(entries.data):
-                    entry = entries['data'][0]
+                    entry = entries.data[0]
             except ApiException as e:
                 AppSettings.logger.critical(
                     "Exception when calling V5Api->catalog_search: %s\n" % e)
