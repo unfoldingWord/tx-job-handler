@@ -9,7 +9,8 @@ from datetime import datetime
 from typing import Dict, Optional, List, Any
 
 from rq_settings import prefix, debug_mode_flag
-from general_tools.file_utils import add_contents_to_zip, remove_tree, remove_file, get_files
+from general_tools.file_utils import add_contents_to_zip, remove_tree, remove_file, get_files, unzip
+from general_tools.url_utils import download_file
 from app_settings.app_settings import AppSettings
 from converters.convert_logger import ConvertLogger
 
@@ -103,6 +104,53 @@ class Converter(metaclass=ABCMeta):
 
         self.manifest_dict = None
 
+    def download_relation_repo(self, repo, ref):
+        owners = [self._repo_owner]
+        if self._repo_owner != "unfoldingWord":
+            owners.append("unfoldingWord")
+        refs = [ref]
+        if ref != "master":
+            refs.append("master")
+
+        relation_filepath = os.path.join(self.download_dir, f"{repo}.zip")
+        AppSettings.logger.debug(f"relation_filepath: {relation_filepath}")
+
+        for owner in owners:
+            for ref in refs:
+                relation_url = f"{self.dcs_domain}/{owner}/{repo}/archive/{ref}.zip"
+                AppSettings.logger.debug(f"download_relation_file( {relation_url}, {relation_filepath} )")
+
+                try:
+                    AppSettings.logger.info(f"Downloading {relation_url} …")
+
+                    # if the file already exists, remove it, we want a fresh copy
+                    if os.path.isfile(relation_filepath):
+                        os.remove(relation_filepath)
+
+                    download_file(relation_url, relation_filepath)
+                    if os.path.exists(relation_filepath):
+                        print("Got the file!")
+                        break
+                    print("TRYING ANOTHER OWNER/REF!")
+                except:
+                    print("TRYING ANOTHER OWNER/REF!")
+            if os.path.exists(relation_filepath):
+                print("Got the file!")
+                break
+
+        try:
+            AppSettings.logger.debug(f"Unzipping {relation_filepath} …")
+            # TODO: This is unsafe if the zipfile comes from an untrusted source
+            unzip(relation_filepath, self.download_dir)
+        finally:
+            AppSettings.logger.debug("Unzipping finished.")
+
+        # clean up the downloaded zip file
+        if os.path.isfile(relation_filepath):
+            os.remove(relation_filepath)
+
+    def get_relation_repos(self):
+        pass
 
     def close(self) -> None:
         """
@@ -152,6 +200,7 @@ class Converter(metaclass=ABCMeta):
                 # convert method called
                 AppSettings.logger.debug(f"Converting files from {self.files_dir}…")
                 self.populate_manifest_dict()
+                self.get_relation_repos()
                 if self.convert():
                     #AppSettings.logger.debug(f"Was able to convert {self.resource}")
                     # Zip the output dir to the output archive

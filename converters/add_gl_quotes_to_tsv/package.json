@@ -1,0 +1,16 @@
+{
+  "name": "add_gl_quotes_to_tsv",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gl_lookup.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fast-csv": "^4.3.6",
+    "uw-quote-helpers": "^0.0.1-beta.6",
+    "yargs": "^17.7.1"
+  }
+}
