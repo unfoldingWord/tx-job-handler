@@ -322,16 +322,17 @@ class Tsv2HtmlConverter(Converter):
                 output_html += f'<h2 class="section-header" id="tn-chapter-{self.current_book_code}-{C.zfill(3)}">{self.current_book_name} {C}</h2>\n'
             if V != lastV:  # Onto a new verse
                 if V != 'intro':  # suppress these
-                    output_html += f'<h3 class="section-header" id="tn-chunk-{self.current_book_code}-{C.zfill(3)}-{V.zfill(3)}">{self.current_book_name} {C}:{V}</h3>\n'
+                    output_html += f'<h3 class="section-header" style="font-weight:bold" id="tn-chunk-{self.current_book_code}-{C.zfill(3)}-{V.zfill(3)}">{self.current_book_name} {C}:{V}</h3>\n'
             if GLQuote:
-                output_html += f'<h3>{GLQuote}</h3>\n'
+                output_html += f'<h3 style="font-weight:bold">{GLQuote}</h3>\n'
             elif OrigQuote:
-                output_html += f'<h3 style="red">[GL Quote Not Found!]</h3>\n'
+                output_html += f'<h3 style="color:red">[GL Quote Not Found!]</h3>\n'
             if OrigQuote:
-                output_html += f'<p><b>OL Quote:</b> {OrigQuote} ({Occurrence})</p>'
+                output_html += f'<b>OL Quote:</b><span>{OrigQuote}</span> ({Occurrence})<br/>'
             if SupportReference:
                 link = self.dcs_domain + "/" + self._repo_owner + "/" + self.lang + "_ta" + "/src/branch/master/" + '/'.join(SupportReference.split('/')[-2:]) + "/01.md"
-                output_html += f'<p><b>Support Reference:</b> <a href="{link}" target="_blank">{SupportReference}</p>'
+                output_html += f'<b>Support Reference:</b> <a href="{link}" target="_blank">{SupportReference}</a><br/>'
+            output_html += '<br/>\n'
             if OccurrenceNote:
                 output_html += markdown2.markdown(OccurrenceNote
                                                   .replace('<br>', '\n').replace('<br/>', '\n').replace('\\n', '\n')
