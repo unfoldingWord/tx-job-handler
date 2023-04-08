@@ -43,13 +43,20 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
 
     if (quote) {
       // console.log(`Generating target quote matching source quote: "${sourceQuote}", in: ${row[0]} "${reference}" `);
-      row["GLQuote"] = getTargetQuoteFromSourceQuote({
-        quote,
-        ref,
-        sourceBook,
-        targetBook,
-        options: { occurrence, fromOrigLang: true },
-      });
+      try {
+        row["GLQuote"] = getTargetQuoteFromSourceQuote({
+          quote,
+          ref,
+          sourceBook,
+          targetBook,
+          options: { occurrence, fromOrigLang: true },
+        });
+        if (! row["GLQuote"]) {
+          row["GLQuote"] = "";
+        }
+      } catch(e) {
+        row["GLQuote"] = "";
+      }
     } else {
       row["GLQuote"] = "";
     }

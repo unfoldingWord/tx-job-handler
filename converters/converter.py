@@ -129,13 +129,11 @@ class Converter(metaclass=ABCMeta):
 
                     download_file(relation_url, relation_filepath)
                     if os.path.exists(relation_filepath):
-                        print("Got the file!")
                         break
                     print("TRYING ANOTHER OWNER/REF!")
                 except:
                     print("TRYING ANOTHER OWNER/REF!")
             if os.path.exists(relation_filepath):
-                print("Got the file!")
                 break
 
         try:
