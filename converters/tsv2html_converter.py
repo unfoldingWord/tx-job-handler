@@ -5,6 +5,7 @@ import subprocess
 from bs4 import BeautifulSoup
 from shutil import copyfile
 from typing import Dict, Optional, List, Any
+import csv
 
 # import markdown
 import markdown2
@@ -20,13 +21,20 @@ class Tsv2HtmlConverter(Converter):
     Class to convert TSV translationNotes into HTML pages.
     """
     # NOTE: Not all columns are passed from the preprocessor—only the used ones
-    EXPECTED_TAB_COUNT = 7  # So there's one more column than this
+    EXPECTED_COL_COUNT = 8
     # (The preprocessor removes unneeded columns while fixing links.)
 
     def __init__(self, repo_subject: str, source_url: str, source_dir: str, cdn_file_key: Optional[str] = None, options: Optional[Dict[str, Any]] = None, identifier: Optional[str] = None, repo_owner: Optional[str] = None, repo_name: Optional[str] = None, repo_ref: Optional[str] = None, repo_data_url: Optional[str] = None, dcs_domain: Optional[str] = None, project_ids: Optional[List[str]] = None) -> None:
         super().__init__(repo_subject, source_url, source_dir, cdn_file_key, options, identifier, repo_owner, repo_name, repo_ref, repo_data_url, dcs_domain, project_ids)
         self.bible_repo = None
         self.lang = None
+
+
+    @staticmethod
+    def unicode_csv_reader(utf8_data, dialect=csv.excel, **kwargs):
+        csv_reader = csv.reader(utf8_data, dialect=dialect, delimiter=str("\t"), quotechar=str('"'), **kwargs)
+        for row in csv_reader:
+            yield [cell for cell in row]
 
     def get_relation_repos(self):
         self.lang = self.manifest_dict['dublin_core']['language']['identifier']
@@ -45,13 +53,15 @@ class Tsv2HtmlConverter(Converter):
                     try:
                         self.download_relation_repo(repo, ref)
                         print("DONE!", lang, resource, ref)
-                        self.bible_repo = repo
+                        if not self.bible_repo or resource == "ult" or resource == "glt":
+                            self.bible_repo = repo
                     except Exception as e:
                         print("ERROR!")
                         print(e)
                         exit(1)
                 else:
-                    self.bible_repo = repo
+                    if not self.bible_repo or resource == "ult" or resource == "glt":
+                        self.bible_repo = repo
         try:
             if not os.path.exists(os.path.join(self.download_dir, "el-x-koine_ugnt")):
                 self.download_relation_repo("el-x-koine_ugnt", "master")
@@ -218,29 +228,26 @@ class Tsv2HtmlConverter(Converter):
         MAX_ERROR_COUNT = 20
         error_count = 0
         self.tsv_lines: List[str] = []
-        started = False
-        with open(tsv_filepath, 'rt') as tsv_file:
-            for tsv_line in tsv_file:
-                tsv_line = tsv_line.rstrip('\n')
-                tab_count = tsv_line.count('\t')
-                if not started:
-                    # AppSettings.logger.debug(f"TSV header line is '{tsv_line}")
-                    # if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
-                    if tsv_line != 'Book	Chapter	Verse	SupportReference	OrigQuote	Occurrence	OccurrenceNote	GLQuote':
-                        self.log.warning(
-                            f"Unexpected TSV header line: '{tsv_line}' in {os.path.basename(tsv_filepath)}")
-                        error_count += 1
-                    started = True
-                elif tab_count != Tsv2HtmlConverter.EXPECTED_TAB_COUNT:
-                    # NOTE: This is not added to warnings because that will be done at convert time (don't want double warnings)
-                    AppSettings.logger.debug(
-                        f"Unexpected line with {tab_count} tabs (expected {Tsv2HtmlConverter.EXPECTED_TAB_COUNT}): '{tsv_line}'")
+        reader = self.unicode_csv_reader(open(tsv_filepath))
+        for i, row in enumerate(reader):
+            line = '\t'.join(row);
+            if i == 0:
+                # AppSettings.logger.debug(f"TSV header line is '{tsv_line}")
+                # if tsv_line != 'Book	Chapter	Verse	ID	SupportReference	OrigQuote	Occurrence	GLQuote	OccurrenceNote':
+                if line != 'Book	Chapter	Verse	SupportReference	OrigQuote	Occurrence	OccurrenceNote	GLQuote':
+                    self.log.warning(
+                        f"Unexpected TSV header line: '{line}' in {os.path.basename(tsv_filepath)}")
                     error_count += 1
-                self.tsv_lines.append(tsv_line.split('\t'))
-                if error_count > MAX_ERROR_COUNT:
-                    AppSettings.logger.critical(
-                        "Tsv2HtmlConverter: Too many TSV count errors—aborting!")
-                    break
+            elif len(row) != Tsv2HtmlConverter.EXPECTED_COL_COUNT:
+                # NOTE: This is not added to warnings because that will be done at convert time (don't want double warnings)
+                AppSettings.logger.debug(
+                    f"Unexpected line with {len(row)} columns (expected {Tsv2HtmlConverter.EXPECTED_COL_COUNT}): '{line}'")
+                error_count += 1
+            self.tsv_lines.append(row)
+            if error_count > MAX_ERROR_COUNT:
+                AppSettings.logger.critical(
+                    "Tsv2HtmlConverter: Too many TSV count errors—aborting!")
+                break
         AppSettings.logger.info(
             f"Preloaded {len(self.tsv_lines):,} TSV lines from {os.path.basename(tsv_filepath)}.")
 

@@ -27,10 +27,9 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
 
   const options = {
     objectMode: true,
-    delimiter: "\t",
-    quote: null,
+    quote: '"',
+    delimiter: '\t',
     headers: true,
-    renameHeaders: false,
   };
 
   fs.createReadStream(tnPath)
@@ -68,7 +67,7 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
     stream.pipe(tnFile)
     rows.forEach(row => {
       stream.write(row);
-    });  
+    });
     stream.end();
   })
 };
