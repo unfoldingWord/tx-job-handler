@@ -331,6 +331,7 @@ class Tsv2HtmlConverter(Converter):
                 if V != 'intro':  # suppress these
                     output_html += f'<h3 class="section-header" style="font-weight:bold" id="tn-chunk-{self.current_book_code}-{C.zfill(3)}-{V.zfill(3)}">{self.current_book_name} {C}:{V}</h3>\n'
             if GLQuote:
+                GLQuote = GLQuote.replace('&', '…')
                 output_html += f'<h3 style="font-weight:bold">{GLQuote}</h3>\n'
             elif OrigQuote:
                 output_html += f'<h3 style="color:red">[GL Quote Not Found!]</h3>\n'

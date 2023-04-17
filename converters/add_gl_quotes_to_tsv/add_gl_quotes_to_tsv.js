@@ -42,6 +42,7 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
 
     if (quote) {
       // console.log(`Generating target quote matching source quote: "${sourceQuote}", in: ${row[0]} "${reference}" `);
+      console.log("LOOKED UP ROW: "+row["Chapter"]+":"+row["Verse"]+", "+row["OrigQuote"]);
       try {
         row["GLQuote"] = getTargetQuoteFromSourceQuote({
           quote,
@@ -50,6 +51,7 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
           targetBook,
           options: { occurrence, fromOrigLang: true },
         });
+        console.log("LOOKED UP ROW: "+row["Chapter"]+":"+row["Verse"]+", "+row["GLQuote"]);
         if (! row["GLQuote"]) {
           row["GLQuote"] = "";
         }
@@ -66,6 +68,7 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
     const stream = format(options);
     stream.pipe(tnFile)
     rows.forEach(row => {
+      console.log("WRITING ROW: "+row["Chapter"]+":"+row["Verse"]);
       stream.write(row);
     });
     stream.end();
