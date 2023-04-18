@@ -40,7 +40,7 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
     const ref = row["Chapter"]+":"+row["Verse"];
     const occurrence = row["Occurrence"];
 
-    if (quote) {
+    if (quote && occurrence && occurrence != "0") {
       // console.log(`Generating target quote matching source quote: "${sourceQuote}", in: ${row[0]} "${reference}" `);
       console.log("LOOKED UP ROW: "+row["Chapter"]+":"+row["Verse"]+", "+row["OrigQuote"]);
       try {
