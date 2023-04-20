@@ -76,7 +76,6 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
     .on("end", function () {
       console.log("ENDED!!!!");
 			console.timeEnd("getting notes");
-			console.timeEnd("getTranslatqionNotes()");
 			const tnFile = fs.createWriteStream(tnPath+".new", {flags: 'w', encoding: "utf-8"});
 			const stream = format(tsvOptions);
 			stream.pipe(tnFile)

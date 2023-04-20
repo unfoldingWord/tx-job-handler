@@ -313,12 +313,16 @@ class Tsv2HtmlConverter(Converter):
 <body>
 <h1>""" + self.current_book_title + """</h1>
 """
-        self.load_tsv_file(tsv_filepath)
-
         B = C = V = None  # In case we get an error on the first line
         lastC = lastV = None
-        for tsv_line in self.tsv_lines[1:]:  # Skip the header line
-            # AppSettings.logger.debug(f"Processing {tsv_line} …")
+
+        self.add_gl_quotes_to_tsv(tsv_filepath)
+        tsv_filepath = tsv_filepath+".new"
+        reader = self.unicode_csv_reader(open(tsv_filepath))
+        for i, tsv_line in enumerate(reader):
+            if i == 0:
+                continue
+            line = '\t'.join(tsv_line);
             try:
                 B, C, V, SupportReference, OrigQuote, Occurrence, OccurrenceNote, GLQuote = tsv_line
             except ValueError:
