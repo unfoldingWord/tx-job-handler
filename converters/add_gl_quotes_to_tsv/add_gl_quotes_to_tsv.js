@@ -9,70 +9,83 @@ const {
 } = require("uw-quote-helpers");
 
 const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
-  let rows = [];
+  console.time("getTranslationNotes()");
+  console.time("getting resources");
+  console.time("fetching resources");
 
-  //Fetching resources (Orignal USFM, GL USM)
   const sourceUsfm = fs.readFileSync(
     sourcePath,
     "utf8"
   );
+  const sourceBook = getParsedUSFM(sourceUsfm).chapters;
+
   const targetUsfm = fs.readFileSync(
     targetPath,
     "utf8"
   );
-
-  //Parsing source/original and target/gl books
-  const sourceBook = getParsedUSFM(sourceUsfm).chapters;
   const targetBook = getParsedUSFM(targetUsfm).chapters;
 
-  const options = {
+  console.timeEnd("fetching resources");
+  console.time("getting resources");
+
+  console.time("getting notes");
+
+  const tsvOptions = {
     objectMode: true,
     quote: '"',
-    delimiter: '\t',
+    delimiter: "\t",
     headers: true,
   };
+  let rows = [];
 
   fs.createReadStream(tnPath)
-  .pipe(fastCsv.parse(options))
-  .on("data", function(row) {
-    //Getting the target quote as a string from a source quote string.
-    const quote = row["OrigQuote"];
-    const ref = row["Chapter"]+":"+row["Verse"];
-    const occurrence = row["Occurrence"];
+    .pipe(fastCsv.parse(tsvOptions))
+    .on("data", function (row) {
+      const quote = row["OrigQuote"];
+      const ref = row["Chapter"] + ":" + row["Verse"];
+      const occurrence = row["Occurrence"];
+      const params = {
+        quote,
+        ref,
+        sourceBook,
+        targetBook,
+        options: { occurrence, fromOrigLang: true },
+      };
+      console.log("BEFORE LOOKUP: ", [row["Book"] + " " +ref, quote, occurrence].join(', '));
 
-    if (quote && occurrence && occurrence != "0") {
-      // console.log(`Generating target quote matching source quote: "${sourceQuote}", in: ${row[0]} "${reference}" `);
-      console.log("LOOKED UP ROW: "+row["Chapter"]+":"+row["Verse"]+", "+row["OrigQuote"]);
-      try {
-        row["GLQuote"] = getTargetQuoteFromSourceQuote({
-          quote,
-          ref,
-          sourceBook,
-          targetBook,
-          options: { occurrence, fromOrigLang: true },
-        });
-        console.log("LOOKED UP ROW: "+row["Chapter"]+":"+row["Verse"]+", "+row["GLQuote"]);
-        if (! row["GLQuote"]) {
+      if (quote && occurrence && occurrence != "0") {
+        // console.log(`Generating target quote matching source quote`);
+        try {
+          const glQuote = getTargetQuoteFromSourceQuote(params);
+          // console.log({ glQuote });
+          row["GLQuote"] = glQuote;
+          if (!row["GLQuote"]) {
+            row["GLQuote"] = "";
+          }
+        } catch (e) {
+					console.log(e);
+					exit(1);
           row["GLQuote"] = "";
         }
-      } catch(e) {
+      } else {
         row["GLQuote"] = "";
       }
-    } else {
-      row["GLQuote"] = "";
-    }
-    rows.push(row);
-  })
-  .on("end", function() {
-    const tnFile = fs.createWriteStream(tnPath, {flags: 'w'});
-    const stream = format(options);
-    stream.pipe(tnFile)
-    rows.forEach(row => {
-      console.log("WRITING ROW: "+row["Chapter"]+":"+row["Verse"]);
-      stream.write(row);
-    });
-    stream.end();
-  })
+      console.log("AFTER LOOKUP: ", [row["Book"] + " " +ref, quote, row["GLQuote"]].join(', '));
+      rows.push(row);
+    })
+    .on("end", function () {
+      console.log("ENDED!!!!");
+			console.timeEnd("getting notes");
+			console.timeEnd("getTranslatqionNotes()");
+			const tnFile = fs.createWriteStream(tnPath+".new", {flags: 'w', encoding: "utf-8"});
+			const stream = format(tsvOptions);
+			stream.pipe(tnFile)
+			rows.forEach(row => {
+				console.log("WRITING ROW: "+row["Book"]+" "+row["Chapter"]+":"+row["Verse"]+": "+row["GLQuote"]);
+				stream.write(row);
+			});
+			stream.end();
+		});
 };
 
 const args = yargs.argv;

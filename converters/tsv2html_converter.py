@@ -225,6 +225,7 @@ class Tsv2HtmlConverter(Converter):
         Sets self.tsv_lines
         """
         self.add_gl_quotes_to_tsv(tsv_filepath)
+        tsv_filepath = tsv_filepath+".new"
         MAX_ERROR_COUNT = 20
         error_count = 0
         self.tsv_lines: List[str] = []
