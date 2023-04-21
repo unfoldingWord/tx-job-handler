@@ -118,6 +118,7 @@ class Tsv2HtmlConverter(Converter):
                 template_soup = BeautifulSoup(template_html, 'html.parser')
                 template_soup.head.title.string = self.repo_subject
                 converted_soup = BeautifulSoup(converted_html, 'html.parser')
+                del converted_html
                 content_div = template_soup.find('div', id='content')
                 content_div.clear()
                 self.log.info("GOT TEMPLATE FILE AND CLEARED CONTENTS")
@@ -136,14 +137,13 @@ class Tsv2HtmlConverter(Converter):
                     # from bs4.diagnose import diagnose
                     # diagnose(converted_html)
                     num_failed_books += 1
+                del converted_soup
                 html_filename = filebase + '.html'
                 self.log.info(f"OUTPUTTING CONTENTS TO {html_filename}")
                 output_filepath = os.path.join(self.output_dir, html_filename)
                 # print("template_soup type is", type(template_soup)) # <class 'bs4.BeautifulSoup'>
                 write_file(output_filepath, str(template_soup))
                 del template_soup
-                del converted_html
-                del converted_soup
                 # print("Got converted x2 html:", str(template_soup)[:500])
                 self.log.info(f"Converted {os.path.basename(source_filepath)} to {os.path.basename(html_filename)}.")
             else:
