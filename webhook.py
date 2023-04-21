@@ -213,6 +213,7 @@ def do_converting(param_dict:Dict[str,Any], source_dir:str, converter_name:str, 
                                 repo_owner=param_dict['repo_owner'],
                                 repo_name=param_dict['repo_name'],
                                 repo_ref=param_dict['repo_ref'],
+                                repo_ref_type=param_dict['repo_ref_type'],
                                 repo_data_url=param_dict['repo_data_url'],
                                 dcs_domain=param_dict['dcs_domain'],
                                 project_ids=param_dict['project_ids'] if 'project_ids' in param_dict else None)

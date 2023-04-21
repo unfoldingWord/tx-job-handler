@@ -103,6 +103,7 @@ def generate_html(repo_name, owner='unfoldingWord', ref=None, dcs_domain='git.do
             "repo_name": repo_name,
             "repo_owner": owner,
             "repo_ref": ref,
+            "repo_ref_type": "branch",
             "repo_data_url": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{ref}.zip",
             "dcs_domain": f"https://{dcs_domain}",
             "project_ids": project_ids,

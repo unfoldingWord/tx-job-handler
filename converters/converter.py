@@ -24,8 +24,8 @@ class Converter(metaclass=ABCMeta):
 
     def __init__(self, repo_subject:str, source_url:str, source_dir:str, cdn_file_key:Optional[str]=None,
                  options:Optional[Dict[str,Any]]=None, identifier:Optional[str]=None, repo_owner:Optional[str]=None,
-                 repo_name:Optional[str]=None, repo_ref:Optional[str]=None, repo_data_url:Optional[str]=None,
-                 dcs_domain:Optional[str]=None, project_ids:Optional[List[str]]=None) -> None:
+                 repo_name:Optional[str]=None, repo_ref:Optional[str]="master", repo_ref_type:Optional[str]="branch",
+                 repo_data_url:Optional[str]=None, dcs_domain:Optional[str]=None, project_ids:Optional[List[str]]=None) -> None:
         """
         :param string source:
         :param string repo_subject:
@@ -36,6 +36,7 @@ class Converter(metaclass=ABCMeta):
         :param string repo_owner:
         :param string repo_name:
         :param string repo_ref:
+        :param string repo_ref_type:
         :param string repo_data_url:
         :param string dcs_domain:
         :param List[str] project_ids:
@@ -54,6 +55,7 @@ class Converter(metaclass=ABCMeta):
         self._repo_owner = repo_owner
         self._repo_name = repo_name
         self._repo_ref = repo_ref
+        self._repo_ref_type = repo_ref_type
         self.repo_data_url = repo_data_url
         self.project_ids = project_ids
 

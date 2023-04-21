@@ -24,8 +24,8 @@ class Tsv2HtmlConverter(Converter):
     EXPECTED_COL_COUNT = 8
     # (The preprocessor removes unneeded columns while fixing links.)
 
-    def __init__(self, repo_subject: str, source_url: str, source_dir: str, cdn_file_key: Optional[str] = None, options: Optional[Dict[str, Any]] = None, identifier: Optional[str] = None, repo_owner: Optional[str] = None, repo_name: Optional[str] = None, repo_ref: Optional[str] = None, repo_data_url: Optional[str] = None, dcs_domain: Optional[str] = None, project_ids: Optional[List[str]] = None) -> None:
-        super().__init__(repo_subject, source_url, source_dir, cdn_file_key, options, identifier, repo_owner, repo_name, repo_ref, repo_data_url, dcs_domain, project_ids)
+    def __init__(self, repo_subject: str, source_url: str, source_dir: str, cdn_file_key: Optional[str] = None, options: Optional[Dict[str, Any]] = None, identifier: Optional[str] = None, repo_owner: Optional[str] = None, repo_name: Optional[str] = None, repo_ref: Optional[str] = "master", repo_ref_type: Optional[str] = "branch", repo_data_url: Optional[str] = None, dcs_domain: Optional[str] = None, project_ids: Optional[List[str]] = None) -> None:
+        super().__init__(repo_subject, source_url, source_dir, cdn_file_key, options, identifier, repo_owner, repo_name, repo_ref, repo_ref_type, repo_data_url, dcs_domain, project_ids)
         self.bible_repo = None
         self.lang = None
 
@@ -42,7 +42,7 @@ class Tsv2HtmlConverter(Converter):
             print(relation)
             lang, resource, _, ref = (
                 list(re.split('\?|\/|v=', relation)) + [None]*4)[:4]
-            if not ref:
+            if not ref or self._repo_ref == "master" or self._repo_ref_type != "tag":
                 ref = "master"
             else:
                 ref = f"v{ref}"
