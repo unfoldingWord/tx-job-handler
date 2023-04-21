@@ -9,10 +9,9 @@ const {
 } = require("uw-quote-helpers");
 
 const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
-  console.time("getTranslationNotes()");
-  console.time("getting resources");
-  console.time("fetching resources");
+  console.time(`addGLQuotesToTSV(${sourcePath}, ${targetPath}, ${tnPath})`);
 
+  console.time("fetching resources");
   const sourceUsfm = fs.readFileSync(
     sourcePath,
     "utf8"
@@ -26,7 +25,6 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
   const targetBook = getParsedUSFM(targetUsfm).chapters;
 
   console.timeEnd("fetching resources");
-  console.time("getting resources");
 
   console.time("getting notes");
 
@@ -51,8 +49,6 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
         targetBook,
         options: { occurrence, fromOrigLang: true },
       };
-      console.log("BEFORE LOOKUP: ", [row["Book"] + " " +ref, quote, occurrence].join(', '));
-
       if (quote && occurrence && occurrence != "0") {
         // console.log(`Generating target quote matching source quote`);
         try {
@@ -70,7 +66,6 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
       } else {
         row["GLQuote"] = "";
       }
-      console.log("AFTER LOOKUP: ", [row["Book"] + " " +ref, quote, row["GLQuote"]].join(', '));
       rows.push(row);
     })
     .on("end", function () {
@@ -84,6 +79,8 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
 				stream.write(row);
 			});
 			stream.end();
+			console.timeEnd("getting notes");
+			console.timeEnd(`addGLQuotesToTSV(${sourcePath}, ${targetPath}, ${tnPath})`);
 		});
 };
 

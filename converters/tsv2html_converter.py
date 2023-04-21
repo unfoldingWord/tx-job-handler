@@ -112,7 +112,6 @@ class Tsv2HtmlConverter(Converter):
                     os.path.basename(source_filepath))[0]
                 # Do the actual TSV -> HTML conversion
                 converted_html = self.buildSingleHtml(source_filepath)
-                self.log.info(f"GOT CONVERTED TSV WITH GL QUOTE FOR {source_filepath}")
                 # AppSettings.logger.debug(f"Got converted html: {converted_html[:5000]}{' …' if len(converted_html)>5000 else ''}")
                 # Now what are we doing with the converted html ???
                 template_soup = BeautifulSoup(template_html, 'html.parser')
@@ -121,10 +120,8 @@ class Tsv2HtmlConverter(Converter):
                 del converted_html
                 content_div = template_soup.find('div', id='content')
                 content_div.clear()
-                self.log.info("GOT TEMPLATE FILE AND CLEARED CONTENTS")
                 if converted_soup and converted_soup.body and converted_soup.body.div:
                     content_div.append(converted_soup.body.div)
-                    self.log.info("APPENED converted_soup.body.div to div")
                     num_successful_books += 1
                 else:
                     content_div.append('ERROR! NOT CONVERTED!')
@@ -139,7 +136,6 @@ class Tsv2HtmlConverter(Converter):
                     num_failed_books += 1
                 del converted_soup
                 html_filename = filebase + '.html'
-                self.log.info(f"OUTPUTTING CONTENTS TO {html_filename}")
                 output_filepath = os.path.join(self.output_dir, html_filename)
                 # print("template_soup type is", type(template_soup)) # <class 'bs4.BeautifulSoup'>
                 write_file(output_filepath, str(template_soup))
