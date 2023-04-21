@@ -121,14 +121,13 @@ class Tsv2HtmlConverter(Converter):
                 content_div = template_soup.find('div', id='content')
                 content_div.clear()
                 self.log.info("GOT TEMPLATE FILE AND CLEARED CONTENTS")
-                if converted_soup and converted_soup.body:
-                    content_div.append(converted_soup.body)
-                    content_div.body.unwrap()
+                if converted_soup and converted_soup.body and converted_soup.body.div:
+                    content_div.append(converted_soup.body.div)
+                    self.log.info("APPENED converted_soup.body.div to div")
                     num_successful_books += 1
                 else:
                     content_div.append('ERROR! NOT CONVERTED!')
-                    self.log.warning(
-                        f"TSV parsing or conversion error for {base_name}")
+                    self.log.warning(f"TSV parsing or conversion error for {base_name}")
                     # AppSettings.logger.debug(f"Got converted html: {converted_html[:600]}{' …' if len(converted_html)>600 else ''}")
                     if not converted_soup:
                         AppSettings.logger.debug(f"No converted_soup")
@@ -138,12 +137,15 @@ class Tsv2HtmlConverter(Converter):
                     # diagnose(converted_html)
                     num_failed_books += 1
                 html_filename = filebase + '.html'
+                self.log.info(f"OUTPUTTING CONTENTS TO {html_filename}")
                 output_filepath = os.path.join(self.output_dir, html_filename)
                 # print("template_soup type is", type(template_soup)) # <class 'bs4.BeautifulSoup'>
                 write_file(output_filepath, str(template_soup))
+                del template_soup
+                del converted_html
+                del converted_soup
                 # print("Got converted x2 html:", str(template_soup)[:500])
-                self.log.info(
-                    f"Converted {os.path.basename(source_filepath)} to {os.path.basename(html_filename)}.")
+                self.log.info(f"Converted {os.path.basename(source_filepath)} to {os.path.basename(html_filename)}.")
             else:
                 # Directly copy over files that are not TSV files
                 try:
@@ -313,6 +315,7 @@ class Tsv2HtmlConverter(Converter):
 
 </head>
 <body>
+<div>
 <h1>""" + self.current_book_title + """</h1>
 """
         B = C = V = None  # In case we get an error on the first line
@@ -370,7 +373,7 @@ class Tsv2HtmlConverter(Converter):
                 #             self.log.warning(f"{B} {C}:{V} has unexpected bit: '{bit}'")
                 #         output_html += f'<p>{bit}</p>\n'
             lastC, lastV = C, V
-        output_html += "</body></html>"
+        output_html += "</div></body></html>"
 
         self.log.info(f"Generated HTML for {tsv_filepath}")
         return output_html
