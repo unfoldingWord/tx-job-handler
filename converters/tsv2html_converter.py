@@ -112,6 +112,7 @@ class Tsv2HtmlConverter(Converter):
                     os.path.basename(source_filepath))[0]
                 # Do the actual TSV -> HTML conversion
                 converted_html = self.buildSingleHtml(source_filepath)
+                self.log.info("GOT CONVERTED TSV WITH GL QUOTE FOR "+source_filepath)
                 # AppSettings.logger.debug(f"Got converted html: {converted_html[:5000]}{' …' if len(converted_html)>5000 else ''}")
                 # Now what are we doing with the converted html ???
                 template_soup = BeautifulSoup(template_html, 'html.parser')
@@ -119,6 +120,7 @@ class Tsv2HtmlConverter(Converter):
                 converted_soup = BeautifulSoup(converted_html, 'html.parser')
                 content_div = template_soup.find('div', id='content')
                 content_div.clear()
+                self.log.info("GOT TEMPLATE FILE AND CLEARED CONTENTS")
                 if converted_soup and converted_soup.body:
                     content_div.append(converted_soup.body)
                     content_div.body.unwrap()
@@ -330,6 +332,7 @@ class Tsv2HtmlConverter(Converter):
                     f"Unable to convert bad TSV line (wrong number of fields) near {B} {C}:{V} = {self.get_truncated_string(tsv_line)}")
                 output_html += f'<p>BAD SOURCE LINE NOT CONVERTED: {tsv_line}</p>'
                 continue
+            self.log.info("GETTING HTML FOR LINE "+i+": "+B+" "+C+":"+V)
             if C != lastC:  # New chapter
                 output_html += f'<h2 class="section-header" id="tn-chapter-{self.current_book_code.upper()}-{C.zfill(3)}">{self.current_book_name} {C}</h2>\n'
             if V != lastV:  # Onto a new verse
@@ -347,6 +350,7 @@ class Tsv2HtmlConverter(Converter):
                 output_html += f'<b>Support Reference:</b> <a href="{link}" target="_blank">{SupportReference}</a><br/>'
             output_html += '<br/>\n'
             if OccurrenceNote:
+                self.log.info("Converting Note to Markdown")
                 output_html += markdown2.markdown(OccurrenceNote
                                                   .replace('<br>', '\n').replace('<br/>', '\n').replace('\\n', '\n')
                                                   .replace('\n#', '\n###'))  # Increment heading levels by 2
@@ -368,4 +372,5 @@ class Tsv2HtmlConverter(Converter):
             lastC, lastV = C, V
         output_html += "</body></html>"
 
+        self.log.info("Generated HTML for "+tsv_filepath)
         return output_html
