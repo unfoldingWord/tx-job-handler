@@ -343,7 +343,7 @@ class Tsv2HtmlConverter(Converter):
             elif OrigQuote:
                 output_html += f'<h3 style="color:red">[GL Quote Not Found!]</h3>\n'
             if OrigQuote:
-                output_html += f'<b>OL Quote:</b> <span>{OrigQuote}</span> ({Occurrence})<br/>'
+                output_html += f'<b>Quote:</b> <span>{OrigQuote}</span> ({Occurrence})<br/>'
             if SupportReference:
                 link = self.dcs_domain + "/" + self._repo_owner + "/" + self.lang + "_ta" + "/src/branch/master/" + '/'.join(SupportReference.split('/')[-2:]) + "/01.md"
                 output_html += f'<b>Support Reference:</b> <a href="{link}" target="_blank">{SupportReference}</a><br/>'
