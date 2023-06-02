@@ -1,21 +1,25 @@
 # NOTE: This docker container is built automatically
 #       from Travis-CI after passing unit tests
 
-FROM minidocks/weasyprint:latest
+FROM minidocks/python:3.10
 
-COPY . /code
-WORKDIR /code
+ARG version=59.0
 
 # Update apt-get
 RUN apk update -qq
 
-# Install packages needed for weasyprint
-RUN apk add -qq pango gcc libc-dev python3-dev npm build-base
+RUN apk add -u cairo cairo-gobject pango gcc libc-dev python3-dev npm gdk-pixbuf py3-brotli py3-lxml py3-cffi py3-pillow msttcorefonts-installer fontconfig zopfli \
+    && update-ms-fonts && fc-cache -f && clean
+
+ADD rootfs /
+
+COPY . /code
+WORKDIR /code
 
 # Upgrade pip3 and install the requirements
-RUN pip3 install --upgrade pip
+RUN pip install --upgrade pip
 RUN pip install -U pip setuptools wheel ruamel.yaml.clib==0.2.6
-RUN pip3 install --requirement requirements.txt
+RUN pip install --requirement requirements.txt && clean
 
 # Install the npm modules we use for generating some Bible content in JSON format
 RUN cd converters/pdf/resources && npm ci
