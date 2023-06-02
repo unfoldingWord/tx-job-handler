@@ -1,7 +1,7 @@
 # NOTE: This docker container is built automatically
 #       from Travis-CI after passing unit tests
 
-FROM minidocks/weasyprint:53
+FROM minidocks/weasyprint:latest
 
 COPY . /code
 WORKDIR /code
@@ -10,7 +10,7 @@ WORKDIR /code
 RUN apk update -qq
 
 # Install packages needed for weasyprint
-RUN apk add -qq pango gcc libc-dev python3-dev npm
+RUN apk add -qq pango gcc libc-dev python3-dev npm build-essential
 
 # Upgrade pip3 and install the requirements
 RUN pip3 install --upgrade pip
