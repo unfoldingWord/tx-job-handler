@@ -14,7 +14,7 @@ RUN apk add -qq pango gcc libc-dev python3-dev npm
 
 # Upgrade pip3 and install the requirements
 RUN pip3 install --upgrade pip
-RUN pip install -U pip setuptools wheel ruamel.yaml.clib==0.2.6
+RUN pip install -U pip setuptools wheel ruamel.yaml.clib==0.2.7
 RUN pip3 install --requirement requirements.txt
 
 # Install the npm modules we use for generating some Bible content in JSON format
