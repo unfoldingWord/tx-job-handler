@@ -43,14 +43,15 @@ def generate_pdf(repo_name, owner='unfoldingWord', ref=None, dcs_domain='git.doo
     if resource == 'bhp':
         lang = 'el-x-koine'
 
-    for s, aliases in SUBJECT_ALIASES.items():
-        for alias in aliases:
-            if resource == alias:
-                subject = s
-                break
-        else:
-            continue
-        break
+    if not subject:
+        for s, aliases in SUBJECT_ALIASES.items():
+            for alias in aliases:
+                if resource == alias:
+                    subject = s
+                    break
+            else:
+                continue
+            break
 
     if subject:
         subject = subject.replace(' ', '_')
@@ -111,7 +112,7 @@ def generate_pdf(repo_name, owner='unfoldingWord', ref=None, dcs_domain='git.doo
             "repo_name": repo_name,
             "repo_owner": owner,
             "repo_ref": ref,
-            "repo_ref_type": "branch",
+            "repo_ref_type": "tag",
             "repo_data_url": f"https://{dcs_domain}/{owner}/{repo_name}/archive/{ref}.zip",
             "dcs_domain": f"https://{dcs_domain}",
             "project_ids": project_ids,
@@ -208,6 +209,7 @@ if __name__ == '__main__':
     parser.add_argument('--repo', dest='repo_name', required=True, help='Repo name')
     parser.add_argument('--ref', dest='ref', required=False, help='Branch or tag name. Default: latest release or master')
     parser.add_argument('--input', dest='input_format', required=False, help='Input type. Default: md')
+    parser.add_argument('-s', '--subject', dest='subject', required=False, help='subject is guessed, but you can provide it')
     parser.add_argument('-p', '--project_id', metavar='PROJECT ID', dest='project_ids', required=False, action='append',
                         help='Project ID for resources with projects, as listed in the manfiest.yaml file, such as a Bible book ' +
                         '(-p gen). Can specify multiple projects. Default: None (different converters will handle no or multiple ' +

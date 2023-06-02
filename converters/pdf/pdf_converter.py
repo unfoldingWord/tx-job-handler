@@ -1197,14 +1197,14 @@ class PdfConverter(Converter):
         title = rc.title
         if not title:
             title_file = os.path.join(article_dir, 'title.md')
-            title = read_file(title_file)
+            title = read_file(title_file).strip()
             rc.set_title(title)
 
         question_file = os.path.join(article_dir, 'sub-title.md')
         if os.path.isfile(question_file):
             question = f'''
         <div class="ta-question">
-            {self.translate('this_page_answers_the_question')}: <em>{read_file(question_file)}<em>
+            {self.translate('this_page_answers_the_question')}: <em>{read_file(question_file).strip()}<em>
         </div>
 '''
         if rc.path in config:
@@ -1399,7 +1399,6 @@ class PdfConverter(Converter):
             self.process_relation_resource(relation)
 
     def process_relation_resource(self, relation):
-        print(f"\n\n\nPROCESSING::::::::::::: {relation}\n\n\n\n\n\n")
         lang = self.language_id
         ref = DEFAULT_REF
         langs_to_try = [lang]

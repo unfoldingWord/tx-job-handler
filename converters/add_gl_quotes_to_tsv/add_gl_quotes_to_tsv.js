@@ -39,8 +39,18 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
   fs.createReadStream(tnPath)
     .pipe(fastCsv.parse(tsvOptions))
     .on("data", function (row) {
-      const quote = row["OrigQuote"];
-      const ref = row["Chapter"] + ":" + row["Verse"];
+      let quote = ""
+      if (row["OrigQuote"]) {
+        quote = row["OrigQuote"];
+      } else {
+        quote = row["Quote"];
+      }
+      let ref = ""
+      if (row["Chapter"]) {
+        ref = row["Chapter"] + ":" + row["Verse"];
+      } else {
+        ref = row["Reference"];
+      }
       const occurrence = row["Occurrence"];
       const params = {
         quote,
@@ -75,7 +85,6 @@ const addGLQuotesToTSV = (sourcePath, targetPath, tnPath) => {
 			const stream = format(tsvOptions);
 			stream.pipe(tnFile)
 			rows.forEach(row => {
-				console.log("WRITING ROW: "+row["Book"]+" "+row["Chapter"]+":"+row["Verse"]+": "+row["GLQuote"]);
 				stream.write(row);
 			});
 			stream.end();

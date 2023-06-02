@@ -12,25 +12,35 @@ This script generates the HTML and PDF TN documents
 """
 import os
 import re
+import csv
 import markdown2
+import subprocess
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import TSV_TRANSLATION_NOTES, ALIGNED_BIBLE
 from glob import glob
 from collections import OrderedDict
-from .tsv_pdf_converter import TsvPdfConverter
+from .pdf_converter import PdfConverter
 from .pdf_converter import represent_int
 from door43_tools.bible_books import BOOK_CHAPTER_VERSES, BOOK_NUMBERS
 from general_tools.alignment_tools import flatten_alignment
 from general_tools.file_utils import load_json_object, get_latest_version_path, get_child_directories
+from typing import Dict, Optional, List, Any
+from bs4 import BeautifulSoup
 
 QUOTES_TO_IGNORE = ['general information:', 'connecting statement:']
 
 
-class TnPdfConverter(TsvPdfConverter):
+class TnPdfConverter(PdfConverter):
     my_subject = TSV_TRANSLATION_NOTES
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def unicode_csv_reader(utf8_data, dialect=csv.excel, **kwargs):
+        csv_reader = csv.reader(utf8_data, dialect=dialect, delimiter=str("\t"), quotechar=str('"'), **kwargs)
+        for row in csv_reader:
+            yield [cell for cell in row]
 
     def reinit(self):
         super().reinit()
@@ -38,26 +48,63 @@ class TnPdfConverter(TsvPdfConverter):
         self.tn_groups_data = {}
         self.tn_book_data = {}
 
+    def get_sample_text(self):
+        project = self.projects[0]
+        book_filepath = os.path.abspath(os.path.join(self.main_resource.repo_dir, project['path']))
+        if not os.path.isfile(book_filepath):
+            return ''
+        reader = self.unicode_csv_reader(open(book_filepath))
+        next(reader)
+        row = next(reader)
+        html = markdown2.markdown(row[-1].replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n').replace('</br>', '').replace('\\n', "\n"))
+        soup = BeautifulSoup(html, 'html.parser')
+        p = soup.find('p')
+        if not p:
+            p = soup
+        return p.text
+
     def get_body_html(self):
         self.log.info('Creating TN for {0}...'.format(self.file_project_and_ref))
-        self.process_bibles()
-        for resource in self.resources.values():
-            if resource.subject == ALIGNED_BIBLE:
-                self.populate_book_data(resource.identifier, resource.language_id)
-        self.populate_book_data(self.ol_bible_id, self.ol_lang_code)
-        self.populate_tw_words_data()
-        self.populate_tn_groups_data()
         self.populate_tn_book_data()
         html = self.get_tn_html()
         return html
+    
+    def determine_ult_bible(self):
+        ult_bible = None
+        for resource in self.resources.values():
+            if resource.subject == ALIGNED_BIBLE:
+                if resource.identifier == 'ult' or resource.identifier == 'ulb' or resource.identifier == 'glt':
+                    ult_bible = resource
+                elif not ult_bible:
+                    ult_bible = resource
+        if not ult_bible:
+            self.log.error('No ULT or similar aligned Bible found. Add one to the relation field in manifest.yaml')
+            exit(1)
+        return ult_bible
+
+    def add_gl_quotes_to_tsv(self, tsv_filepath: str) -> None:
+        bible = self.determine_ult_bible()
+        bible_book_filename = f"{self.book_number_padded}-{self.project_id.upper()}" + ".usfm"
+        args = ['node', 'add_gl_quotes_to_tsv.js',
+                '--source_path', os.path.join(self.download_dir, "el-x-koine_ugnt" if self.book_number >= 40 else "hbo_uhb", bible_book_filename),
+                '--target_path', os.path.join(self.download_dir, bible.repo_name, bible_book_filename),
+                '--tn_path', tsv_filepath,
+               ]
+        cmd = ' '.join(args)
+        self.log.info(f'Running `{cmd}` in add_gl_quote_to_tsv')
+        ret = subprocess.call(cmd, shell=True, cwd=os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'add_gl_quotes_to_tsv'))
+        if ret:
+            self.log.error('Error running add_gl_quote_to_tsv/add_gl_quote_to_tsv.js. Exiting.')
 
     def populate_tn_book_data(self):
-        book_filename = f'{self.language_id}_{self.main_resource.identifier}_{self.book_number_padded}-{self.project_id.upper()}.tsv'
-        book_filepath = os.path.join(self.main_resource.repo_dir, book_filename)
-        if not os.path.isfile(book_filepath):
+        tsv_filepath = f'tn_{self.project_id.upper()}.tsv'
+        tsv_filepath = os.path.join(self.main_resource.repo_dir, tsv_filepath)
+        if not os.path.isfile(tsv_filepath):
             return
+        self.add_gl_quotes_to_tsv(tsv_filepath)  
+        tsv_filepath += ".new"      
         book_data = OrderedDict()
-        reader = self.unicode_csv_reader(open(book_filepath))
+        reader = self.unicode_csv_reader(open(tsv_filepath))
         header = next(reader)
         row_count = 1
         for row in reader:
@@ -65,18 +112,13 @@ class TnPdfConverter(TsvPdfConverter):
             verse_data = {
                 'contextId': None,
                 'row': row_count,
-                'alignments': {
-                    self.ult.identifier: None
-                }
             }
-            if self.ust:
-                verse_data['alignments'][self.ust.identifier] = None
             found = False
             for idx, field in enumerate(header):
                 field = field.strip()
                 if idx >= len(row):
-                    self.log.error(f'ERROR: {book_filepath} is malformed at row {row_count}: {row}')
-                    self.add_error_message(self.create_rc(f'{book_filename}#{row_count}'), f'Line {row_count}', f'Malformed row: {row}')
+                    self.log.error(f'ERROR: {tsv_filepath} is malformed at row {row_count}: {row}')
+                    self.add_error_message(self.create_rc(f'{tsv_filepath}#{row_count}'), f'Line {row_count}', f'Malformed row: {row}')
                     found = False
                     break
                 else:
@@ -84,47 +126,10 @@ class TnPdfConverter(TsvPdfConverter):
                     verse_data[field] = row[idx]
             if not found:
                 continue
-            chapter = verse_data['Chapter'].lstrip('0')
-            verse = verse_data['Verse'].lstrip('0')
-            occurrence = 1
-            if represent_int(verse_data['Occurrence']) and int(verse_data['Occurrence']) > 0:
-                occurrence = int(verse_data['Occurrence'])
+            chapter = verse_data['Reference'].split(':')[0].lstrip('0')
+            verse = re.split('[,-]', verse_data['Reference'].split(':')[1])[0].lstrip('0')
             tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
-            tn_title = f'{verse_data["GLQuote"]}'
-            if verse_data['OrigQuote']:
-                context_id = None
-                if chapter in self.tn_groups_data and verse in self.tn_groups_data[chapter] and \
-                        self.tn_groups_data[chapter][verse]:
-                    for c_id in self.tn_groups_data[chapter][verse]:
-                        if c_id['quoteString'] == verse_data['OrigQuote'] and c_id['occurrence'] == occurrence:
-                            context_id = c_id
-                            break
-                if not context_id and chapter.isdigit() and verse.isdigit():
-                    context_id = {
-                        'reference': {
-                            'chapter': int(chapter),
-                            'verse': int(verse)
-                        },
-                        'rc': f'rc://{self.language_id}/{self.name}/help///{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}',
-                        'quote': verse_data['OrigQuote'],
-                        'occurrence': occurrence,
-                        'quoteString': verse_data['OrigQuote']
-                    }
-                if context_id:
-                    context_id['rc'] += f'/{verse_data["ID"]}'
-                    context_id['quoteString'] = verse_data['OrigQuote']
-                    verse_data['contextId'] = context_id
-                    verse_data['alignments'] = {
-                        self.ult.identifier: self.get_aligned_text(self.ult.identifier, context_id),
-                    }
-                    if self.ust:
-                        verse_data['alignments'][self.ust.identifier] = self.get_aligned_text(self.ust.identifier, context_id)
-                if verse_data['alignments'][self.ult.identifier]:
-                    tn_title = flatten_alignment(verse_data['alignments'][self.ult.identifier]) + f' ({self.ult.identifier.upper()})'
-                    if self.ust and verse_data['alignments'][self.ust.identifier]:
-                        tn_title += '<br/>' + flatten_alignment(verse_data['alignments'][self.ust.identifier]) + f' ({self.ust.identifier.upper()})'
-                else:
-                    tn_title = f'{verse_data["GLQuote"]}'
+            tn_title = verse_data["GLQuote"] if verse_data["GLQuote"] else verse_data["Quote"]
             tn_rc = self.create_rc(tn_rc_link, title=tn_title)
             verse_data['title'] = tn_title
             verse_data['rc'] = tn_rc
@@ -145,7 +150,7 @@ class TnPdfConverter(TsvPdfConverter):
 </article>
 '''
         if 'front' in self.tn_book_data and 'intro' in self.tn_book_data['front']:
-            book_intro = markdown2.markdown(self.tn_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'))
+            book_intro = markdown2.markdown(self.tn_book_data['front']['intro'][0]['Note'].replace('<br>', '\n').replace('\\n', "\n"))
             book_intro_title = html_tools.get_title_from_html(book_intro)
             book_intro = self.fix_tn_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
@@ -171,7 +176,7 @@ class TnPdfConverter(TsvPdfConverter):
 '''
             if 'intro' in self.tn_book_data[chapter]:
                 self.log.info('Generating chapter info...')
-                chapter_intro = markdown2.markdown(self.tn_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"))
+                chapter_intro = markdown2.markdown(self.tn_book_data[chapter]['intro'][0]['Note'].replace('<br>', "\n").replace('\\n', "\n"))
                 # Remove leading 0 from chapter header
                 chapter_intro = re.sub(r'<h(\d)>([^>]+) 0+([1-9])', r'<h\1>\2 \3', chapter_intro, 1, flags=re.MULTILINE | re.IGNORECASE)
                 chapter_intro = html_tools.make_first_header_section_header(chapter_intro, level=4, no_toc=True)
@@ -205,80 +210,29 @@ class TnPdfConverter(TsvPdfConverter):
         tn_title = f'{self.project_title} {chapter}:{verse}'
         tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
         tn_rc = self.add_rc(tn_rc_link, title=tn_title)
-        ult_with_tw_words = self.get_scripture_with_tw_words(self.ult.identifier, chapter, verse)
-        # ult_with_tw_words = self.get_scripture_with_tn_quotes(self.ult.identifier, chapter, verse, rc, ult_with_tw_words)
-        ust_html = ""
-        if self.ust:
-            ust_with_tw_words = self.get_scripture_with_tw_words(self.ust.identifier, chapter, verse)
-            ust_html = f'''
-                                <h3 class="bible-resource-title">{self.ust.identifier.upper()}</h3>
-                                <div class="bible-text">{ust_with_tw_words}</div>
-'''
-        # ust_with_tw_words = self.get_scripture_with_tn_quotes(self.ust.identifier, chapter, verse, rc, ust_with_tw_words)
-
         tn_article = f'''
                 <article id="{tn_rc.article_id}">
                     <h2 class="section-header no-toc">{tn_title}</h2>
                     <div class="notes">
-                            <div class="col1">
-                                <h3 class="bible-resource-title">{self.ult.identifier.upper()}</h3>
-                                <div class="bible-text">{ult_with_tw_words}</div>
-                                {ust_html}
-                            </div>
-                            <div class="col2">
-                                {self.get_tn_article_text(chapter, verse)}
-                                {self.get_tw_html_list(self.ult.identifier, chapter, verse, ult_with_tw_words)}
-                                {self.get_tw_html_list(self.ust.identifier, chapter, verse, ust_with_tw_words) if self.ust else ""}
-                            </div>
+                        {self.get_tn_article_text(chapter, verse)}
                     </div>
                 </article>
 '''
         tn_rc.set_article(tn_article)
         return tn_article
 
-    def get_tw_html_list(self, bible_id, chapter, verse, scripture=''):
-        if chapter not in self.tw_words_data or verse not in self.tw_words_data[chapter] or \
-                not self.tw_words_data[chapter][verse]:
-            return ''
-        group_datas = self.tw_words_data[chapter][verse]
-        for group_data_idx, group_data in enumerate(group_datas):
-            alignment = group_data['alignments'][bible_id]
-            if alignment:
-                title = flatten_alignment(alignment)
-            else:
-                title = f'[[{group_data["contextId"]["rc"]}]]'
-            group_datas[group_data_idx]['title'] = title
-        rc_pattern = 'rc://[/A-Za-z0-9*_-]+'
-        rc_order = re.findall(rc_pattern, scripture)
-        group_datas.sort(key=lambda x: str(rc_order.index(x['contextId']['rc']) if x['contextId']['rc'] in rc_order else x['title']))
-        links = []
-        for group_data_idx, group_data in enumerate(group_datas):
-            tw_rc = group_data['contextId']['rc']
-            occurrence = group_data['contextId']['occurrence']
-            occurrence_text = ''
-            if occurrence > 1:
-                occurrence_text = f' ({occurrence})'
-            title = group_data['title']
-            links.append(f'<a href="{tw_rc}" class="tw-phrase tw-phrase-{group_data_idx + 1}">{title}</a>{occurrence_text}')
-        tw_html = f'''
-                <h3>{self.resources['tw'].simple_title} - {bible_id.upper()}</h3>
-                <ul class="tw-list">
-                    <li>{'</li><li>'.join(links)}</li>
-                </ul>
-'''
-        return tw_html
-
     def get_tn_article_text(self, chapter, verse):
         verse_notes = ''
         if verse in self.tn_book_data[chapter]:
             for tn_note in self.tn_book_data[chapter][verse]:
-                note = markdown2.markdown(tn_note['OccurrenceNote'].replace('<br>', "\n"))
+                note = markdown2.markdown(tn_note['Note'].replace('<br>', "\n").replace('\\n', "\n"))
                 note = re.sub(r'</*p[^>]*>', '', note, flags=re.IGNORECASE | re.MULTILINE)
+                support = f" (See: [[{tn_note['SupportReference']}]])" if tn_note["SupportReference"] else ""
                 verse_notes += f'''
         <div id="{tn_note['rc'].article_id}" class="verse-note">
             <h3 class="verse-note-title">{tn_note['title']}</h3>
             <div class="verse-note-text">
-                {note}
+                {note}{support}
             </div>
         </div>
 '''
@@ -291,149 +245,36 @@ class TnPdfConverter(TsvPdfConverter):
         verse_notes = self.fix_tn_links(verse_notes, chapter)
         return verse_notes
 
-    def populate_tw_words_data(self):
-        tw_path = os.path.join(self.resources_dir, self.ol_lang_code, 'translationHelps/translationWords')
-        if not tw_path:
-            self.log.error(f'{tw_path} not found!')
-            exit(1)
-        tw_version_path = get_latest_version_path(tw_path)
-        if not tw_version_path:
-            self.log.error(f'No versions found in {tw_path}!')
-            exit(1)
-
-        groups = get_child_directories(tw_version_path)
-        words_data = OrderedDict()
-        for group in groups:
-            files_path = os.path.join(tw_version_path, f'{group}/groups/{self.project_id}', '*.json')
-            files = glob(files_path)
-            for file in files:
-                base = os.path.splitext(os.path.basename(file))[0]
-                tw_rc_link = f'rc://{self.language_id}/tw/dict/bible/{group}/{base}'
-                tw_group_data = load_json_object(file)
-                for group_data in tw_group_data:
-                    chapter = str(group_data['contextId']['reference']['chapter'])
-                    verse = str(group_data['contextId']['reference']['verse'])
-                    group_data['contextId']['rc'] = tw_rc_link
-                    group_data['alignments'] = {
-                        self.ult.identifier: self.get_aligned_text(self.ult.identifier, group_data['contextId']),
-                    }
-                    if self.ust:
-                        group_data['alignments'][self.ust.identifier] = self.get_aligned_text(self.ust.identifier, group_data['contextId'])
-                    if chapter not in words_data:
-                        words_data[chapter] = OrderedDict()
-                    if verse not in words_data[chapter]:
-                        words_data[chapter][verse] = []
-                    words_data[chapter][verse].append(group_data)
-        self.tw_words_data = words_data
-
-    def populate_tn_groups_data(self):
-        tn_resource_path = os.path.join(self.resources_dir, self.language_id, 'translationHelps', 'translationNotes')
-        if not tn_resource_path:
-            self.log.error(f'{tn_resource_path} not found!')
-            exit(1)
-        tn_version_path = get_latest_version_path(tn_resource_path)
-        if not tn_version_path:
-            self.log.error(f'Version not found in {tn_resource_path}!')
-            exit(1)
-
-        groups = get_child_directories(tn_version_path)
-        groups_data = OrderedDict()
-        for group in groups:
-            files_path = os.path.join(tn_version_path, f'{group}/groups/{self.project_id}', '*.json')
-            files = glob(files_path)
-            for file in files:
-                base = os.path.splitext(os.path.basename(file))[0]
-                occurrences = load_json_object(file)
-                for occurrence in occurrences:
-                    context_id = occurrence['contextId']
-                    chapter = str(context_id['reference']['chapter'])
-                    verse = str(context_id['reference']['verse'])
-                    tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{group}/{base}/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}'
-                    context_id['rc'] = tn_rc_link
-                    if chapter not in groups_data:
-                        groups_data[chapter] = OrderedDict()
-                    if verse not in groups_data[chapter]:
-                        groups_data[chapter][verse] = []
-                    groups_data[chapter][verse].append(context_id)
-        self.tn_groups_data = groups_data
-
-    def get_scripture_with_tw_words(self, bible_id, chapter, verse, rc=None):
-        scripture = self.get_plain_scripture(bible_id, chapter, verse)
-        footnotes_split = re.compile('<div class="footnotes">', flags=re.IGNORECASE | re.MULTILINE)
-        verses_and_footnotes = re.split(footnotes_split, scripture, maxsplit=1)
-        scripture = verses_and_footnotes[0]
-        footnote = ''
-        if len(verses_and_footnotes) == 2:
-            footnote = f'<div class="footnotes">{verses_and_footnotes[1]}'
-        orig_scripture = scripture
-        if chapter not in self.tw_words_data or verse not in self.tw_words_data[chapter] or \
-                not self.tw_words_data[chapter][verse]:
-            return scripture
-        phrases = self.tw_words_data[chapter][verse]
-        for group_data_idx, group_data in enumerate(phrases):
-            tw_rc = group_data['contextId']['rc']
-            split = ''
-            if len(group_data):
-                split = ' split'
-            tag = f'<a href="{tw_rc}" class="tw-phrase tw-phrase-{group_data_idx + 1}{split}">'
-            alignment = group_data['alignments'][bible_id]
-            if alignment:
-                marked_verse_html = html_tools.mark_phrases_in_html(scripture, alignment, tag=tag)
-                if not marked_verse_html:
-                    if rc:
-                        self.add_bad_highlight(rc, orig_scripture, tw_rc, flatten_alignment(group_data))
-                else:
-                    scripture = marked_verse_html
-        scripture += footnote
-        return scripture
-
-    def get_scripture_with_tn_quotes(self, bible_id, chapter, verse, rc, scripture):
-        if not scripture:
-            scripture = self.get_plain_scripture(bible_id, chapter, verse)
-        footnotes_split = re.compile('<div class="footnotes">', flags=re.IGNORECASE | re.MULTILINE)
-        verses_and_footnotes = re.split(footnotes_split, scripture, maxsplit=1)
-        scripture = verses_and_footnotes[0]
-        footnote = ''
-        if len(verses_and_footnotes) == 2:
-            footnote = f'<div class="footnotes">{verses_and_footnotes[1]}'
-        if verse in self.tn_book_data[chapter]:
-            tn_notes = self.tn_book_data[chapter][verse]
-        else:
-            tn_notes = []
-        orig_scripture = scripture
-        for tn_note_idx, tn_note in enumerate(tn_notes):
-            occurrence = 1
-            if represent_int(tn_note['Occurrence']) and int(tn_note['Occurrence']) > 0:
-                occurrence = int(tn_note['Occurrence'])
-            gl_quote_phrase = [[{
-                'word': tn_note['GLQuote'],
-                'occurrence': occurrence
-            }]]
-            phrase = tn_note['alignments'][bible_id]
-            if not phrase:
-                phrase = gl_quote_phrase
-            if flatten_alignment(phrase).lower() in QUOTES_TO_IGNORE:
-                continue
-            split = ''
-            if len(phrase) > 1:
-                split = ' split'
-            tag = f'<span class="highlight phrase phrase-{tn_note_idx+1}{split}">'
-            marked_verse_html = html_tools.mark_phrases_in_html(scripture, phrase, tag=tag)
-            if not marked_verse_html:
-                fix = None
-                if flatten_alignment(phrase).lower() not in QUOTES_TO_IGNORE:
-                    if tn_note['GLQuote']:
-                        marked_with_gl_quote = html_tools.mark_phrases_in_html(scripture, gl_quote_phrase)
-                        if marked_with_gl_quote:
-                            fix = tn_note['GLQuote']
-                    self.add_bad_highlight(rc, orig_scripture, tn_note['rc'], tn_note['GLQuote'], fix)
-            else:
-                scripture = marked_verse_html
-        scripture += footnote
-        return scripture
-
     def fix_tn_links(self, html, chapter):
-        html = self.fix_tsv_links(html, chapter)
+        def replace_link(match):
+            before_href = match.group(1)
+            link = match.group(2)
+            after_href = match.group(3)
+            linked_text = match.group(4)
+            new_link = link
+            if link.startswith('../../'):
+                # link to another book, which we don't link to so link removed
+                return linked_text
+            elif link.startswith('../'):
+                # links to another verse in another chapter
+                link = os.path.splitext(link)[0]
+                parts = link.split('/')
+                if len(parts) == 3:
+                    # should have two numbers, the chapter and the verse
+                    c = parts[1]
+                    v = parts[2]
+                    new_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(c)}/{v.zfill(3)}'
+                if len(parts) == 2:
+                    # shouldn't be here, but just in case, assume link to the first verse of the given chapter
+                    c = parts[1]
+                    new_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(c)}/001'
+            elif link.startswith('./'):
+                # link to another verse in the same chapter
+                link = os.path.splitext(link)[0]
+                parts = link.split('/')
+                v = parts[1]
+                new_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{v.zfill(3)}'
+            return f'<a{before_href}href="{new_link}"{after_href}>{linked_text}</a>'
+        regex = re.compile(r'<a([^>]+)href="(\.[^"]+)"([^>]*)>(.*?)</a>')
+        html = regex.sub(replace_link, html)
         return html
-
-
