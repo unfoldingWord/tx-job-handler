@@ -10,7 +10,7 @@ WORKDIR /code
 RUN apk update -qq
 
 # Install packages needed for weasyprint
-RUN apk add -qq pango gcc libc-dev python3-dev npm build-essential
+RUN apk add -qq pango gcc libc-dev python3-dev npm build-base
 
 # Upgrade pip3 and install the requirements
 RUN pip3 install --upgrade pip
