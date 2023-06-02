@@ -1,7 +1,7 @@
 # NOTE: This docker container is built automatically
 #       from Travis-CI after passing unit tests
 
-FROM minidocks/weasyprint:latest
+FROM minidocks/weasyprint:53
 
 COPY . /code
 WORKDIR /code
