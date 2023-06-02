@@ -17,7 +17,7 @@ pyparsing==3.0.9
 pyyaml==6.0
 requests==2.31.0
 rq==1.15.0
-ruamel.yaml==0.17.21
+ruamel.yaml==0.17.31
 statsd==4.0.1
 watchtower==3.0.1
 weasyprint==59.0
