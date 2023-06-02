@@ -42,10 +42,10 @@ jobs:
           fi
           echo "SETTING DOCKER_TAGS: ${DOCKER_TAGS}"
           echo "DOCKER_TAGS=${DOCKER_TAGS}" >> $GITHUB_ENV
-          echo ::set-output name=docker_tags::${DOCKER_TAGS}
+          echo "docker_tags=${DOCKER_TAGS}" >> $GITHUB_OUTPUT
           echo "SETTING DOCKER_FILE: ${DOCKER_FILE}"
           echo "DOCKER_FILE=${DOCKER_FILE}" >> $GITHUB_ENV
-          echo ::set-output name=docker_file::${DOCKER_FILE}
+          echo "docker_file=${DOCKER_FILE}" >> $GITHUB_OUTPUT
 
       - name: Debug
         shell: bash
