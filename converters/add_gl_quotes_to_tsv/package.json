@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "fast-csv": "^4.3.6",
-    "uw-quote-helpers": "^0.0.1-beta.23",
+    "uw-quote-helpers": "^1.0.0",
     "yargs": "^17.7.1"
   }
 }
