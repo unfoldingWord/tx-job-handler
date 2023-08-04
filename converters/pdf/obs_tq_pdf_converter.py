@@ -27,10 +27,14 @@ class ObsTqPdfConverter(PdfConverter):
     def get_sample_text(self):
         filepath = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
         try:
-            html = markdown.markdownFromFile(filepath, extensions=['md_in_html', 'tables', 'footnotes'])
+            with open(filepath, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         except:
             filepath = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
-            html = markdown.markdownFromFile(filepath, extensions=['md_in_html', 'tables', 'footnotes'])
+            with open(filepath, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -75,7 +79,9 @@ class ObsTqPdfConverter(PdfConverter):
                     tq_file = os.path.join(obs_tq_chapter_dir, f'{frame_num}.md')
                     tq_html = ''
                     if os.path.isfile(tq_file):
-                        tq_html = markdown.markdownFromFile(tq_file, extensions=['md_in_html', 'tables', 'footnotes'])
+                        with open(tq_file, "r", encoding="utf-8") as input_file:
+                            markdown_text = input_file.read()
+                        tq_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
                         tq_html = html_tools.increment_headers(tq_html, 3)
                     if (not frame or not frame['text']) and not tq_html:
                         continue

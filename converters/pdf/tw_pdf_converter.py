@@ -35,10 +35,14 @@ class TwPdfConverter(PdfConverter):
     def get_sample_text(self):
         filepath = os.path.join(self.main_resource.repo_dir, 'bible', 'kt', 'god.md')
         try:
-            html = markdown.markdownFromFile(filepath)
+            with open(filepath, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         except:
             filepath = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
-            html = markdown.markdownFromFile(filepath)
+            with open(filepath, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 

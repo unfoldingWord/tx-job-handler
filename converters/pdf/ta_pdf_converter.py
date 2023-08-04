@@ -12,7 +12,7 @@ This script generates the HTML and PDF TA documents
 """
 import os
 import yaml
-import markdown2
+import markdown
 from bs4 import BeautifulSoup
 from door43_tools.subjects import TRANSLATION_ACADEMY
 from .pdf_converter import PdfConverter
@@ -34,7 +34,9 @@ class TaPdfConverter(PdfConverter):
                  os.path.join(self.main_resource.repo_dir, 'translate', 'transle-help', '01.md')]
         for file in files:
             if os.path.exists(file):
-                html = markdown.markdownFromFile(file)
+                with open(file, "r", encoding="utf-8") as input_file:
+                    markdown_text = input_file.read()
+                html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
                 soup = BeautifulSoup(html, 'html.parser')
                 return soup.find('p').text
         return ''

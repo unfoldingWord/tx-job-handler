@@ -24,7 +24,9 @@ class ObsSnPdfConverter(ObsSnPdfConverter):
 
     def get_sample_text(self):
         md_file = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
-        html = markdown.markdownFromFile(md_file, extensions=['md_in_html', 'tables', 'footnotes'])
+        with open(md_file, "r", encoding="utf-8") as input_file:
+            markdown_text = input_file.read()
+        html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -65,7 +67,9 @@ class ObsSnPdfConverter(ObsSnPdfConverter):
                 obs_sn_file = os.path.join(sn_chapter_dir, f'{frame_num}.md')
 
                 if os.path.isfile(obs_sn_file):
-                    notes_html = markdown.markdownFromFile(obs_sn_file, extensions=['md_in_html', 'tables', 'footnotes'])
+                    with open(obs_sn_file, "r", encoding="utf-8") as input_file:
+                        markdown_text = input_file.read()
+                    notes_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
                     notes_html = html_tools.increment_headers(notes_html, 3)
                 else:
                     no_study_notes = self.translate('no_study_notes_for_this_frame')

@@ -26,7 +26,9 @@ class ObsSqPdfConverter(PdfConverter):
 
     def get_sample_text(self):
         md_file = os.path.join(self.main_resource.repo_dir, 'content', '01.md')
-        html = markdown.markdownFromFile(md_file, extensions=['md_in_html', 'tables', 'footnotes'])
+        with open(md_file, "r", encoding="utf-8") as input_file:
+            markdown_text = input_file.read()
+        html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -41,7 +43,9 @@ class ObsSqPdfConverter(PdfConverter):
         files = sorted(glob(os.path.join(self.main_resource.repo_dir, 'content', '*.md')))
         for file in files:
             chapter_num = os.path.splitext(os.path.basename(file))[0]
-            chapter_html = markdown.markdownFromFile(file)
+            with open(file, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            chapter_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
             chapter_html = html_tools.increment_headers(chapter_html)
             soup = BeautifulSoup(chapter_html, 'html.parser')
             headers = soup.find_all(re.compile(r'^h\d'))

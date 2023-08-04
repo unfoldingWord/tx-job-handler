@@ -974,7 +974,9 @@ class PdfConverter(Converter):
 '''
         license_file = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
         if os.path.exists(license_file):
-            license_html += markdown.markdownFromFile(license_file)
+            with open(license_file, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            license_html += markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         else:
             license_html += markdown.markdown(get_url('https://raw.githubusercontent.com/unfoldingWord/dcs/master/options/license/CC-BY-SA-4.0.md'), extensions=['md_in_html', 'tables', 'footnotes'])
         license_html += '''
@@ -1174,8 +1176,9 @@ class PdfConverter(Converter):
             self.resources[rc.resource].repo_dir, rc.project, rc.path)
         article_file = os.path.join(article_dir, '01.md')
         if os.path.isfile(article_file):
-            article_file_html = markdown.markdownFromFile(
-                article_file, extras=['md_in_html', 'tables', 'nl2br', 'footnotes'])
+            with open(article_file, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            article_file_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         else:
             message = 'no corresponding article found'
             if os.path.isdir(article_dir):
@@ -1344,7 +1347,9 @@ class PdfConverter(Converter):
                 self.add_error_message(source_rc, rc.rc_link, fix)
                 self.log.error(
                     f'FIX FOUND FOR FOR TW ARTICLE IN {source_rc.rc_link}: {rc.rc_link} => {fix}')
-            tw_article_html = markdown.markdownFromFile(file_path, extensions=['md_in_html', 'tables', 'footnotes'])
+            with open(file_path, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            tw_article_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
             tw_article_html = html_tools.make_first_header_section_header(
                 tw_article_html)
             tw_article_html = html_tools.increment_headers(

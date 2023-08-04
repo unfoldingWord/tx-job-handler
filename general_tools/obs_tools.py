@@ -14,7 +14,10 @@ def get_obs_chapter_data(repo_dir, chapter_num):
         obs_chapter_file = os.path.join(repo_dir, f'{chapter_num}.md')
     if os.path.isfile(obs_chapter_file):
         print(obs_chapter_file)
-        soup = BeautifulSoup(markdown.markdownFromFile(obs_chapter_file), 'html.parser')
+        with open(obs_chapter_file, "r", encoding="utf-8") as input_file:
+            markdown_text = input_file.read()
+        obs_chapter_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
+        soup = BeautifulSoup(obs_chapter_html, 'html.parser')
         obs_chapter_data['title'] = soup.h1.text
         paragraphs = soup.find_all('p')
         frame = {

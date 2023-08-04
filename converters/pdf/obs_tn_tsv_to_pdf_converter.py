@@ -43,7 +43,9 @@ class ObsTnTsvToPdfConverter(PdfConverter):
     
     def get_sample_text(self):
         first_frame = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
-        html = markdown.markdownFromFile(first_frame, extensions=['md_in_html', 'tables', 'footnotes'])
+        with open(first_frame, "r", encoding="utf-8") as input_file:
+            markdown_text = input_file.read()
+        html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 

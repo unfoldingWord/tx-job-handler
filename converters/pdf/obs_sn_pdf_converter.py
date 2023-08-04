@@ -27,7 +27,9 @@ class ObsSnPdfConverter(PdfConverter):
 
     def get_sample_text(self):
         first_frame = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
-        html = markdown.markdownFromFile(first_frame, extensions=['md_in_html', 'tables', 'footnotes'])
+        with open(first_frame, "r", encoding="utf-8") as input_file:
+            markdown_text = input_file.read()
+        html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -119,7 +121,9 @@ class ObsSnPdfConverter(PdfConverter):
                 obs_sn_file = os.path.join(sn_chapter_dir, f'{frame_num}.md')
 
                 if os.path.isfile(obs_sn_file):
-                    notes_html = markdown.markdownFromFile(obs_sn_file, extensions=['md_in_html', 'tables', 'footnotes'])
+                    with open(obs_sn_file, "r", encoding="utf-8") as input_file:
+                        markdown_text = input_file.read()
+                    notes_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
                     notes_html = html_tools.increment_headers(notes_html, 3)
                 else:
                     no_study_notes = self.translate('no_study_notes_for_this_frame')
@@ -172,7 +176,9 @@ class ObsSnPdfConverter(PdfConverter):
         intro_file = os.path.join(self.resources[f'obs-sq'].repo_dir, 'content', '00.md')
         if os.path.isfile(intro_file):
             intro_id = 'obs-sq-intro'
-            intro_content = markdown.markdownFromFile(intro_file, extensions=['md_in_html', 'tables', 'footnotes'])
+            with open(intro_file, "r", encoding="utf-8") as input_file:
+                markdown_text = input_file.read()
+            intro_content = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
             intro_content = html_tools.increment_headers(intro_content, 1)
             intro_content = intro_content.replace('<h2>', '<h2 class="section-header">', 1)
             obs_sn_sq_html += f'''
@@ -207,7 +213,9 @@ class ObsSnPdfConverter(PdfConverter):
                 obs_sn_file = os.path.join(sn_chapter_dir, f'{frame_num}.md')
 
                 if os.path.isfile(obs_sn_file):
-                    notes_html = markdown.markdownFromFile(obs_sn_file, extensions=['md_in_html', 'tables', 'footnotes'])
+                    with open(obs_sn_file, "r", encoding="utf-8") as input_file:
+                        markdown_text = input_file.read()
+                    notes_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
                     notes_html = html_tools.increment_headers(notes_html, 3)
                 else:
                     no_study_notes = self.translate('no_study_notes_for_this_frame')
@@ -253,7 +261,9 @@ class ObsSnPdfConverter(PdfConverter):
 '''
             if os.path.isfile(sq_chapter_file):
                 obs_sq_title = f'{self.translate("study_questions")}'
-                obs_sq_html = markdown.markdownFromFile(sq_chapter_file, extensions=['md_in_html', 'tables', 'footnotes'])
+                with open(sq_chapter_file, "r", encoding="utf-8") as input_file:
+                    markdown_text = input_file.read()
+                obs_sq_html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
                 obs_sq_html = html_tools.increment_headers(obs_sq_html, 2)
                 soup = BeautifulSoup(obs_sq_html, 'html.parser')
                 header = soup.find(re.compile(r'^h\d'))

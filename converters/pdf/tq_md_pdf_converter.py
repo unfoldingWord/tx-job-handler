@@ -27,7 +27,9 @@ class TqPdfConverter(PdfConverter):
 
     def get_sample_text(self):
         md_file = os.path.join(self.main_resource.repo_dir, self.project_id, '01.md')
-        html = markdown.markdownFromFile(md_file)
+        with open(md_file, "r", encoding="utf-8") as input_file:
+            markdown_text = input_file.read()
+        html = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -66,7 +68,9 @@ class TqPdfConverter(PdfConverter):
                 verse_files = sorted(glob(os.path.join(chapter_dir, '*.md')))
                 for verse_file in verse_files:
                     verse = os.path.splitext(os.path.basename(verse_file))[0].lstrip('0')
-                    tq_article = markdown.markdownFromFile(verse_file)
+                    with open(verse_file, "r", encoding="utf-8") as input_file:
+                        markdown_text = input_file.read()
+                    tq_article = markdown.markdown(markdown_text, extensions=['md_in_html', 'tables', 'footnotes'])
                     tq_article = increment_headers(tq_article, 3)
                     tq_title = f'{book_title} {chapter}:{verse}'
                     tq_rc_link = f'rc://{self.language_id}/tq/help/{project_id}/{self.pad(chapter, project_id)}/{verse.zfill(3)}'
