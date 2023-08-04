@@ -13,7 +13,7 @@ This script generates the HTML and PDF OBS TN & TQ documents
 import os
 import re
 import csv
-import markdown2
+import markdown
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import TSV_OBS_TRANSLATION_NOTES
 from bs4 import BeautifulSoup
@@ -43,7 +43,7 @@ class ObsTnTsvToPdfConverter(PdfConverter):
     
     def get_sample_text(self):
         first_frame = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
-        html = markdown2.markdown_path(first_frame)
+        html = markdown.markdownFromFile(first_frame, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -206,7 +206,7 @@ class ObsTnTsvToPdfConverter(PdfConverter):
             if chapter_num in self.tn_data and "00" in self.tn_data[chapter_num]:
                 for note in self.tn_data[chapter_num]["00"]:
                     title = note["quote"]
-                    body = markdown2.markdown(note["note"])
+                    body = markdown.markdown(note["note"], extensions=['md_in_html', 'tables', 'footnotes'])
                     obs_tn_html += f"<h4>{title}</h4>\n{body}\n"
             for frame_idx, frame in enumerate(chapter_data['frames']):
                 frame_num = str(frame_idx + 1).zfill(2)
@@ -217,8 +217,8 @@ class ObsTnTsvToPdfConverter(PdfConverter):
                 if chapter_num in self.tn_data and frame_num in self.tn_data[chapter_num]:
                     for note in self.tn_data[chapter_num][frame_num]:
                         title = note["quote"]
-                        body = markdown2.markdown(note["note"])
-                        notes_html += f"<h5>{title}</h5>\n{markdown2.markdown(body)}\n"
+                        body = markdown.markdown(note["note"], extensions=['md_in_html', 'tables', 'footnotes'])
+                        notes_html += f"<h5>{title}</h5>\n{markdown.markdown(body, extensions=['md_in_html', 'tables', 'footnotes'])}\n"
                         if note['sr']:
                             notes_html += f'See TA article: [[{note["sr"]}]]\n'
                 else:
@@ -285,7 +285,7 @@ class ObsTnTsvToPdfConverter(PdfConverter):
             if chapter_num in self.tn_data and "00" in self.tn_data[chapter_num]:
                 for note in self.tn_data[chapter_num]["00"]:
                     title = note["quote"]
-                    body = markdown2.markdown(note["note"])
+                    body = markdown.markdown(note["note"], extensions=['md_in_html', 'tables', 'footnotes'])
                     obs_tn_tq_html += f"<h3>{title}</h3>\n{body}\n"
             for frame_idx, frame in enumerate(chapter_data['frames']):
                 frame_num = str(frame_idx + 1).zfill(2)
@@ -296,8 +296,8 @@ class ObsTnTsvToPdfConverter(PdfConverter):
                 if chapter_num in self.tn_data and frame_num in self.tn_data[chapter_num]:
                     for note in self.tn_data[chapter_num][frame_num]:
                         title = note["quote"]
-                        body = markdown2.markdown(note["note"])
-                        notes_html += f"<h5>{title}</h5>\n{markdown2.markdown(body)}\n"
+                        body = markdown.markdown(note["note"], extensions=['md_in_html', 'tables', 'footnotes'])
+                        notes_html += f"<h5>{title}</h5>\n{markdown.markdown(body, extensions=['md_in_html', 'tables', 'footnotes'])}\n"
                         if note['sr']:
                             notes_html += f'See TA article: [[{note["sr"]}]]\n'
                 else:
@@ -316,8 +316,8 @@ class ObsTnTsvToPdfConverter(PdfConverter):
                 questions_html = ""
                 if chapter_num in self.tq_data and frame_num in self.tq_data[chapter_num]:
                     for question in self.tq_data[chapter_num][frame_num]:
-                        q = markdown2.markdown(question["question"])
-                        r = markdown2.markdown(question["response"])
+                        q = markdown.markdown(question["question"], extensions=['md_in_html', 'tables', 'footnotes'])
+                        r = markdown.markdown(question["response"], extensions=['md_in_html', 'tables', 'footnotes'])
                         questions_html += f'<h5 class="tq-question">{q}</h5>\n<span class="tq-response">{r}</span>\n'
                 else:
                     no_questions = self.translate('no_translation_questions_for_this_frame')

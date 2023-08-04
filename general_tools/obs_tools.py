@@ -1,5 +1,5 @@
 import os
-import markdown2
+import markdown
 from bs4 import BeautifulSoup
 
 
@@ -14,7 +14,7 @@ def get_obs_chapter_data(repo_dir, chapter_num):
         obs_chapter_file = os.path.join(repo_dir, f'{chapter_num}.md')
     if os.path.isfile(obs_chapter_file):
         print(obs_chapter_file)
-        soup = BeautifulSoup(markdown2.markdown_path(obs_chapter_file), 'html.parser')
+        soup = BeautifulSoup(markdown.markdownFromFile(obs_chapter_file), 'html.parser')
         obs_chapter_data['title'] = soup.h1.text
         paragraphs = soup.find_all('p')
         frame = {

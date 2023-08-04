@@ -12,7 +12,7 @@ This script generates the HTML and PDF TN documents
 """
 import os
 import re
-import markdown2
+import markdown
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import TSV_TRANSLATION_NOTES, ALIGNED_BIBLE
 from glob import glob
@@ -145,7 +145,7 @@ class TnPdfConverter(TsvPdfConverter):
 </article>
 '''
         if 'front' in self.tn_book_data and 'intro' in self.tn_book_data['front']:
-            book_intro = markdown2.markdown(self.tn_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'))
+            book_intro = markdown.markdown(self.tn_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'), extensions=['md_in_html', 'tables', 'footnotes'])
             book_intro_title = html_tools.get_title_from_html(book_intro)
             book_intro = self.fix_tn_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
@@ -171,7 +171,7 @@ class TnPdfConverter(TsvPdfConverter):
 '''
             if 'intro' in self.tn_book_data[chapter]:
                 self.log.info('Generating chapter info...')
-                chapter_intro = markdown2.markdown(self.tn_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"))
+                chapter_intro = markdown.markdown(self.tn_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
                 # Remove leading 0 from chapter header
                 chapter_intro = re.sub(r'<h(\d)>([^>]+) 0+([1-9])', r'<h\1>\2 \3', chapter_intro, 1, flags=re.MULTILINE | re.IGNORECASE)
                 chapter_intro = html_tools.make_first_header_section_header(chapter_intro, level=4, no_toc=True)
@@ -272,7 +272,7 @@ class TnPdfConverter(TsvPdfConverter):
         verse_notes = ''
         if verse in self.tn_book_data[chapter]:
             for tn_note in self.tn_book_data[chapter][verse]:
-                note = markdown2.markdown(tn_note['OccurrenceNote'].replace('<br>', "\n"))
+                note = markdown.markdown(tn_note['OccurrenceNote'].replace('<br>', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
                 note = re.sub(r'</*p[^>]*>', '', note, flags=re.IGNORECASE | re.MULTILINE)
                 verse_notes += f'''
         <div id="{tn_note['rc'].article_id}" class="verse-note">

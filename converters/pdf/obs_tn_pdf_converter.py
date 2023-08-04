@@ -12,7 +12,7 @@ This script generates the HTML and PDF OBS SN & SQ documents
 """
 import os
 import re
-import markdown2
+import markdown
 from bs4 import BeautifulSoup
 from door43_tools.subjects import OBS_TRANSLATION_NOTES
 from glob import glob
@@ -108,7 +108,7 @@ class ObsTnPdfConverter(TsvPdfConverter):
 
     def get_sample_text(self):
         first_frame = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
-        html = markdown2.markdown_path(first_frame)
+        html = markdown.markdownFromFile(first_frame, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -137,7 +137,7 @@ class ObsTnPdfConverter(TsvPdfConverter):
                     notes_file = os.path.join(obs_tn_chapter_dir, f'{frame_num}.md')
                     notes_html = ''
                     if os.path.isfile(notes_file):
-                        notes_html = markdown2.markdown_path(notes_file)
+                        notes_html = markdown.markdownFromFile(notes_file, extensions=['md_in_html', 'tables', 'footnotes'])
                         notes_html = html_tools.increment_headers(notes_html, 3)
                     if (not frame or not frame['text']) and not notes_html:
                         continue

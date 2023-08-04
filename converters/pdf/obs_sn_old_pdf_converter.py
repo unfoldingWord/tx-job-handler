@@ -11,7 +11,7 @@
 This script generates the HTML and PDF OBS SN documents
 """
 import os
-import markdown2
+import markdown
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import OBS_STUDY_NOTES
 from obs_sn_pdf_converter import ObsSnPdfConverter
@@ -24,7 +24,7 @@ class ObsSnPdfConverter(ObsSnPdfConverter):
 
     def get_sample_text(self):
         md_file = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
-        html = markdown2.markdown_path(md_file)
+        html = markdown.markdownFromFile(md_file, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -65,7 +65,7 @@ class ObsSnPdfConverter(ObsSnPdfConverter):
                 obs_sn_file = os.path.join(sn_chapter_dir, f'{frame_num}.md')
 
                 if os.path.isfile(obs_sn_file):
-                    notes_html = markdown2.markdown_path(obs_sn_file)
+                    notes_html = markdown.markdownFromFile(obs_sn_file, extensions=['md_in_html', 'tables', 'footnotes'])
                     notes_html = html_tools.increment_headers(notes_html, 3)
                 else:
                     no_study_notes = self.translate('no_study_notes_for_this_frame')

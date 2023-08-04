@@ -34,7 +34,7 @@ class TaPdfConverter(PdfConverter):
                  os.path.join(self.main_resource.repo_dir, 'translate', 'transle-help', '01.md')]
         for file in files:
             if os.path.exists(file):
-                html = markdown2.markdown_path(file)
+                html = markdown.markdownFromFile(file)
                 soup = BeautifulSoup(html, 'html.parser')
                 return soup.find('p').text
         return ''

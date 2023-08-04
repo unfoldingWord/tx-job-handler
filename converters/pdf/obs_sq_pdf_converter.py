@@ -12,7 +12,7 @@ This script generates the HTML and PDF OBS SQ documents
 """
 import os
 import re
-import markdown2
+import markdown
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import OBS_STUDY_QUESTIONS
 from glob import glob
@@ -26,7 +26,7 @@ class ObsSqPdfConverter(PdfConverter):
 
     def get_sample_text(self):
         md_file = os.path.join(self.main_resource.repo_dir, 'content', '01.md')
-        html = markdown2.markdown_path(md_file)
+        html = markdown.markdownFromFile(md_file, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -41,7 +41,7 @@ class ObsSqPdfConverter(PdfConverter):
         files = sorted(glob(os.path.join(self.main_resource.repo_dir, 'content', '*.md')))
         for file in files:
             chapter_num = os.path.splitext(os.path.basename(file))[0]
-            chapter_html = markdown2.markdown_path(file)
+            chapter_html = markdown.markdownFromFile(file)
             chapter_html = html_tools.increment_headers(chapter_html)
             soup = BeautifulSoup(chapter_html, 'html.parser')
             headers = soup.find_all(re.compile(r'^h\d'))

@@ -40,7 +40,7 @@ class FileRule(Rule):
         Converts a string of pure markdown into a bs4 object. Makes parsing much
         easier, but not necessarily faster.
         """
-        return BeautifulSoup(markdown.markdown(md), "html.parser")
+        return BeautifulSoup(markdown.markdown(md, extensions=['md_in_html', 'tables', 'footnotes']), "html.parser")
 
 
 class LineRule(Rule):

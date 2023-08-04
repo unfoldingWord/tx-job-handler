@@ -13,7 +13,7 @@ This script generates the HTML and PDF TN documents
 import os
 import re
 import csv
-import markdown2
+import markdown
 import subprocess
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import TSV_TRANSLATION_NOTES, ALIGNED_BIBLE
@@ -56,7 +56,7 @@ class TnPdfConverter(PdfConverter):
         reader = self.unicode_csv_reader(open(book_filepath))
         next(reader)
         row = next(reader)
-        html = markdown2.markdown(row[-1].replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n').replace('</br>', '').replace('\\n', "\n"))
+        html = markdown.markdown(row[-1].replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n').replace('</br>', '').replace('\\n', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         p = soup.find('p')
         if not p:
@@ -150,7 +150,7 @@ class TnPdfConverter(PdfConverter):
 </article>
 '''
         if 'front' in self.tn_book_data and 'intro' in self.tn_book_data['front']:
-            book_intro = markdown2.markdown(self.tn_book_data['front']['intro'][0]['Note'].replace('<br>', '\n').replace('\\n', "\n"))
+            book_intro = markdown.markdown(self.tn_book_data['front']['intro'][0]['Note'].replace('<br>', '\n').replace('\\n', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
             book_intro_title = html_tools.get_title_from_html(book_intro)
             book_intro = self.fix_tn_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
@@ -176,7 +176,7 @@ class TnPdfConverter(PdfConverter):
 '''
             if chapter in self.tn_book_data and 'intro' in self.tn_book_data[chapter]:
                 self.log.info('Generating chapter info...')
-                chapter_intro = markdown2.markdown(self.tn_book_data[chapter]['intro'][0]['Note'].replace('<br>', "\n").replace('\\n', "\n"))
+                chapter_intro = markdown.markdown(self.tn_book_data[chapter]['intro'][0]['Note'].replace('<br>', "\n").replace('\\n', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
                 # Remove leading 0 from chapter header
                 chapter_intro = re.sub(r'<h(\d)>([^>]+) 0+([1-9])', r'<h\1>\2 \3', chapter_intro, 1, flags=re.MULTILINE | re.IGNORECASE)
                 chapter_intro = html_tools.make_first_header_section_header(chapter_intro, level=4, no_toc=True)
@@ -225,7 +225,7 @@ class TnPdfConverter(PdfConverter):
         verse_notes = ''
         if verse in self.tn_book_data[chapter]:
             for tn_note in self.tn_book_data[chapter][verse]:
-                note = markdown2.markdown(tn_note['Note'].replace('<br>', "\n").replace('\\n', "\n"))
+                note = markdown.markdown(tn_note['Note'].replace('<br>', "\n").replace('\\n', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
                 note = re.sub(r'</*p[^>]*>', '', note, flags=re.IGNORECASE | re.MULTILINE)
                 support = f" (See: [[{tn_note['SupportReference']}]])" if tn_note["SupportReference"] else ""
                 verse_notes += f'''

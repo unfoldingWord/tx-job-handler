@@ -7,8 +7,7 @@ from shutil import copyfile
 from typing import Dict, Optional, List, Any
 import csv
 
-# import markdown
-import markdown2
+import markdown
 
 from app_settings.app_settings import AppSettings
 from general_tools.file_utils import write_file, get_files
@@ -350,9 +349,9 @@ class Tsv2HtmlConverter(Converter):
             output_html += '<br/>\n'
             if OccurrenceNote:
                 self.log.info("Converting Note to Markdown")
-                output_html += markdown2.markdown(OccurrenceNote
+                output_html += markdown.markdown(OccurrenceNote
                                                   .replace('<br>', '\n').replace('<br/>', '\n').replace('\\n', '\n')
-                                                  .replace('\n#', '\n###'))  # Increment heading levels by 2
+                                                  .replace('\n#', '\n###'), extensions=['md_in_html', 'tables', 'footnotes'])  # Increment heading levels by 2
                 # for bit in OccurrenceNote.split('<br>'):
                 #     if bit.startswith('# '):
                 #         output_html += f'<h3>{bit[2:]}</h3>\n'

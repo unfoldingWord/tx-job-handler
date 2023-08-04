@@ -14,7 +14,7 @@ import os
 import re
 import csv
 import subprocess
-import markdown2
+import markdown
 from abc import abstractmethod
 from bs4 import BeautifulSoup
 from collections import OrderedDict
@@ -53,7 +53,7 @@ class TsvPdfConverter(PdfConverter):
         reader = self.unicode_csv_reader(open(book_filepath))
         next(reader)
         row = next(reader)
-        html = markdown2.markdown(row[-1].replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n').replace('</br>', ''))
+        html = markdown.markdown(row[-1].replace('<br>', '\n').replace('<br/>', '\n').replace('<br />', '\n').replace('</br>', ''), extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         p = soup.find('p')
         if not p:

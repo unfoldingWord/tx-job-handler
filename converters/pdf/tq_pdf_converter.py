@@ -12,7 +12,7 @@ This script generates the HTML and PDF SQ documents
 """
 import os
 import re
-import markdown2
+import markdown
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import TSV_TRANSLATION_QUESTIONS, ALIGNED_BIBLE
 from bs4 import BeautifulSoup

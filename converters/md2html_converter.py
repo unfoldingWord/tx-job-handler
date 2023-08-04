@@ -4,7 +4,6 @@ from shutil import copyfile
 import re
 
 import markdown
-import markdown2
 from bs4 import BeautifulSoup
 import requests
 
@@ -56,7 +55,7 @@ class Md2HtmlConverter(Converter):
                 except Exception as e:
                     self.log.error(f"Error reading {base_name_part+'.md'}: {e}")
                     continue
-                html = markdown.markdown(md)
+                html = markdown.markdown(md, extensions=['md_in_html', 'tables', 'footnotes'])
                 html = html_template.safe_substitute(
                     title=self.repo_subject.replace('_',' '),
                     lang=self.manifest_dict['dublin_core']['language']['identifier'],
@@ -101,7 +100,7 @@ class Md2HtmlConverter(Converter):
                 except Exception as e:
                     self.log.error(f"Error reading {base_name_part+'.md'}: {e}")
                     continue
-                html = markdown.markdown(md)
+                html = markdown.markdown(md, extensions=['md_in_html', 'tables', 'footnotes'])
                 html = html_template.safe_substitute(
                     title=self.repo_subject.replace('_',' '),
                     lang=self.manifest_dict['dublin_core']['language']['identifier'],
@@ -138,7 +137,7 @@ class Md2HtmlConverter(Converter):
         #             except Exception as e:
         #                 self.log.error(f"Error reading {base_name_part+'.md'}: {e}")
         #                 continue
-        #             html = markdown.markdown(md)
+        #             html = markdown.markdown(md, extensions=['md_in_html', 'tables', 'footnotes'])
         #             html = html_template.safe_substitute(
         #                                         title=self.repo_subject.replace('_',' '),
         #                                         content=html)
@@ -227,12 +226,7 @@ class Md2HtmlConverter(Converter):
                 #     else: # no response
                 #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
                 if 1: # old/existing code—creates html2
-                    if self.repo_subject in ['Translation_Academy',]:
-                        html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
-                        if prefix and debug_mode_flag:
-                            write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html2)
-                    else:
-                        html2 = markdown.markdown(md)
+                    html2 = markdown.markdown(md, extensions=['md_in_html', 'tables', 'footnotes'])
                 # if 0:
                 #     if html2 == html1:
                 #         AppSettings.logger.debug("HTML responses are identical.")
@@ -441,12 +435,7 @@ class Md2HtmlConverter(Converter):
                 #     else: # no response
                 #         AppSettings.logger.error("Submission of job to Markdown->HTML got no response")
                 if 1: # old/existing code—creates html2
-                    if self.repo_subject in ['Translation_Academy',]:
-                        html2 = markdown2.markdown(md, extras=['markdown-in-html', 'tables'])
-                        if prefix and debug_mode_flag:
-                            write_file(os.path.join(self.debug_dir, base_name_part+'.1.html'), html2)
-                    else:
-                        html2 = markdown.markdown(md)
+                    html2 = markdown.markdown(md, extensions=['md_in_html', 'tables', 'footnotes'])
                 # if 0:
                 #     if html2 == html1:
                 #         AppSettings.logger.debug("HTML responses are identical.")

@@ -12,7 +12,7 @@ This script generates the HTML and PDF SQ documents
 """
 import os
 import re
-import markdown2
+import markdown
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import TSV_STUDY_QUESTIONS
 from bs4 import BeautifulSoup
@@ -241,7 +241,7 @@ class SqPdfConverter(TsvPdfConverter):
         <h2 class="section-header">{self.project_title}</h2>
 '''
         if 'front' in self.sq_book_data and 'intro' in self.sq_book_data['front']:
-            book_intro = markdown2.markdown(self.sq_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'))
+            book_intro = markdown.markdown(self.sq_book_data['front']['intro'][0]['OccurrenceNote'].replace('<br>', '\n'), extensions=['md_in_html', 'tables', 'footnotes'])
             book_intro_title = html_tools.get_title_from_html(book_intro)
             book_intro = self.fix_sq_links(book_intro, 'intro')
             book_intro = html_tools.make_first_header_section_header(book_intro, level=3)
@@ -267,7 +267,7 @@ class SqPdfConverter(TsvPdfConverter):
 '''
             if 'intro' in self.sq_book_data[chapter]:
                 self.log.info('Generating chapter info...')
-                chapter_intro = markdown2.markdown(self.sq_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"))
+                chapter_intro = markdown.markdown(self.sq_book_data[chapter]['intro'][0]['OccurrenceNote'].replace('<br>', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
                 # Remove leading 0 from chapter header
                 chapter_intro = re.sub(r'<h(\d)>([^>]+) 0+([1-9])', r'<h\1>\2 \3', chapter_intro, 1, flags=re.MULTILINE | re.IGNORECASE)
                 chapter_intro = html_tools.make_first_header_section_header(chapter_intro, level=4, no_toc=True, header_level=3)
@@ -329,7 +329,7 @@ class SqPdfConverter(TsvPdfConverter):
         verse_questions = ''
         if verse in self.sq_book_data[chapter]:
             for sq_question in self.sq_book_data[chapter][verse]:
-                question = markdown2.markdown(sq_question['OccurrenceNote'].replace('<br>', "\n"))
+                question = markdown.markdown(sq_question['OccurrenceNote'].replace('<br>', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
                 question = re.sub(r'</*p[^>]*>', '', question, flags=re.IGNORECASE | re.MULTILINE)
                 verse_questions += f'''
         <div id="{sq_question['rc'].article_id}" class="verse-question">

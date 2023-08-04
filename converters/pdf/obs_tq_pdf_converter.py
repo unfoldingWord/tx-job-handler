@@ -12,7 +12,7 @@ This script generates the HTML and PDF OBS SQ documents
 """
 import os
 import re
-import markdown2
+import markdown
 import general_tools.html_tools as html_tools
 from door43_tools.subjects import OBS_TRANSLATION_QUESTIONS
 from glob import glob
@@ -27,10 +27,10 @@ class ObsTqPdfConverter(PdfConverter):
     def get_sample_text(self):
         filepath = os.path.join(self.main_resource.repo_dir, 'content', '01', '01.md')
         try:
-            html = markdown2.markdown_path(filepath)
+            html = markdown.markdownFromFile(filepath, extensions=['md_in_html', 'tables', 'footnotes'])
         except:
             filepath = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
-            html = markdown2.markdown_path(filepath)
+            html = markdown.markdownFromFile(filepath, extensions=['md_in_html', 'tables', 'footnotes'])
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -75,7 +75,7 @@ class ObsTqPdfConverter(PdfConverter):
                     tq_file = os.path.join(obs_tq_chapter_dir, f'{frame_num}.md')
                     tq_html = ''
                     if os.path.isfile(tq_file):
-                        tq_html = markdown2.markdown_path(tq_file)
+                        tq_html = markdown.markdownFromFile(tq_file, extensions=['md_in_html', 'tables', 'footnotes'])
                         tq_html = html_tools.increment_headers(tq_html, 3)
                     if (not frame or not frame['text']) and not tq_html:
                         continue

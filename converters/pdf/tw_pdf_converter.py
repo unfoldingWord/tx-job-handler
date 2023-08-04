@@ -11,7 +11,7 @@
 This script generates the HTML and PDF TW documents
 """
 import os
-import markdown2
+import markdown
 from bs4 import BeautifulSoup
 from glob import glob
 from collections import OrderedDict
@@ -35,10 +35,10 @@ class TwPdfConverter(PdfConverter):
     def get_sample_text(self):
         filepath = os.path.join(self.main_resource.repo_dir, 'bible', 'kt', 'god.md')
         try:
-            html = markdown2.markdown_path(filepath)
+            html = markdown.markdownFromFile(filepath)
         except:
             filepath = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
-            html = markdown2.markdown_path(filepath)
+            html = markdown.markdownFromFile(filepath)
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 

@@ -13,7 +13,7 @@ Class for any resource PDF converter
 import os
 import re
 import logging
-import markdown2
+import markdown
 import string
 import yaml
 import shutil
@@ -974,10 +974,9 @@ class PdfConverter(Converter):
 '''
         license_file = os.path.join(self.main_resource.repo_dir, 'LICENSE.md')
         if os.path.exists(license_file):
-            license_html += markdown2.markdown_path(license_file)
+            license_html += markdown.markdownFromFile(license_file)
         else:
-            license_html += markdown2.markdown(get_url(
-                'https://raw.githubusercontent.com/unfoldingWord/dcs/master/options/license/CC-BY-SA-4.0.md'))
+            license_html += markdown.markdown(get_url('https://raw.githubusercontent.com/unfoldingWord/dcs/master/options/license/CC-BY-SA-4.0.md'), extensions=['md_in_html', 'tables', 'footnotes'])
         license_html += '''
     </div>
 </article>
@@ -1175,8 +1174,8 @@ class PdfConverter(Converter):
             self.resources[rc.resource].repo_dir, rc.project, rc.path)
         article_file = os.path.join(article_dir, '01.md')
         if os.path.isfile(article_file):
-            article_file_html = markdown2.markdown_path(
-                article_file, extras=['markdown-in-html', 'tables', 'break-on-newline'])
+            article_file_html = markdown.markdownFromFile(
+                article_file, extras=['md_in_html', 'tables', 'nl2br', 'footnotes'])
         else:
             message = 'no corresponding article found'
             if os.path.isdir(article_dir):
@@ -1345,7 +1344,7 @@ class PdfConverter(Converter):
                 self.add_error_message(source_rc, rc.rc_link, fix)
                 self.log.error(
                     f'FIX FOUND FOR FOR TW ARTICLE IN {source_rc.rc_link}: {rc.rc_link} => {fix}')
-            tw_article_html = markdown2.markdown_path(file_path)
+            tw_article_html = markdown.markdownFromFile(file_path, extensions=['md_in_html', 'tables', 'footnotes'])
             tw_article_html = html_tools.make_first_header_section_header(
                 tw_article_html)
             tw_article_html = html_tools.increment_headers(

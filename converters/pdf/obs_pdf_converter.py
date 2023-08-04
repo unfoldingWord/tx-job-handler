@@ -11,7 +11,7 @@
 This script generates the HTML and PDF for OBS
 """
 import os
-import markdown2
+import markdown
 from bs4 import BeautifulSoup
 from door43_tools.subjects import OPEN_BIBLE_STORIES
 from general_tools.file_utils import unzip
@@ -30,7 +30,7 @@ class ObsPdfConverter(PdfConverter):
     def get_sample_text(self):
         md_file = os.path.join(self.file_path, '01.md')
         if os.path.exists(md_file):
-            html = markdown2.markdown_path(md_file)
+            html = markdown.markdownFromFile(md_file, extensions=['md_in_html', 'tables', 'footnotes'])
             soup = BeautifulSoup(html, 'html.parser')
             paragraphs = soup.find_all('p')
             if len(paragraphs) > 1:
@@ -159,9 +159,9 @@ class ObsPdfConverter(PdfConverter):
     def get_license_html(self):
         front_path = self.front_path
         if os.path.exists(front_path):
-            front_html = markdown2.markdown_path(front_path)
+            front_html = markdown.markdownFromFile(front_path, extensions=['md_in_html', 'tables', 'footnotes'])
         else:
-            front_html = markdown2.markdown(get_url('https://git.door43.org/api/v1/repos/unfoldingword/en_obs/raw/content/front/intro.md'))
+            front_html = markdown.markdown(get_url('https://git.door43.org/api/v1/repos/unfoldingword/en_obs/raw/content/front/intro.md'), extensions=['md_in_html', 'tables', 'footnotes'])
         license_html = f'''
 <article id="front" class="no-footer">
   {front_html}
@@ -173,9 +173,9 @@ class ObsPdfConverter(PdfConverter):
     def get_contributors_html(self):
         back_path = self.back_path
         if os.path.exists(back_path):
-            back_html = markdown2.markdown_path(back_path)
+            back_html = markdown.markdownFromFile(back_path, extensions=['md_in_html', 'tables', 'footnotes'])
         else:
-            back_html = markdown2.markdown(get_url('https://git.door43.org/api/v1/repos/unfoldingword/en_obs/raw/content/back/intro.md'))
+            back_html = markdown.markdown(get_url('https://git.door43.org/api/v1/repos/unfoldingword/en_obs/raw/content/back/intro.md'), extensions=['md_in_html', 'tables', 'footnotes'])
         back_html = f'''
 <article id="back" class="obs-page">
   {back_html}

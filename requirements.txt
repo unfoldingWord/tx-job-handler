@@ -7,8 +7,7 @@ dcs-catalog-client==1.16.8
 gitpython==3.1.31
 googletrans==4.0.0rc1
 jsonpickle==3.0.1
-markdown==3.4.3
-markdown2==2.4.8
+markdown==3.4.4
 packaging==23.0
 pip-chill==1.0.1
 py-dateutil==2.2

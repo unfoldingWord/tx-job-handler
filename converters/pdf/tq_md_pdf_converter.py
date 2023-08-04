@@ -11,7 +11,7 @@
 This script generates the HTML and PDF TQ documents
 """
 import os
-import markdown2
+import markdown
 from glob import glob
 from bs4 import BeautifulSoup
 from door43_tools.subjects import TRANSLATION_QUESTIONS
@@ -27,7 +27,7 @@ class TqPdfConverter(PdfConverter):
 
     def get_sample_text(self):
         md_file = os.path.join(self.main_resource.repo_dir, self.project_id, '01.md')
-        html = markdown2.markdown_path(md_file)
+        html = markdown.markdownFromFile(md_file)
         soup = BeautifulSoup(html, 'html.parser')
         return soup.find('p').text
 
@@ -66,7 +66,7 @@ class TqPdfConverter(PdfConverter):
                 verse_files = sorted(glob(os.path.join(chapter_dir, '*.md')))
                 for verse_file in verse_files:
                     verse = os.path.splitext(os.path.basename(verse_file))[0].lstrip('0')
-                    tq_article = markdown2.markdown_path(verse_file)
+                    tq_article = markdown.markdownFromFile(verse_file)
                     tq_article = increment_headers(tq_article, 3)
                     tq_title = f'{book_title} {chapter}:{verse}'
                     tq_rc_link = f'rc://{self.language_id}/tq/help/{project_id}/{self.pad(chapter, project_id)}/{verse.zfill(3)}'
