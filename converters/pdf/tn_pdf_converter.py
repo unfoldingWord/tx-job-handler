@@ -174,7 +174,7 @@ class TnPdfConverter(PdfConverter):
     <section id="{chapter_rc.article_id}" class="chapter">
         <h2 class="section-header" toc-level="3">{chapter_title}</h2>
 '''
-            if 'intro' in self.tn_book_data[chapter]:
+            if chapter in self.tn_book_data and 'intro' in self.tn_book_data[chapter]:
                 self.log.info('Generating chapter info...')
                 chapter_intro = markdown2.markdown(self.tn_book_data[chapter]['intro'][0]['Note'].replace('<br>', "\n").replace('\\n', "\n"))
                 # Remove leading 0 from chapter header
