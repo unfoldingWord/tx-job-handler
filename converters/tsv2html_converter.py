@@ -368,6 +368,7 @@ class Tsv2HtmlConverter(Converter):
                 #             self.log.warning(f"{B} {C}:{V} has unexpected bit: '{bit}'")
                 #         output_html += f'<p>{bit}</p>\n'
             lastC, lastV = C, V
+        reader.close()
         output_html += "</div></body></html>"
 
         self.log.info(f"Generated HTML for {tsv_filepath}")
