@@ -3,7 +3,6 @@ import os
 import logging
 import re
 import dcs_api_client
-import dcs_catalog_client
 import boto3
 import watchtower
 
@@ -128,11 +127,10 @@ class AppSettings:
 
         api_config = dcs_api_client.Configuration()
         api_config.host = f"{cls.dcs_url}/api/v1"
-        cls.repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
+        api_config.api_key['access_token'] = 'da16dd8ddee7dbc4ab84bf5daa1bd5353d0050ee'
 
-        catalog_config = dcs_catalog_client.Configuration()
-        catalog_config.host = f"{cls.dcs_url}/api/catalog"
-        cls.catalog_api = dcs_catalog_client.V5Api(dcs_catalog_client.ApiClient(catalog_config))
+        cls.repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
+        cls.catalog_api = dcs_api_client.CatalogApi(dcs_api_client.ApiClient(api_config))
 
         test_mode_flag = os.getenv('TEST_MODE', '')
         travis_flag = os.getenv('TRAVIS_BRANCH', '')
