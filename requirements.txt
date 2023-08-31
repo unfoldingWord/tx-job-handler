@@ -2,8 +2,7 @@ anyio==3.7.1
 beautifulsoup4==4.12.2
 brotli==1.0.9
 cssutils==2.7.1
-dcs-api-client==1.16.8
-dcs-catalog-client==1.16.8
+dcs-api-client==1.20.3
 gitpython==3.1.32
 googletrans==4.0.0rc1
 jsonpickle==3.0.1

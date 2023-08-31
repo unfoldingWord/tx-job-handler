@@ -3,7 +3,6 @@ import os
 import logging
 import re
 import dcs_api_client
-import dcs_catalog_client
 import boto3
 import watchtower
 
@@ -127,12 +126,13 @@ class AppSettings:
             cls.dcs_url = os.getenv('DCS_URL', default='https://develop.door43.org' if cls.prefix else 'https://git.door43.org')
 
         api_config = dcs_api_client.Configuration()
+        access_token = os.getenv('DCS_ACCESS_TOKEN')
+        if access_token:
+            api_config.api_key['access_token'] = access_token
         api_config.host = f"{cls.dcs_url}/api/v1"
-        cls.repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
 
-        catalog_config = dcs_catalog_client.Configuration()
-        catalog_config.host = f"{cls.dcs_url}/api/catalog"
-        cls.catalog_api = dcs_catalog_client.V5Api(dcs_catalog_client.ApiClient(catalog_config))
+        cls.repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
+        cls.catalog_api = dcs_api_client.CatalogApi(dcs_api_client.ApiClient(api_config))
 
         test_mode_flag = os.getenv('TEST_MODE', '')
         travis_flag = os.getenv('TRAVIS_BRANCH', '')

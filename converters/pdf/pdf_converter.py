@@ -20,7 +20,7 @@ import shutil
 import general_tools.html_tools as html_tools
 import googletrans
 import json
-from dcs_catalog_client.rest import ApiException
+from dcs_api_client.rest import ApiException
 from collections import Counter
 from cssutils import parseStyle
 from cssutils.css import CSSStyleDeclaration
@@ -211,7 +211,6 @@ class PdfConverter(Converter):
                     self.project_id)
                 if not self._project:
                     self.log.error(f'Project not found: {self.project_id}')
-                    exit(1)
             return self._project
 
     @property
