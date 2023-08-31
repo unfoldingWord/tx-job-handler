@@ -11,6 +11,8 @@ def get_obs_chapter_data(repo_dir, chapter_num):
     }
     obs_chapter_file = os.path.join(repo_dir, 'content', f'{chapter_num}.md')
     if not os.path.isfile(obs_chapter_file):
+        obs_chapter_file = os.path.join(repo_dir, 'ingredients', f'{chapter_num}.md')
+    if not os.path.isfile(obs_chapter_file):
         obs_chapter_file = os.path.join(repo_dir, f'{chapter_num}.md')
     if os.path.isfile(obs_chapter_file):
         print(obs_chapter_file)
