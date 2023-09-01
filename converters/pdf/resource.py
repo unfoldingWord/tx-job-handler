@@ -99,14 +99,55 @@ class Resource(object):
     @property
     def manifest(self):
         if not self._manifest:
-            if self.repo_dir:
+            if self.repo_dir and os.path.exists(os.path.join(self.repo_dir, 'manifest.yaml')):
                 self._manifest = load_yaml_object(os.path.join(self.repo_dir, 'manifest.yaml'))
             else:
                 try:
                     response = AppSettings.repo_api.repo_get_contents(self.owner, self.repo_name, "manifest.yaml", ref=self.ref)
                     self._manifest = yaml.safe_load(base64.b64decode(response.content))
                 except ApiException as e:
-                    print("Exception when calling RepositoryApi->repo_get_raw_file: %s\n" % e)
+                    print("Exception when calling RepositoryApi->repo_get_contents: %s\n" % e)
+            if not self._manifest:
+                try:
+                    repo = AppSettings.repo_api.repo_get(self.owner, self.repo_name)
+                    self._manifest = {
+                        "dublin_core": {
+                            "contributor": [self.owner],
+                            "creator": self.owner,
+                            "format": repo.content_format,
+                            "identifier": self.repo_name,
+                            "issued": "",
+                            "language": {
+                                "direction": repo.language_direction,
+                                "identifier": repo.language,
+                                "title": repo.language_title,
+                            },
+                            "modified": "",
+                            "publisher": self.owner,
+                            "relation": [],
+                            "rights": "CC BY-SA 4.0",
+                            "source": [],
+                            "subject": repo.subject,
+                            "title": repo.title,
+                            "type": "book",
+                            "version": self.ref,
+                        },
+                        "checking": {
+                            "checking_level": repo.checking_level
+                        },
+                        "projects": []
+                    }
+                    for ingredient in repo.ingredients:
+                        self._manifest["projects"].append({
+                            "categories": None,
+                            "identifier": ingredient.identifier,
+                            "path": ingredient.path,
+                            "sort": ingredient.sort,
+                            "title": ingredient.title,
+                            "versification": ingredient.versification,
+                        })
+                except ApiException as e:
+                    print("Exception when calling RepositoryApi->repo_get: %s\n" % e)
         return self._manifest
 
     @property

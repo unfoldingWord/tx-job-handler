@@ -334,9 +334,6 @@ def handle_book(BBB:str, nn:str) -> Tuple[int,int]:
                 twl_C, twl_V, orig_TWL_words, occurrence, tw_category, tw_word = adjust_TWL_TSV_fields(next(TWL_source_line_generator))
                 if debugMode: print(f"Got TWL {BBB} {twl_C}:{twl_V}, '{orig_TWL_words}', {occurrence}, '{tw_category}/{tw_word}' with {len(outstanding_TWL_orig_words_list)} {outstanding_TWL_orig_words_list} and {len(origLang_words_in_this_USFM_verse)} {origLang_words_in_this_USFM_verse}")
                 while twl_C in twls_done and twl_V in twls_done[twl_C] and tw_category in twls_done[twl_C][twl_V] and tw_word in twls_done[twl_C][twl_V][tw_category] and orig_TWL_words in twls_done[twl_C][twl_V][tw_category][tw_word] and occurrence in twls_done[twl_C][twl_V][tw_category][tw_word]:
-                    print("HERE!")
-                    print(twls_done[twl_C][twl_V])
-                    exit(1)
                     ocurrence += 1
                 if twl_C not in twls_done:
                     twls_done[twl_C] = {}

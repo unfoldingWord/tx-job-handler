@@ -751,9 +751,9 @@ class PdfConverter(Converter):
             f'  ...set up to use `{resource.repo_name}`: `{resource.ref}`')
 
     def setup_resources(self):
-        if not self.manifest_dict:
-            self.log.error('No manifest.yaml file in repo')
-            return
+        # if not self.manifest_dict:
+        #     self.log.error('No manifest.yaml file in repo')
+        #     return
         self.log.info('Setting up resources...')
         # Setup Main Resource
         repo_dir = None
