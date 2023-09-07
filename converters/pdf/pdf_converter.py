@@ -1394,8 +1394,7 @@ class PdfConverter(Converter):
                     try:
                         return AppSettings.catalog_api.catalog_get_entry(owner, repo, ref)
                     except ApiException as e:
-                        AppSettings.logger.critical(
-                            "Exception when calling V5Api->catalog_get_entry: %s\n" % e)
+                        AppSettings.logger.critical(f"Exception when calling catalog_api->catalog_get_entry [{owner}, {repo}, {ref}]: {e}\n")
 
     def process_relation_resources(self):
         for relation in self.main_resource.relation:
@@ -1446,8 +1445,7 @@ class PdfConverter(Converter):
                 if entries and len(entries.data):
                     entry = entries.data[0]
             except ApiException as e:
-                AppSettings.logger.critical(
-                    "Exception when calling V5Api->catalog_search: %s\n" % e)
+                AppSettings.logger.critical(f"Exception when calling catalog_api->catalog_search [{repo_name}]: {e}\n")
         if not entry:
             return
         resource = Resource(subject=entry.subject, owner=entry.owner, repo_name=entry.name,

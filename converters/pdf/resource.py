@@ -75,11 +75,11 @@ class Resource(object):
     def last_commit(self):
         if not self._last_commit:
             try:
-                commits = AppSettings.repo_api.repo_get_all_commits(self.owner, self.repo_name, sha=self.ref, limit=1)                
+                commits = AppSettings.repo_api.repo_get_all_commits(self.owner, self.repo_name, sha=self.ref, limit=1)
                 if commits and len(commits) > 0:
                     self._last_commit = commits[0]
             except ApiException as e:
-                AppSettings.logger.critical("Exception when calling RepositoryApi->repo_get_all_commits: %s\n" % e) 
+                AppSettings.logger.critical(f"Exception when calling RepositoryApi->repo_get_all_commits [{self.owner}, {self.repo_name}, {self.ref}]: {e}\n")
         return self._last_commit
 
     @property
@@ -206,7 +206,8 @@ class Resource(object):
             try:
                 self._catalog_entry = AppSettings.catalog_api.catalog_get_entry(self.owner, self.repo_name, self.ref)
             except ApiException as e:
-                print("Exception when calling V5Api->catalog_get_entry: %s\n" % e)
+                AppSettings.logger.critical(f"Exception when calling catalog_api->catalog_get_entry [{self.owner}, {self.repo_name}, {self.ref}]: {e}\n")
+
         return self._catalog_entry
 
 
