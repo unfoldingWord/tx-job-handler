@@ -213,7 +213,7 @@ class Tsv2HtmlConverter(Converter):
         cmd = ' '.join(args)
         self.log.info(f'Running `{cmd}` in add_gl_quote_to_tsv')
         ret = subprocess.call(
-            cmd, shell=True, cwd=os.path.join(os.path.dirname(os.path.realpath(__file__)), 'add_gl_quotes_to_tsv'), timeout=3600)
+            cmd, shell=True, cwd=os.path.join(os.path.dirname(os.path.realpath(__file__)), 'add_gl_quotes_to_tsv'), timeout=36000)
         if ret:
             self.log.error('Error running add_gl_quote_to_tsv/add_gl_quote_to_tsv.js. Exiting.')
 

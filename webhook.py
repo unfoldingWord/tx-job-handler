@@ -485,7 +485,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     empty_folder('/tmp/', only_prefix='tX_') # Stops failed jobs from accumulating in /tmp
 
     # AppSettings.logger.info(f"Updating queue statistics…")
-    our_queue= Queue(webhook_queue_name, connection=get_current_job().connection, default_timeout=(60*60*3))
+    our_queue= Queue(webhook_queue_name, connection=get_current_job().connection, default_timeout=(60*60*60))
     len_our_queue = len(our_queue) # Should normally sit at zero here
     # AppSettings.logger.debug(f"Queue '{webhook_queue_name}' length={len_our_queue}")
     stats_client.gauge(f'{enqueue_job_stats_prefix}.queue.length.current', len_our_queue)
