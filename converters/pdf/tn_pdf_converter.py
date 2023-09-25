@@ -223,7 +223,7 @@ class TnPdfConverter(PdfConverter):
 
     def get_tn_article_text(self, chapter, verse):
         verse_notes = ''
-        if verse in self.tn_book_data[chapter]:
+        if chapter in self.tn_book_data and verse in self.tn_book_data[chapter]:
             for tn_note in self.tn_book_data[chapter][verse]:
                 note = markdown.markdown(tn_note['Note'].replace('<br>', "\n").replace('\\n', "\n"), extensions=['md_in_html', 'tables', 'footnotes'])
                 note = re.sub(r'</*p[^>]*>', '', note, flags=re.IGNORECASE | re.MULTILINE)
