@@ -126,8 +126,10 @@ class AppSettings:
             cls.dcs_url = os.getenv('DCS_URL', default='https://develop.door43.org' if cls.prefix else 'https://git.door43.org')
 
         api_config = dcs_api_client.Configuration()
+        access_token = os.getenv('DCS_ACCESS_TOKEN')
+        if access_token:
+            api_config.api_key['access_token'] = access_token
         api_config.host = f"{cls.dcs_url}/api/v1"
-        api_config.api_key['access_token'] = 'da16dd8ddee7dbc4ab84bf5daa1bd5353d0050ee'
 
         cls.repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
         cls.catalog_api = dcs_api_client.CatalogApi(dcs_api_client.ApiClient(api_config))

@@ -68,7 +68,7 @@ class TnPdfConverter(PdfConverter):
         self.populate_tn_book_data()
         html = self.get_tn_html()
         return html
-    
+
     def determine_ult_bible(self):
         ult_bible = None
         for resource in self.resources.values():
@@ -92,7 +92,7 @@ class TnPdfConverter(PdfConverter):
                ]
         cmd = ' '.join(args)
         self.log.info(f'Running `{cmd}` in add_gl_quote_to_tsv')
-        ret = subprocess.call(cmd, shell=True, cwd=os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'add_gl_quotes_to_tsv'), timeout=3600)
+        ret = subprocess.call(cmd, shell=True, cwd=os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'add_gl_quotes_to_tsv'), timeout=36000)
         if ret:
             self.log.error('Error running add_gl_quote_to_tsv/add_gl_quote_to_tsv.js. Exiting.')
 
@@ -101,8 +101,8 @@ class TnPdfConverter(PdfConverter):
         tsv_filepath = os.path.join(self.main_resource.repo_dir, tsv_filepath)
         if not os.path.isfile(tsv_filepath):
             return
-        self.add_gl_quotes_to_tsv(tsv_filepath)  
-        tsv_filepath += ".new"      
+        self.add_gl_quotes_to_tsv(tsv_filepath)
+        tsv_filepath += ".new"
         book_data = OrderedDict()
         reader = self.unicode_csv_reader(open(tsv_filepath))
         header = next(reader)

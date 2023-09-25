@@ -143,7 +143,7 @@ class Converter(metaclass=ABCMeta):
             # TODO: This is unsafe if the zipfile comes from an untrusted source
             unzip(relation_filepath, self.download_dir)
         finally:
-            AppSettings.logger.debug("Unzipping finished.")
+            AppSettings.logger.debug(f"Unzipping finished. Unzipped {relation_filepath} to {self.download_dir}")
 
         # clean up the downloaded zip file
         if os.path.isfile(relation_filepath):

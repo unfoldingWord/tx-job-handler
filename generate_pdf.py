@@ -74,7 +74,7 @@ def generate_pdf(repo_name, owner='unfoldingWord', ref=None, dcs_domain='git.doo
 
     api_config = dcs_api_client.Configuration()
     api_config.host = f"{dcs_domain}/api/v1"
-    api_config.api_key['access_token'] = os.getenv('DCS_TOKEN')
+    api_config.api_key['access_token'] = os.getenv('DCS_ACCESS_TOKEN')
     repo_api = dcs_api_client.RepositoryApi(dcs_api_client.ApiClient(api_config))
     release = None
     releases = repo_api.repo_list_releases(owner, repo_name)
