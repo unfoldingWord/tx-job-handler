@@ -488,7 +488,7 @@ def job(queued_json_payload:Dict[str,Any]) -> None:
     our_queue= Queue(webhook_queue_name, connection=get_current_job().connection, default_timeout=(60*60*60))
     len_our_queue = len(our_queue) # Should normally sit at zero here
     # AppSettings.logger.debug(f"Queue '{webhook_queue_name}' length={len_our_queue}")
-    stats_client.gauge(f'{enqueue_job_stats_prefix}.queue.length.current', len_our_queue)
+    stats_client.gauge(f'{enqueue_job_stats_prefix}.queue.{webhook_queue_name}.length.current', len_our_queue)
     AppSettings.logger.info(f"Updated stats for '{enqueue_job_stats_prefix}.queue.length.current' to {len_our_queue}")
 
     try:
