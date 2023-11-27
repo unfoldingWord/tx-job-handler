@@ -126,6 +126,8 @@ class TnPdfConverter(PdfConverter):
                     verse_data[field] = row[idx]
             if not found:
                 continue
+            if 'Reference' not in verse_data or ':' not in verse_data['Reference']:
+               continue
             chapter = verse_data['Reference'].split(':')[0].lstrip('0')
             verse = re.split('[,-]', verse_data['Reference'].split(':')[1])[0].lstrip('0')
             tn_rc_link = f'rc://{self.language_id}/{self.name}/help/{self.project_id}/{self.pad(chapter)}/{verse.zfill(3)}/{verse_data["ID"]}'
