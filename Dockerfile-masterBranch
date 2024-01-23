@@ -23,7 +23,7 @@ RUN cd converters/add_gl_quotes_to_tsv && npm ci
 
 ENV WORKER_NAME "worker-1"
 
-CMD rq worker --config rq_settings --name $WORKER_NAME
+CMD rq worker --config rq_settings --name $WORKER_NAME-$(date +%s)
 
 # Define environment variables
 # NOTE: The following environment variables are expected to be set:
